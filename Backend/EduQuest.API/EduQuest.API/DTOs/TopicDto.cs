@@ -1,10 +1,10 @@
-﻿namespace EduQuest.API.Models.Entities
+﻿namespace EduQuest.API.DTOs
 {
-    public class Topic
+    public class TopicDto
     {
         public int TopicID { get; set; }
         public int SubjectID { get; set; }
+        public string SubjectName { get; set; }
         public string GradeLevel { get; set; }
-        public Subject Subject { get; set; }
     }
 }
