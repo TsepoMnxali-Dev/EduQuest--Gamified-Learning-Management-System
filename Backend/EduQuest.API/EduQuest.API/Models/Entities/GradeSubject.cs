@@ -1,4 +1,4 @@
-﻿namespace EduQuest.API.Models
+﻿namespace EduQuest.API.Models.Entities
 {
     public class GradeSubject
     {
