@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Dashboard | EduQuest</title>
+
+    <link rel="stylesheet" href="../../css/style.css">
+</head>
+
+<body>
+
+    <!-- Topbar -->
+    <header class="topbar">
+
+        <div class="topbar-search">
+            <input 
+                type="search" 
+                placeholder="Search EduQuest..."
+            >
+        </div>
+
+        <div class="topbar-actions">
+
+            <button class="notification-btn">
+                🔔
+            </button>
+
+            <button class="profile-btn">
+                👤 Admin
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- Dashboard layout -->
+    <div class="app">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+
+            <div>
+
+                <div class="brand">
+
+                    <img 
+                        src="../../images/EduQuestLogo.jpg"
+                        alt="EduQuest Logo"
+                        class="brand-logo"
+                    >
+
+                    <div class="brand-name">
+                        EduQuest
+                    </div>
+
+                </div>
+
+
+                <!-- Navigation -->
+                <nav class="sidebar-nav">
+
+                    <a href="dashboard.html" class="nav-link active">
+                        Home
+                    </a>
+
+                    <a href="#" class="nav-link">
+                        Users
+                    </a>
+
+                    <a href="#" class="nav-link">
+                        Quizzes
+                    </a>
+
+                    <a href="#" class="nav-link">
+                        Resources
+                    </a>
+
+                    <a href="#" class="nav-link">
+                        Competitions
+                    </a>
+
+                    <a href="#" class="nav-link">
+                        Leaderboard
+                    </a>
+
+                    <a href="#" class="nav-link">
+                        Reports
+                    </a>
+
+                </nav>
+
+            </div>
+
+
+            <!-- Sidebar footer -->
+            <div class="sidebar-footer">
+
+                <p>
+                    Enhancing education through tech.
+                </p>
+
+                <small>
+                    © 2026 EduQuest
+                </small>
+
+            </div>
+
+        </aside>
+
+
+        <!-- Main content -->
+        <main class="main">
+
+            <section class="home-content">
+
+                <div class="page-header">
+                    <h1>
+                        Dashboard
+                    </h1>
+
+                    <p>
+                        Welcome back, Admin!
+                    </p>
+
+                </div>
+               <!-- Parent Card -->
+<div class="parent-card">
+
+    <h2>Overview</h2>
+
+    <!-- Child Cards -->
+    <div class="child-cards">
+
+        <div class="child-card">
+
+    <h3>👥 Registered Users</h3>
+    <p>1008 Users registered this year</p>
+    <p>400 users registered this month</p>
+
+</div>
+
+
+<div class="child-card">
+
+    <h3>📝 Quizzes uploaded</h3>
+
+    <p>9000 Total Quizzes uploaded</p>
+
+    <p>500 Quizzes completed</p>
+
+</div>
+
+
+<div class="child-card">
+
+    <h3>📚 Resources</h3>
+
+    <p>200 Resources uploaded for each region</p>
+
+    <p>12 Textbooks accessed this month</p>
+
+    <p>45 Past Papers completed</p>
+
+</div>
+
+    </div>
+
+</div>
+
+
+<!-- Independent Cards -->
+
+<div class="independent-cards">
+
+   <div class="independent-card competition-card">
+
+    <div class="competition-header">
+
+        <div class="competition-icon">
+            🏆
+        </div>
+
+        <div>
+            <h2>Active Competitions</h2>
+            <p class="competition-status">
+                🟢 Competition Centre
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="competition-empty">
+
+        <div class="trophy-icon">
+            🎯
+        </div>
+
+        <h3>No Active Competitions</h3>
+
+        <p>
+            There are currently no competitions running.
+            Check back soon for new challenges!
+        </p>
+
+    </div>
+
+
+    <div class="competition-stats">
+
+        <div class="competition-stat">
+            <span class="stat-icon">🏆</span>
+            <strong>0</strong>
+            <small>Active</small>
+        </div>
+
+        <div class="competition-stat">
+            <span class="stat-icon">📅</span>
+            <strong>0</strong>
+            <small>Upcoming</small>
+        </div>
+
+        <div class="competition-stat">
+            <span class="stat-icon">👥</span>
+            <strong>0</strong>
+            <small>Participants</small>
+        </div>
+
+    </div>
+
+
+    <a href="competition.html" class="competition-button">
+        ➕ Manage Competitions
+    </a>
+
+</div>
+
+    <div class="independent-card">
+        <h2>Quick Actions</h2>
+        <a href="quiz.html" class="quick-action">
+        ➕ Add Quiz
+    </a>
+
+    <a href="resources.html" class="quick-action">
+        📚 Add Resource
+    </a>
+
+    <a href="competition.html" class="quick-action">
+        🏆 Add Competition
+    </a>
+    </div>
+
+
+</div>
+            </section>
+
+        </main>
+
+    </div>
+
+</body>
+</html>
