@@ -2,7 +2,7 @@
 {
     public class CreateSubjectDto
     {
-        public string SubjectName { get; set; }
-        public string GradeLevel { get; set; }
+        public required string SubjectName { get; set; }
+        public required string GradeLevel { get; set; }
     }
 }

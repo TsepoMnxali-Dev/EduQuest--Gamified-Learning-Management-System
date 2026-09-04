@@ -2,6 +2,6 @@
 {
     public class CreateLearnerSubjectDto
     {
-      public string GradeLevel { get; set; }
+      public required string GradeLevel { get; set; }
     }
 }

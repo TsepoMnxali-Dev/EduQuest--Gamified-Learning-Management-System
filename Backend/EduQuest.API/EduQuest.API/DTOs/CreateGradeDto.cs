@@ -2,6 +2,6 @@
 {
     public class CreateGradeDto
     {
-        public string GradeName { get; set; }
+        public required string GradeName { get; set; }
     }
 }

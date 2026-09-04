@@ -1,8 +1,8 @@
 ﻿namespace EduQuest.API.DTOs
 {
-    public class GradeDto
+    public class UpdateGradeDto
     {
-        public int GradeID { get; set; }
         public required string GradeName { get; set; }
+
     }
 }

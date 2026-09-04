@@ -2,7 +2,7 @@
 {
     public class ActivityLog
     {
-        public int LogID { get; set; }
+        public int ActivityLogID { get; set; }
 
         public int UserID { get; set; }
 

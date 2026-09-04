@@ -3,8 +3,8 @@
     public class Subject
     {
         public int SubjectID {  get; set; }
-        public string SubjectName { get; set; }
-        public string GradeLevel { get; set; }
+        public required string SubjectName { get; set; }
+        public required string GradeLevel { get; set; }
         public ICollection<GradeSubject> GradeSubjects { get; set; } = new List<GradeSubject>();
     }
 }

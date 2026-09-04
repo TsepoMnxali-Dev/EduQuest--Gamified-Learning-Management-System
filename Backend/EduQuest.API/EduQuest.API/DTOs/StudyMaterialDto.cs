@@ -5,11 +5,12 @@
         public int StudyMaterialID { get; set; }
         public int SubjectID { get; set; }
         public int GradeID { get; set; }
-        public string SubjectName { get; set; }
-        public string GradeName { get; set; }
-        public string Title { get; set; }
-        public string FileURL { get; set; }
-        public string ResourceType { get; set; }
 
+        public required string SubjectName { get; set; }
+        public required string GradeName { get; set; }
+
+        public required string Title { get; set; }
+        public required string FileURL { get; set; }
+        public required string ResourceType { get; set; }
     }
 }

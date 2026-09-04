@@ -14,8 +14,8 @@
         // Navigation Property
         public Topic? Topic { get; set; }
 
-        public ICollection<QuizQuestion>? QuizQuestions { get; set; }
+        public ICollection<QuizQuestion> QuizQuestions { get; set; } = new List<QuizQuestion>();
 
-        public ICollection<QuizAttempt>? QuizAttempts { get; set; }
+        public ICollection<QuizAttempt> QuizAttempts { get; set; } = new List<QuizAttempt>();
     }
 }
