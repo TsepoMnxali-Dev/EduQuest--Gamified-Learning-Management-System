@@ -166,10 +166,6 @@ namespace EduQuest.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GradeSubjectID"));
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("GradeID")
                         .HasColumnType("int");
 
@@ -178,9 +174,10 @@ namespace EduQuest.API.Migrations
 
                     b.HasKey("GradeSubjectID");
 
-                    b.HasIndex("GradeID");
-
                     b.HasIndex("SubjectID");
+
+                    b.HasIndex("GradeID", "SubjectID")
+                        .IsUnique();
 
                     b.ToTable("GradeSubjects");
                 });
@@ -595,27 +592,6 @@ namespace EduQuest.API.Migrations
                     b.ToTable("StudyMaterials");
                 });
 
-            modelBuilder.Entity("EduQuest.API.Models.Entities.Subject", b =>
-                {
-                    b.Property<int>("SubjectID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubjectID"));
-
-                    b.Property<string>("GradeLevel")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SubjectName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("SubjectID");
-
-                    b.ToTable("Subjects");
-                });
-
             modelBuilder.Entity("EduQuest.API.Models.Entities.Topic", b =>
                 {
                     b.Property<int>("TopicID")
@@ -683,6 +659,23 @@ namespace EduQuest.API.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Subject", b =>
+                {
+                    b.Property<int>("SubjectID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubjectID"));
+
+                    b.Property<string>("SubjectName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("SubjectID");
+
+                    b.ToTable("Subjects");
+                });
+
             modelBuilder.Entity("EduQuest.API.Models.Entities.ActivityLog", b =>
                 {
                     b.HasOne("EduQuest.API.Models.Entities.User", "User")
@@ -730,7 +723,7 @@ namespace EduQuest.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EduQuest.API.Models.Entities.Subject", "Subject")
+                    b.HasOne("Subject", "Subject")
                         .WithMany("GradeSubjects")
                         .HasForeignKey("SubjectID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -798,7 +791,7 @@ namespace EduQuest.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EduQuest.API.Models.Entities.Subject", "Subject")
+                    b.HasOne("Subject", "Subject")
                         .WithMany()
                         .HasForeignKey("SubjectID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -910,7 +903,7 @@ namespace EduQuest.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EduQuest.API.Models.Entities.Subject", "Subject")
+                    b.HasOne("Subject", "Subject")
                         .WithMany()
                         .HasForeignKey("SubjectID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -923,7 +916,7 @@ namespace EduQuest.API.Migrations
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Topic", b =>
                 {
-                    b.HasOne("EduQuest.API.Models.Entities.Subject", "Subject")
+                    b.HasOne("Subject", "Subject")
                         .WithMany()
                         .HasForeignKey("SubjectID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1007,14 +1000,14 @@ namespace EduQuest.API.Migrations
                     b.Navigation("Collections");
                 });
 
-            modelBuilder.Entity("EduQuest.API.Models.Entities.Subject", b =>
-                {
-                    b.Navigation("GradeSubjects");
-                });
-
             modelBuilder.Entity("EduQuest.API.Models.Entities.Topic", b =>
                 {
                     b.Navigation("Quiz");
+                });
+
+            modelBuilder.Entity("Subject", b =>
+                {
+                    b.Navigation("GradeSubjects");
                 });
 #pragma warning restore 612, 618
         }
