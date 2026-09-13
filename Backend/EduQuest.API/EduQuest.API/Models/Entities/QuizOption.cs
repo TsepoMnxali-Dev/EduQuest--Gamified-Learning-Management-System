@@ -12,6 +12,6 @@
         public QuizQuestion? QuizQuestion { get; set; }
 
 
-        public ICollection<QuizAttemptAnswer>? QuizAttemptAnswers { get; set; }
+        public ICollection<QuizAttemptAnswer> QuizAttemptAnswers { get; set; } = new List<QuizAttemptAnswer>();
     }
 }

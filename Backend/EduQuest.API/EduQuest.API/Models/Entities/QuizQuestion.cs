@@ -4,7 +4,7 @@ namespace EduQuest.API.Models.Entities
 {
     public class QuizQuestion
     {
-        public int QuestionID { get; set; }
+        public int QuizQuestionID { get; set; }
 
         public required string QuestionText { get; set; }
         public required string Explanation {  get; set; }
@@ -19,7 +19,7 @@ namespace EduQuest.API.Models.Entities
         public ICollection<QuizOption>? QuizOptions { get; set; }
 
 
-        public ICollection<QuizAttemptAnswer>? QuizAttemptAnswers { get; set; }
+        public ICollection<QuizAttemptAnswer> QuizAttemptAnswers { get; set; } = new HashSet<QuizAttemptAnswer>();
 
 
 

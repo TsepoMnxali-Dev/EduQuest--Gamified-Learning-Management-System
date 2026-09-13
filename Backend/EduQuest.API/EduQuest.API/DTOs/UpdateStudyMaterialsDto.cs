@@ -1,14 +1,9 @@
-﻿namespace EduQuest.API.Models.Entities
+﻿namespace EduQuest.API.DTOs
 {
-    public class StudyMaterial
+    public class UpdateStudyMaterialDto
     {
-        public int StudyMaterialID { get; set; }
-
         public int SubjectID { get; set; }
-        public required Subject Subject { get; set; }
-
         public int GradeID { get; set; }
-        public required Grade Grade { get; set; }
 
         public required string Title { get; set; }
         public required string FileURL { get; set; }

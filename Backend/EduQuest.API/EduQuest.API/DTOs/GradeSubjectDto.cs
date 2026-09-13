@@ -3,7 +3,7 @@
     public class GradeSubjectDto
     {
         public int SubjectID { get; set; }
-        public string SubjectName { get; set; }
-        public string Description { get; set; }
+        public required string SubjectName { get; set; }
+        public required string Description { get; set; }
     }
 }
