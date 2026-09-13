@@ -1,11 +1,14 @@
-﻿using EduQuest.API.Data;
+﻿using System.Security.Claims;
+using EduQuest.API.Data;
 using EduQuest.API.DTOs;
 using EduQuest.API.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace EduQuest.API.Controllers
 {
+    [Authorize]
     [Route("api/learners/{learnerId}/subjects")]
     [ApiController]
     public class LearnerSubjectsController : ControllerBase
@@ -21,12 +24,16 @@ namespace EduQuest.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<LearnerSubjectDto>>> GetLearnerSubjects(int learnerId)
         {
-            var learnerExists = await _context.Learners
-                .AnyAsync(l => l.LearnerID == learnerId);
+            var learner = await _context.Learners.FindAsync(learnerId);
 
-            if (!learnerExists)
+            if (learner == null)
             {
                 return NotFound();
+            }
+
+            if (!IsAdminOrOwner(learner.UserID))
+            {
+                return Forbid();
             }
 
             var subjects = await _context.learnerSubjects
@@ -53,6 +60,11 @@ namespace EduQuest.API.Controllers
             if (learner == null)
             {
                 return NotFound("Learner not found.");
+            }
+
+            if (!IsAdminOrOwner(learner.UserID))
+            {
+                return Forbid();
             }
 
             var subject = await _context.Subjects.FindAsync(subjectId);
@@ -99,6 +111,18 @@ namespace EduQuest.API.Controllers
     int learnerId,
     int subjectId)
         {
+            var learner = await _context.Learners.FindAsync(learnerId);
+
+            if (learner == null)
+            {
+                return NotFound("Learner not found.");
+            }
+
+            if (!IsAdminOrOwner(learner.UserID))
+            {
+                return Forbid();
+            }
+
             var learnerSubject = await _context.learnerSubjects
                 .FirstOrDefaultAsync(ls =>
                     ls.LearnerID == learnerId &&
@@ -113,6 +137,16 @@ namespace EduQuest.API.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        // Helper: true if caller is Admin, or the UserID in the token matches the learner's owning UserID
+        private bool IsAdminOrOwner(int targetUserId)
+        {
+            if (User.IsInRole("Admin"))
+                return true;
+
+            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            return currentUserId == targetUserId;
         }
     }
 }

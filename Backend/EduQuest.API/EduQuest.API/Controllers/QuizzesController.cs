@@ -3,9 +3,12 @@ using EduQuest.API.DTOs;
 using EduQuest.API.Models.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace EduQuest.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class QuizzesController : ControllerBase
@@ -23,6 +26,7 @@ namespace EduQuest.API.Controllers
             return Ok(dBContext.Quizzes.ToList());
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public IActionResult AddQuiz(AddQuizDto addQuizDto)
         {

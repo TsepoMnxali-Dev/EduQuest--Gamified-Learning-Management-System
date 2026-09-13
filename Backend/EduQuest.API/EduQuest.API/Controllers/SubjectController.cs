@@ -3,9 +3,11 @@ using EduQuest.API.DTOs;
 using EduQuest.API.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EduQuest.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class SubjectsController : ControllerBase
@@ -54,6 +56,7 @@ namespace EduQuest.API.Controllers
             return Ok(subject);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<SubjectDto>> CreateSubject(CreateSubjectDto dto)
         {
@@ -80,6 +83,7 @@ namespace EduQuest.API.Controllers
             );
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateSubject(int id, UpdateSubjectDto dto)
         {
@@ -98,6 +102,7 @@ namespace EduQuest.API.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSubject(int id)
         {

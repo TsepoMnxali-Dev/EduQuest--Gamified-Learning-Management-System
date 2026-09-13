@@ -1,11 +1,13 @@
 ﻿using EduQuest.API.Data;
 using EduQuest.API.DTOs;
 using EduQuest.API.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace EduQuest.API.Controllers
 {
+    [Authorize]
     [Route("api/grades/{gradeId}/subjects")]
     [ApiController]
     public class GradeSubjectsController : ControllerBase
@@ -42,11 +44,9 @@ namespace EduQuest.API.Controllers
             return Ok(subjects);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("{subjectId}")]
-        public async Task<ActionResult<GradeSubjectDto>> AddSubjectToGrade(
-    int gradeId,
-    int subjectId,
-    CreateGradeSubjectDto dto)
+        public async Task<ActionResult<GradeSubjectDto>> AddSubjectToGrade(int gradeId,int subjectId,CreateGradeSubjectDto dto)
         {
             var grade = await _context.Grades.FindAsync(gradeId);
 
@@ -92,6 +92,7 @@ namespace EduQuest.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{subjectId}")]
         public async Task<IActionResult> RemoveSubjectFromGrade(
     int gradeId,

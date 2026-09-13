@@ -11,7 +11,7 @@ namespace EduQuest.API.Models.Entities
         public required string LastName { get; set; }
         public required string Email { get; set; }
         public required string PasswordHash {  get; set; }
-        public required string IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
         public string? DateCreated { get; set; }
 
 

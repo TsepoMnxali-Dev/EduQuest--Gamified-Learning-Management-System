@@ -3,9 +3,11 @@ using EduQuest.API.DTOs;
 using EduQuest.API.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EduQuest.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class StudyMaterialsController : ControllerBase
@@ -63,6 +65,7 @@ namespace EduQuest.API.Controllers
             return Ok(material);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<StudyMaterialDto>> CreateStudyMaterial(
     CreateStudyMaterialDto dto)
@@ -114,6 +117,7 @@ namespace EduQuest.API.Controllers
             );
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStudyMaterial(
     int id,
@@ -153,6 +157,7 @@ namespace EduQuest.API.Controllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudyMaterial(int id)
         {
