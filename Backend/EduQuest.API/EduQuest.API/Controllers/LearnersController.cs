@@ -26,16 +26,18 @@ namespace EduQuest.API.Controllers
         public async Task<ActionResult<IEnumerable<LearnerDto>>> GetLearners()
         {
             var learners = await _context.Learners
-                .Select(l => new LearnerDto
-                {
-                    LearnerID = l.LearnerID,
-                    UserID = l.UserID,
-                    GradeID = l.GradeID,
-                    GradeName = l.Grade.GradeName,
-                    SchoolName = l.SchoolName,
-                    Province = l.Province
-                })
-                .ToListAsync();
+            .Select(l => new LearnerDto
+    {
+            LearnerID = l.LearnerID,
+            UserID = l.UserID,
+            GradeID = l.GradeID,
+            GradeName = l.Grade.GradeName,
+            SchoolID = l.SchoolID,
+            SchoolName = l.School.SchoolName,
+            ProvinceID = l.School.ProvinceID,
+            ProvinceName = l.School.Province.ProvinceName
+    })
+             .ToListAsync();
 
             return Ok(learners);
         }
@@ -46,6 +48,8 @@ namespace EduQuest.API.Controllers
         {
             var learner = await _context.Learners
                 .Include(l => l.Grade)
+                .Include(l => l.School)
+                .ThenInclude(s=> s.Province)
                 .FirstOrDefaultAsync(l => l.LearnerID == id);
 
             if (learner == null)
@@ -60,8 +64,10 @@ namespace EduQuest.API.Controllers
                 UserID = learner.UserID,
                 GradeID = learner.GradeID,
                 GradeName = learner.Grade.GradeName,
-                SchoolName = learner.SchoolName,
-                Province = learner.Province
+                SchoolID = learner.SchoolID,
+                SchoolName = learner.School.SchoolName,
+                ProvinceID = learner.School.ProvinceID,
+                ProvinceName = learner.School.Province.ProvinceName
             });
         }
 
@@ -84,13 +90,18 @@ namespace EduQuest.API.Controllers
             if (alreadyExists)
                 return Conflict("This user already has a learner profile.");
 
+            var school = await _context.Schools
+            .Include(s => s.Province)
+            .FirstOrDefaultAsync(s => s.SchoolID == dto.SchoolID);
+
+            if (school == null)
+                return NotFound("School not found.");
+
             var learner = new Learner
             {
                 UserID = dto.UserID,
                 GradeID = dto.GradeID,
-                Grade = grade,
-                SchoolName = dto.SchoolName,
-                Province = dto.Province
+                SchoolID = dto.SchoolID
             };
 
             _context.Learners.Add(learner);
@@ -102,8 +113,10 @@ namespace EduQuest.API.Controllers
                 UserID = learner.UserID,
                 GradeID = learner.GradeID,
                 GradeName = grade.GradeName,
-                SchoolName = learner.SchoolName,
-                Province = learner.Province
+                SchoolID = learner.SchoolID,
+                SchoolName = school.SchoolName,
+                ProvinceID = school.ProvinceID,
+                ProvinceName = school.Province.ProvinceName
             };
 
             return CreatedAtAction(nameof(GetLearner), new { id = learner.LearnerID }, result);
@@ -124,10 +137,14 @@ namespace EduQuest.API.Controllers
             if (grade == null)
                 return NotFound("Grade not found.");
 
+            var school = await _context.Schools
+             .FindAsync(dto.SchoolID);
+
+            if (school == null)
+                return NotFound("School not found.");
+
             learner.GradeID = dto.GradeID;
-            learner.Grade = grade;
-            learner.SchoolName = dto.SchoolName;
-            learner.Province = dto.Province;
+            learner.SchoolID = dto.SchoolID;
 
             await _context.SaveChangesAsync();
 

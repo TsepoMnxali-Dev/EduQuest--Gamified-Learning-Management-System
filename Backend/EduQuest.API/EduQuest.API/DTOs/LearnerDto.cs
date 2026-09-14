@@ -4,9 +4,14 @@
     {
         public int LearnerID { get; set; }
         public int UserID { get; set; }
+
         public int GradeID { get; set; }
-        public string GradeName { get; set; } = string.Empty;
-        public string SchoolName { get; set; } = string.Empty;
-        public string Province { get; set; } = string.Empty;
+        public required string GradeName { get; set; }
+
+        public int SchoolID { get; set; }
+        public required string SchoolName { get; set; }
+
+        public int ProvinceID { get; set; }
+        public required string ProvinceName { get; set; }
     }
 }

@@ -1,13 +1,16 @@
-﻿namespace EduQuest.API.DTOs.Learners
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace EduQuest.API.DTOs.Learners
 {
     public class CreateLearnerDto
     {
+        [Required]
         public int UserID { get; set; }
 
+        [Required]
         public int GradeID { get; set; }
 
-        public string SchoolName { get; set; } = string.Empty;
-
-        public string Province { get; set; } = string.Empty;
+        [Required]
+        public int SchoolID { get; set; }
     }
 }
