@@ -32,7 +32,26 @@ namespace EduQuest.API.Data
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<Topic> Topics { get; set; }
         public DbSet<User> Users { get; set; }
-        public DbSet<ActivityLog> activityLogs { get; set; }   
+        public DbSet<ActivityLog> activityLogs { get; set; }
 
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<GradeSubject>()
+                .HasOne(gs => gs.Grade)
+                .WithMany(g => g.GradeSubjects)
+                .HasForeignKey(gs => gs.GradeID);
+
+            modelBuilder.Entity<GradeSubject>()
+                .HasOne(gs => gs.Subject)
+                .WithMany(s => s.GradeSubjects)
+                .HasForeignKey(gs => gs.SubjectID);
+
+            modelBuilder.Entity<GradeSubject>()
+                .HasIndex(gs => new { gs.GradeID, gs.SubjectID })
+                .IsUnique();
+        }
     }
 }

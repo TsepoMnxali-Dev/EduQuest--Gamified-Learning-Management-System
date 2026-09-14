@@ -26,13 +26,20 @@ namespace EduQuest.API.Controllers
             if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
                 return Conflict("An account with this email already exists.");
 
+            var learnerRole = await _context.Roles
+    .FirstOrDefaultAsync(r => r.RoleName == "Learner");
+
+            if (learnerRole == null)
+                return StatusCode(500, "Learner role has not been configured.");
+
             var user = new User
             {
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                RoleID = dto.RoleID,
+                RoleID = learnerRole.RoleID,
+                // removed RoleID = dto.RoleID
                 IsActive = true
             };
 

@@ -14,6 +14,17 @@ namespace EduQuest.API.Controllers
     {
         private readonly ApplicationDBContext _context;
 
+        // Layer 2: Business rule
+        // EduQuest only supports Grades 10–12 for the current version.
+        private static readonly HashSet<string> AllowedGrades =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+          
+                "Grade 10",
+                "Grade 11",
+                "Grade 12"
+            };
+
         public GradesController(ApplicationDBContext context)
         {
             _context = context;
@@ -24,10 +35,10 @@ namespace EduQuest.API.Controllers
         public async Task<ActionResult<IEnumerable<GradeDto>>> GetGrades()
         {
             var grades = await _context.Grades
-                .Select(g => new GradeDto
+                .Select(grade => new GradeDto
                 {
-                    GradeID = g.GradeID,
-                    GradeName = g.GradeName
+                    GradeID = grade.GradeID,
+                    GradeName = grade.GradeName
                 })
                 .ToListAsync();
 
@@ -39,11 +50,11 @@ namespace EduQuest.API.Controllers
         public async Task<ActionResult<GradeDto>> GetGrade(int id)
         {
             var grade = await _context.Grades
-                .Where(g => g.GradeID == id)
-                .Select(g => new GradeDto
+                .Where(grade => grade.GradeID == id)
+                .Select(grade => new GradeDto
                 {
-                    GradeID = g.GradeID,
-                    GradeName = g.GradeName
+                    GradeID = grade.GradeID,
+                    GradeName = grade.GradeName
                 })
                 .FirstOrDefaultAsync();
 
@@ -55,61 +66,129 @@ namespace EduQuest.API.Controllers
             return Ok(grade);
         }
 
+
         [Authorize(Roles = "Admin")]
+
         [HttpPost]
         public async Task<ActionResult<GradeDto>> CreateGrade(CreateGradeDto dto)
         {
-            var grade = new Grade
+            // Normalize the input
+            var gradeName = dto.GradeName.Trim();
+
+            // Layer 2: Check that the grade is Grade 8–12
+            var validGrade = AllowedGrades.FirstOrDefault(
+                grade => string.Equals(
+                    grade,
+                    gradeName,
+                    StringComparison.OrdinalIgnoreCase));
+
+            if (validGrade == null)
             {
-                GradeName = dto.GradeName
+                return BadRequest(
+                    "Grade must be Grade 10, Grade 11, or Grade 12.");
+            }
+
+            // Store the canonical version
+            // e.g. "grade 8" becomes "Grade 8"
+            gradeName = validGrade;
+
+            // Layer 2: Prevent duplicate grades
+            var exists = await _context.Grades
+                .AnyAsync(grade => grade.GradeName == gradeName);
+
+            if (exists)
+            {
+                return Conflict("This grade already exists.");
+            }
+
+            var gradeEntity = new Grade
+            {
+                GradeName = gradeName
             };
 
-            _context.Grades.Add(grade);
+            _context.Grades.Add(gradeEntity);
             await _context.SaveChangesAsync();
 
             var result = new GradeDto
             {
-                GradeID = grade.GradeID,
-                GradeName = grade.GradeName
+                GradeID = gradeEntity.GradeID,
+                GradeName = gradeEntity.GradeName
             };
 
             return CreatedAtAction(
                 nameof(GetGrade),
-                new { id = grade.GradeID },
+                new { id = gradeEntity.GradeID },
                 result
             );
         }
 
-        [Authorize(Roles = "Admin")]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateGrade(int id, UpdateGradeDto dto)
-        {
-            var grade = await _context.Grades.FindAsync(id);
 
-            if (grade == null)
+        [Authorize(Roles = "Admin")]
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateGrade(
+            int id,
+            UpdateGradeDto dto)
+        {
+            var gradeEntity = await _context.Grades.FindAsync(id);
+
+            if (gradeEntity == null)
             {
                 return NotFound();
             }
 
-            grade.GradeName = dto.GradeName;
+            // Normalize the input
+            var gradeName = dto.GradeName.Trim();
+
+            // Layer 2: Check that the grade is Grade 8–12
+            var validGrade = AllowedGrades.FirstOrDefault(
+                grade => string.Equals(
+                    grade,
+                    gradeName,
+                    StringComparison.OrdinalIgnoreCase));
+
+            if (validGrade == null)
+            {
+                return BadRequest(
+                    "Grade must be Grade 10, Grade 11, or Grade 12.");
+            }
+
+            // Store the canonical version
+            gradeName = validGrade;
+
+            // Layer 2: Prevent duplicate grades
+            // Exclude the current grade from the check.
+            var exists = await _context.Grades
+                .AnyAsync(grade =>
+                    grade.GradeName == gradeName &&
+                    grade.GradeID != id);
+
+            if (exists)
+            {
+                return Conflict("This grade already exists.");
+            }
+
+            gradeEntity.GradeName = gradeName;
 
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
+
         [Authorize(Roles = "Admin")]
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGrade(int id)
         {
-            var grade = await _context.Grades.FindAsync(id);
+            var gradeEntity = await _context.Grades.FindAsync(id);
 
-            if (grade == null)
+            if (gradeEntity == null)
             {
                 return NotFound();
             }
 
-            _context.Grades.Remove(grade);
+            _context.Grades.Remove(gradeEntity);
             await _context.SaveChangesAsync();
 
             return NoContent();
