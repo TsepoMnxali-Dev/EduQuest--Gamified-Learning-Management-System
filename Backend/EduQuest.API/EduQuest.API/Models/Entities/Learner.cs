@@ -9,12 +9,12 @@
         public int GradeID { get; set; }
         public Grade Grade { get; set; }
 
-        public required string SchoolName { get; set; }
-
-        public required string Province { get; set; }
-
+        public int SchoolID { get; set; }
+        public School School { get; set; }
         public User? User { get; set; }
-        
+
+        public ICollection<LearnerSubject> LearnerSubjects { get; set; }
+           = new List<LearnerSubject>();
         public ICollection<LearnerAchievement> LearnerAchievement { get; set; } = new List<LearnerAchievement>();
         public ICollection<CompetitionLearner> CompetitionLearners { get; set; } = new List<CompetitionLearner>();
         public ICollection<Notification> Notification { get; set; } = new List<Notification>();

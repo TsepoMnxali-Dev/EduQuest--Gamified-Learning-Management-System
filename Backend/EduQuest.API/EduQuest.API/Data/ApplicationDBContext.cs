@@ -33,6 +33,8 @@ namespace EduQuest.API.Data
         public DbSet<Topic> Topics { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<ActivityLog> activityLogs { get; set; }
+        public DbSet<Province> Provinces { get; set; }
+        public DbSet<School> Schools { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -52,6 +54,48 @@ namespace EduQuest.API.Data
             modelBuilder.Entity<GradeSubject>()
                 .HasIndex(gs => new { gs.GradeID, gs.SubjectID })
                 .IsUnique();
+            modelBuilder.Entity<School>()
+                .HasOne(school => school.Province)
+                .WithMany(province => province.Schools)
+                .HasForeignKey(school => school.ProvinceID);
+
+            modelBuilder.Entity<Learner>()
+                .HasOne(learner => learner.School)
+                .WithMany(school => school.Learners)
+                .HasForeignKey(learner => learner.SchoolID);
+
+            modelBuilder.Entity<Province>().HasData(
+                new Province { ProvinceID = 1, ProvinceName = "Eastern Cape" },
+                new Province { ProvinceID = 2, ProvinceName = "Free State" },
+                new Province { ProvinceID = 3, ProvinceName = "Gauteng" },
+                new Province { ProvinceID = 4, ProvinceName = "KwaZulu-Natal" },
+                new Province { ProvinceID = 5, ProvinceName = "Limpopo" },
+                new Province { ProvinceID = 6, ProvinceName = "Mpumalanga" },
+                new Province { ProvinceID = 7, ProvinceName = "Northern Cape" },
+                new Province { ProvinceID = 8, ProvinceName = "North West" },
+                new Province { ProvinceID = 9, ProvinceName = "Western Cape" }
+            );
+
+            modelBuilder.Entity<School>().HasData(
+                new School
+                {
+                    SchoolID = 1,
+                    SchoolName = "EduQuest Sample School - Eastern Cape",
+                    ProvinceID = 1
+                },
+                new School
+                {
+                    SchoolID = 2,
+                    SchoolName = "EduQuest Sample School - Gauteng",
+                    ProvinceID = 3
+                },
+                new School
+                {
+                    SchoolID = 3,
+                    SchoolName = "EduQuest Sample School - Western Cape",
+                    ProvinceID = 9
+                }
+);
         }
     }
 }
