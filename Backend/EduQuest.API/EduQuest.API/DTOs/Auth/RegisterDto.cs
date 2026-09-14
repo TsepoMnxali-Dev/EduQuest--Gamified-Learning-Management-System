@@ -11,6 +11,6 @@
 
         public string Password { get; set; } = string.Empty;
 
-        public int RoleID { get; set; }
+        // I removed int RoleID
     }
 }
