@@ -1,9 +1,9 @@
 ﻿using EduQuest.API.Data;
 using EduQuest.API.DTOs;
 using EduQuest.API.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
 
 namespace EduQuest.API.Controllers
 {
@@ -26,13 +26,16 @@ namespace EduQuest.API.Controllers
                 .Select(sm => new StudyMaterialDto
                 {
                     StudyMaterialID = sm.StudyMaterialID,
-                    SubjectID = sm.SubjectID,
-                    GradeID = sm.GradeID,
-                    SubjectName = sm.Subject.SubjectName,
-                    GradeName = sm.Grade.GradeName,
+                    TopicID = sm.TopicID,
+                    TopicName = sm.Topic.TopicName,
+                    SubjectID = sm.Topic.SubjectID,
+                    SubjectName = sm.Topic.Subject.SubjectName,
+                    GradeLevel = sm.Topic.GradeLevel,
                     Title = sm.Title,
-                    FileURL = sm.FileURL,
-                    ResourceType = sm.ResourceType
+                    Description = sm.Description,
+                    ResourceType = sm.ResourceType,
+                    FileName = sm.FileName,
+                    FileURL = sm.FileURL
                 })
                 .ToListAsync();
 
@@ -47,53 +50,72 @@ namespace EduQuest.API.Controllers
                 .Select(sm => new StudyMaterialDto
                 {
                     StudyMaterialID = sm.StudyMaterialID,
-                    SubjectID = sm.SubjectID,
-                    GradeID = sm.GradeID,
-                    SubjectName = sm.Subject.SubjectName,
-                    GradeName = sm.Grade.GradeName,
+                    TopicID = sm.TopicID,
+                    TopicName = sm.Topic.TopicName,
+                    SubjectID = sm.Topic.SubjectID,
+                    SubjectName = sm.Topic.Subject.SubjectName,
+                    GradeLevel = sm.Topic.GradeLevel,
                     Title = sm.Title,
-                    FileURL = sm.FileURL,
-                    ResourceType = sm.ResourceType
+                    Description = sm.Description,
+                    ResourceType = sm.ResourceType,
+                    FileName = sm.FileName,
+                    FileURL = sm.FileURL
                 })
                 .FirstOrDefaultAsync();
 
             if (material == null)
-            {
                 return NotFound();
-            }
 
             return Ok(material);
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPost]
+        [Consumes("multipart/form-data")]
         public async Task<ActionResult<StudyMaterialDto>> CreateStudyMaterial(
-    CreateStudyMaterialDto dto)
+            [FromForm] CreateStudyMaterialDto dto)
         {
-            var subject = await _context.Subjects.FindAsync(dto.SubjectID);
+            var topic = await _context.Topics
+                .Include(t => t.Subject)
+                .FirstOrDefaultAsync(t => t.TopicID == dto.TopicID);
 
-            if (subject == null)
-            {
-                return NotFound("Subject not found.");
-            }
+            if (topic == null)
+                return NotFound("Topic not found.");
 
-            var grade = await _context.Grades.FindAsync(dto.GradeID);
+            var title = dto.Title.Trim();
+            var resourceType = dto.ResourceType.Trim();
 
-            if (grade == null)
-            {
-                return NotFound("Grade not found.");
-            }
+            var hasFile = dto.File != null;
+            var hasUrl = !string.IsNullOrWhiteSpace(dto.FileURL);
+
+            if (!hasFile && !hasUrl)
+                return BadRequest(
+                    "A study material must have either a file or a URL.");
+
+            if (hasFile && hasUrl)
+                return BadRequest(
+                    "A study material cannot have both a file and a URL.");
 
             var material = new StudyMaterial
             {
-                SubjectID = dto.SubjectID,
-                Subject = subject,
-                GradeID = dto.GradeID,
-                Grade = grade,
-                Title = dto.Title,
-                FileURL = dto.FileURL,
-                ResourceType = dto.ResourceType
+                TopicID = dto.TopicID,
+                Topic = topic,
+                Title = title,
+                Description = dto.Description?.Trim(),
+                ResourceType = resourceType,
+                FileURL = dto.FileURL?.Trim()
             };
+
+            if (dto.File != null)
+            {
+                using var memoryStream = new MemoryStream();
+
+                await dto.File.CopyToAsync(memoryStream);
+
+                material.FileData = memoryStream.ToArray();
+                material.FileName = dto.File.FileName;
+                material.FileContentType = dto.File.ContentType;
+            }
 
             _context.StudyMaterials.Add(material);
             await _context.SaveChangesAsync();
@@ -101,13 +123,16 @@ namespace EduQuest.API.Controllers
             var result = new StudyMaterialDto
             {
                 StudyMaterialID = material.StudyMaterialID,
-                SubjectID = material.SubjectID,
-                GradeID = material.GradeID,
-                SubjectName = subject.SubjectName,
-                GradeName = grade.GradeName,
+                TopicID = topic.TopicID,
+                TopicName = topic.TopicName,
+                SubjectID = topic.SubjectID,
+                SubjectName = topic.Subject.SubjectName,
+                GradeLevel = topic.GradeLevel,
                 Title = material.Title,
-                FileURL = material.FileURL,
-                ResourceType = material.ResourceType
+                Description = material.Description,
+                ResourceType = material.ResourceType,
+                FileName = material.FileName,
+                FileURL = material.FileURL
             };
 
             return CreatedAtAction(
@@ -119,38 +144,55 @@ namespace EduQuest.API.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> UpdateStudyMaterial(
-    int id,
-    UpdateStudyMaterialDto dto)
+            int id,
+            [FromForm] UpdateStudyMaterialDto dto)
         {
-            var material = await _context.StudyMaterials.FindAsync(id);
+            var material = await _context.StudyMaterials
+                .FirstOrDefaultAsync(sm => sm.StudyMaterialID == id);
 
             if (material == null)
-            {
                 return NotFound();
-            }
 
-            var subject = await _context.Subjects.FindAsync(dto.SubjectID);
+            var topic = await _context.Topics
+                .Include(t => t.Subject)
+                .FirstOrDefaultAsync(t => t.TopicID == dto.TopicID);
 
-            if (subject == null)
+            if (topic == null)
+                return NotFound("Topic not found.");
+
+            var hasNewFile = dto.File != null;
+            var hasNewUrl = !string.IsNullOrWhiteSpace(dto.FileURL);
+
+            if (hasNewFile && hasNewUrl)
+                return BadRequest(
+                    "A study material cannot have both a file and a URL.");
+
+            material.TopicID = dto.TopicID;
+            material.Topic = topic;
+            material.Title = dto.Title.Trim();
+            material.Description = dto.Description?.Trim();
+            material.ResourceType = dto.ResourceType.Trim();
+
+            if (hasNewFile)
             {
-                return NotFound("Subject not found.");
+                using var memoryStream = new MemoryStream();
+
+                await dto.File!.CopyToAsync(memoryStream);
+
+                material.FileData = memoryStream.ToArray();
+                material.FileName = dto.File.FileName;
+                material.FileContentType = dto.File.ContentType;
+                material.FileURL = null;
             }
-
-            var grade = await _context.Grades.FindAsync(dto.GradeID);
-
-            if (grade == null)
+            else if (hasNewUrl)
             {
-                return NotFound("Grade not found.");
+                material.FileData = null;
+                material.FileName = null;
+                material.FileContentType = null;
+                material.FileURL = dto.FileURL!.Trim();
             }
-
-            material.SubjectID = dto.SubjectID;
-            material.Subject = subject;
-            material.GradeID = dto.GradeID;
-            material.Grade = grade;
-            material.Title = dto.Title;
-            material.FileURL = dto.FileURL;
-            material.ResourceType = dto.ResourceType;
 
             await _context.SaveChangesAsync();
 
@@ -161,17 +203,37 @@ namespace EduQuest.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudyMaterial(int id)
         {
-            var material = await _context.StudyMaterials.FindAsync(id);
+            var material = await _context.StudyMaterials
+                .FindAsync(id);
 
             if (material == null)
-            {
                 return NotFound();
-            }
 
             _context.StudyMaterials.Remove(material);
+
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        [HttpGet("{id}/file")]
+        public async Task<IActionResult> DownloadFile(int id)
+        {
+            var material = await _context.StudyMaterials
+                .FindAsync(id);
+
+            if (material == null)
+                return NotFound();
+
+            if (material.FileData == null)
+                return NotFound(
+                    "This study material does not contain an uploaded file.");
+
+            return File(
+                material.FileData,
+                material.FileContentType ?? "application/octet-stream",
+                material.FileName ?? "download"
+            );
         }
     }
 }

@@ -14,6 +14,15 @@ namespace EduQuest.API.Controllers
     {
         private readonly ApplicationDBContext _context;
 
+        // EduQuest currently supports Grades 10–12.
+        private static readonly HashSet<string> AllowedGrades =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+        "Grade 10",
+        "Grade 11",
+        "Grade 12"
+            };
+
         public TopicsController(ApplicationDBContext context)
         {
             _context = context;
@@ -72,15 +81,48 @@ namespace EduQuest.API.Controllers
                 return NotFound("Subject not found.");
             }
 
+            // Normalize the input
+            var topicName = dto.TopicName.Trim();
+            var gradeLevel = dto.GradeLevel.Trim();
+
+            // Layer 2: Validate the grade
+            var validGrade = AllowedGrades.FirstOrDefault(
+                grade => string.Equals(
+                    grade,
+                    gradeLevel,
+                    StringComparison.OrdinalIgnoreCase));
+
+            if (validGrade == null)
+            {
+                return BadRequest(
+                    "GradeLevel must be Grade 10, Grade 11, or Grade 12.");
+            }
+
+            // Store the canonical grade name
+            gradeLevel = validGrade;
+
+            // Layer 2: Prevent duplicate topics
+            var alreadyExists = await _context.Topics
+                .AnyAsync(t =>
+                    t.SubjectID == dto.SubjectID &&
+                    t.GradeLevel == gradeLevel &&
+                    t.TopicName == topicName);
+
+            if (alreadyExists)
+            {
+                return Conflict(
+                    "This topic already exists for this subject and grade.");
+            }
+
             var topic = new Topic
             {
                 SubjectID = dto.SubjectID,
-                Subject = subject,
-                TopicName = dto.TopicName,
-                GradeLevel = dto.GradeLevel
+                TopicName = topicName,
+                GradeLevel = gradeLevel
             };
 
             _context.Topics.Add(topic);
+
             await _context.SaveChangesAsync();
 
             var result = new TopicDto
@@ -101,7 +143,9 @@ namespace EduQuest.API.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTopic(int id, UpdateTopicDto dto)
+        public async Task<IActionResult> UpdateTopic(
+    int id,
+    UpdateTopicDto dto)
         {
             var topic = await _context.Topics.FindAsync(id);
 
@@ -110,17 +154,52 @@ namespace EduQuest.API.Controllers
                 return NotFound();
             }
 
-            var subject = await _context.Subjects.FindAsync(dto.SubjectID);
+            var subject = await _context.Subjects
+                .FindAsync(dto.SubjectID);
 
             if (subject == null)
             {
                 return NotFound("Subject not found.");
             }
 
+            // Normalize the input
+            var topicName = dto.TopicName.Trim();
+            var gradeLevel = dto.GradeLevel.Trim();
+
+            // Layer 2: Validate the grade
+            var validGrade = AllowedGrades.FirstOrDefault(
+                grade => string.Equals(
+                    grade,
+                    gradeLevel,
+                    StringComparison.OrdinalIgnoreCase));
+
+            if (validGrade == null)
+            {
+                return BadRequest(
+                    "GradeLevel must be Grade 10, Grade 11, or Grade 12.");
+            }
+
+            // Store the canonical grade name
+            gradeLevel = validGrade;
+
+            // Layer 2: Prevent duplicate topics
+            // Exclude the topic currently being updated.
+            var alreadyExists = await _context.Topics
+                .AnyAsync(t =>
+                    t.SubjectID == dto.SubjectID &&
+                    t.GradeLevel == gradeLevel &&
+                    t.TopicName == topicName &&
+                    t.TopicID != id);
+
+            if (alreadyExists)
+            {
+                return Conflict(
+                    "This topic already exists for this subject and grade.");
+            }
+
             topic.SubjectID = dto.SubjectID;
-            topic.Subject = subject;
-            topic.TopicName = dto.TopicName;
-            topic.GradeLevel = dto.GradeLevel;
+            topic.TopicName = topicName;
+            topic.GradeLevel = gradeLevel;
 
             await _context.SaveChangesAsync();
 
