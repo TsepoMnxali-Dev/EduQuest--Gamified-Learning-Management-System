@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EduQuest.API.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20260913021925_Initial")]
-    partial class Initial
+    [Migration("20260916130322_Initial Migration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -225,13 +225,8 @@ namespace EduQuest.API.Migrations
                     b.Property<int>("GradeID")
                         .HasColumnType("int");
 
-                    b.Property<string>("Province")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SchoolName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("SchoolID")
+                        .HasColumnType("int");
 
                     b.Property<int>("UserID")
                         .HasColumnType("int");
@@ -239,6 +234,8 @@ namespace EduQuest.API.Migrations
                     b.HasKey("LearnerID");
 
                     b.HasIndex("GradeID");
+
+                    b.HasIndex("SchoolID");
 
                     b.HasIndex("UserID");
 
@@ -276,10 +273,6 @@ namespace EduQuest.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LearnerSubjectID"));
 
-                    b.Property<string>("GradeLevel")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("LearnerID")
                         .HasColumnType("int");
 
@@ -288,9 +281,10 @@ namespace EduQuest.API.Migrations
 
                     b.HasKey("LearnerSubjectID");
 
-                    b.HasIndex("LearnerID");
-
                     b.HasIndex("SubjectID");
+
+                    b.HasIndex("LearnerID", "SubjectID")
+                        .IsUnique();
 
                     b.ToTable("learnerSubjects");
                 });
@@ -357,6 +351,70 @@ namespace EduQuest.API.Migrations
                     b.HasIndex("CompetitionID");
 
                     b.ToTable("Prizes");
+                });
+
+            modelBuilder.Entity("EduQuest.API.Models.Entities.Province", b =>
+                {
+                    b.Property<int>("ProvinceID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProvinceID"));
+
+                    b.Property<string>("ProvinceName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ProvinceID");
+
+                    b.ToTable("Provinces");
+
+                    b.HasData(
+                        new
+                        {
+                            ProvinceID = 1,
+                            ProvinceName = "Eastern Cape"
+                        },
+                        new
+                        {
+                            ProvinceID = 2,
+                            ProvinceName = "Free State"
+                        },
+                        new
+                        {
+                            ProvinceID = 3,
+                            ProvinceName = "Gauteng"
+                        },
+                        new
+                        {
+                            ProvinceID = 4,
+                            ProvinceName = "KwaZulu-Natal"
+                        },
+                        new
+                        {
+                            ProvinceID = 5,
+                            ProvinceName = "Limpopo"
+                        },
+                        new
+                        {
+                            ProvinceID = 6,
+                            ProvinceName = "Mpumalanga"
+                        },
+                        new
+                        {
+                            ProvinceID = 7,
+                            ProvinceName = "Northern Cape"
+                        },
+                        new
+                        {
+                            ProvinceID = 8,
+                            ProvinceName = "North West"
+                        },
+                        new
+                        {
+                            ProvinceID = 9,
+                            ProvinceName = "Western Cape"
+                        });
                 });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Quiz", b =>
@@ -537,6 +595,65 @@ namespace EduQuest.API.Migrations
                     b.HasKey("RoleID");
 
                     b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            RoleID = 1,
+                            RoleName = "Learner"
+                        },
+                        new
+                        {
+                            RoleID = 2,
+                            RoleName = "Admin"
+                        },
+                        new
+                        {
+                            RoleID = 3,
+                            RoleName = "Sponsor"
+                        });
+                });
+
+            modelBuilder.Entity("EduQuest.API.Models.Entities.School", b =>
+                {
+                    b.Property<int>("SchoolID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SchoolID"));
+
+                    b.Property<int>("ProvinceID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SchoolName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("SchoolID");
+
+                    b.HasIndex("ProvinceID");
+
+                    b.ToTable("Schools");
+
+                    b.HasData(
+                        new
+                        {
+                            SchoolID = 1,
+                            ProvinceID = 1,
+                            SchoolName = "EduQuest Sample School - Eastern Cape"
+                        },
+                        new
+                        {
+                            SchoolID = 2,
+                            ProvinceID = 3,
+                            SchoolName = "EduQuest Sample School - Gauteng"
+                        },
+                        new
+                        {
+                            SchoolID = 3,
+                            ProvinceID = 9,
+                            SchoolName = "EduQuest Sample School - Western Cape"
+                        });
                 });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Sponsor", b =>
@@ -568,29 +685,35 @@ namespace EduQuest.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StudyMaterialID"));
 
-                    b.Property<string>("FileURL")
-                        .IsRequired()
+                    b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("GradeID")
-                        .HasColumnType("int");
+                    b.Property<string>("FileContentType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("FileData")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("FileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FileURL")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ResourceType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("SubjectID")
-                        .HasColumnType("int");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("TopicID")
+                        .HasColumnType("int");
+
                     b.HasKey("StudyMaterialID");
 
-                    b.HasIndex("GradeID");
-
-                    b.HasIndex("SubjectID");
+                    b.HasIndex("TopicID");
 
                     b.ToTable("StudyMaterials");
                 });
@@ -605,18 +728,19 @@ namespace EduQuest.API.Migrations
 
                     b.Property<string>("GradeLevel")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("SubjectID")
                         .HasColumnType("int");
 
                     b.Property<string>("TopicName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("TopicID");
 
-                    b.HasIndex("SubjectID");
+                    b.HasIndex("SubjectID", "GradeLevel", "TopicName")
+                        .IsUnique();
 
                     b.ToTable("Topics");
                 });
@@ -629,8 +753,8 @@ namespace EduQuest.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"));
 
-                    b.Property<string>("DateCreated")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -640,9 +764,8 @@ namespace EduQuest.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("IsActive")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -756,6 +879,12 @@ namespace EduQuest.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("EduQuest.API.Models.Entities.School", "School")
+                        .WithMany("Learners")
+                        .HasForeignKey("SchoolID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("EduQuest.API.Models.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
@@ -763,6 +892,8 @@ namespace EduQuest.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Grade");
+
+                    b.Navigation("School");
 
                     b.Navigation("User");
                 });
@@ -789,7 +920,7 @@ namespace EduQuest.API.Migrations
             modelBuilder.Entity("EduQuest.API.Models.Entities.LearnerSubject", b =>
                 {
                     b.HasOne("EduQuest.API.Models.Entities.Learner", "Learner")
-                        .WithMany()
+                        .WithMany("LearnerSubjects")
                         .HasForeignKey("LearnerID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -898,23 +1029,26 @@ namespace EduQuest.API.Migrations
                     b.Navigation("Quiz");
                 });
 
+            modelBuilder.Entity("EduQuest.API.Models.Entities.School", b =>
+                {
+                    b.HasOne("EduQuest.API.Models.Entities.Province", "Province")
+                        .WithMany("Schools")
+                        .HasForeignKey("ProvinceID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Province");
+                });
+
             modelBuilder.Entity("EduQuest.API.Models.Entities.StudyMaterial", b =>
                 {
-                    b.HasOne("EduQuest.API.Models.Entities.Grade", "Grade")
+                    b.HasOne("EduQuest.API.Models.Entities.Topic", "Topic")
                         .WithMany()
-                        .HasForeignKey("GradeID")
+                        .HasForeignKey("TopicID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Subject", "Subject")
-                        .WithMany()
-                        .HasForeignKey("SubjectID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Grade");
-
-                    b.Navigation("Subject");
+                    b.Navigation("Topic");
                 });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Topic", b =>
@@ -964,9 +1098,16 @@ namespace EduQuest.API.Migrations
 
                     b.Navigation("LearnerAchievement");
 
+                    b.Navigation("LearnerSubjects");
+
                     b.Navigation("Notification");
 
                     b.Navigation("QuizAttempt");
+                });
+
+            modelBuilder.Entity("EduQuest.API.Models.Entities.Province", b =>
+                {
+                    b.Navigation("Schools");
                 });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Quiz", b =>
@@ -996,6 +1137,11 @@ namespace EduQuest.API.Migrations
             modelBuilder.Entity("EduQuest.API.Models.Entities.Role", b =>
                 {
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("EduQuest.API.Models.Entities.School", b =>
+                {
+                    b.Navigation("Learners");
                 });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Sponsor", b =>

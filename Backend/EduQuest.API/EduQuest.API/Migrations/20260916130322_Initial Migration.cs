@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace EduQuest.API.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -38,6 +40,19 @@ namespace EduQuest.API.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Grades", x => x.GradeID);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Provinces",
+                columns: table => new
+                {
+                    ProvinceID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ProvinceName = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Provinces", x => x.ProvinceID);
                 });
 
             migrationBuilder.CreateTable(
@@ -81,6 +96,26 @@ namespace EduQuest.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Schools",
+                columns: table => new
+                {
+                    SchoolID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SchoolName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ProvinceID = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Schools", x => x.SchoolID);
+                    table.ForeignKey(
+                        name: "FK_Schools_Provinces_ProvinceID",
+                        column: x => x.ProvinceID,
+                        principalTable: "Provinces",
+                        principalColumn: "ProvinceID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -90,8 +125,8 @@ namespace EduQuest.API.Migrations
                     LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    IsActive = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DateCreated = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
                     RoleID = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -155,43 +190,14 @@ namespace EduQuest.API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "StudyMaterials",
-                columns: table => new
-                {
-                    StudyMaterialID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    SubjectID = table.Column<int>(type: "int", nullable: false),
-                    GradeID = table.Column<int>(type: "int", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FileURL = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ResourceType = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_StudyMaterials", x => x.StudyMaterialID);
-                    table.ForeignKey(
-                        name: "FK_StudyMaterials_Grades_GradeID",
-                        column: x => x.GradeID,
-                        principalTable: "Grades",
-                        principalColumn: "GradeID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_StudyMaterials_Subjects_SubjectID",
-                        column: x => x.SubjectID,
-                        principalTable: "Subjects",
-                        principalColumn: "SubjectID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Topics",
                 columns: table => new
                 {
                     TopicID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     SubjectID = table.Column<int>(type: "int", nullable: false),
-                    TopicName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    GradeLevel = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    TopicName = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    GradeLevel = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -234,8 +240,7 @@ namespace EduQuest.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserID = table.Column<int>(type: "int", nullable: false),
                     GradeID = table.Column<int>(type: "int", nullable: false),
-                    SchoolName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Province = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    SchoolID = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -245,6 +250,12 @@ namespace EduQuest.API.Migrations
                         column: x => x.GradeID,
                         principalTable: "Grades",
                         principalColumn: "GradeID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Learners_Schools_SchoolID",
+                        column: x => x.SchoolID,
+                        principalTable: "Schools",
+                        principalColumn: "SchoolID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Learners_Users_UserID",
@@ -293,6 +304,32 @@ namespace EduQuest.API.Migrations
                     table.PrimaryKey("PK_Quizzes", x => x.QuizID);
                     table.ForeignKey(
                         name: "FK_Quizzes_Topics_TopicID",
+                        column: x => x.TopicID,
+                        principalTable: "Topics",
+                        principalColumn: "TopicID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StudyMaterials",
+                columns: table => new
+                {
+                    StudyMaterialID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TopicID = table.Column<int>(type: "int", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ResourceType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FileData = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
+                    FileName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FileContentType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FileURL = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StudyMaterials", x => x.StudyMaterialID);
+                    table.ForeignKey(
+                        name: "FK_StudyMaterials_Topics_TopicID",
                         column: x => x.TopicID,
                         principalTable: "Topics",
                         principalColumn: "TopicID",
@@ -381,8 +418,7 @@ namespace EduQuest.API.Migrations
                     LearnerSubjectID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     LearnerID = table.Column<int>(type: "int", nullable: false),
-                    SubjectID = table.Column<int>(type: "int", nullable: false),
-                    GradeLevel = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    SubjectID = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -530,6 +566,42 @@ namespace EduQuest.API.Migrations
                         principalColumn: "QuizQuestionID");
                 });
 
+            migrationBuilder.InsertData(
+                table: "Provinces",
+                columns: new[] { "ProvinceID", "ProvinceName" },
+                values: new object[,]
+                {
+                    { 1, "Eastern Cape" },
+                    { 2, "Free State" },
+                    { 3, "Gauteng" },
+                    { 4, "KwaZulu-Natal" },
+                    { 5, "Limpopo" },
+                    { 6, "Mpumalanga" },
+                    { 7, "Northern Cape" },
+                    { 8, "North West" },
+                    { 9, "Western Cape" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Roles",
+                columns: new[] { "RoleID", "RoleName" },
+                values: new object[,]
+                {
+                    { 1, "Learner" },
+                    { 2, "Admin" },
+                    { 3, "Sponsor" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Schools",
+                columns: new[] { "SchoolID", "ProvinceID", "SchoolName" },
+                values: new object[,]
+                {
+                    { 1, 1, "EduQuest Sample School - Eastern Cape" },
+                    { 2, 3, "EduQuest Sample School - Gauteng" },
+                    { 3, 9, "EduQuest Sample School - Western Cape" }
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_activityLogs_UserID",
                 table: "activityLogs",
@@ -582,14 +654,20 @@ namespace EduQuest.API.Migrations
                 column: "GradeID");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Learners_SchoolID",
+                table: "Learners",
+                column: "SchoolID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Learners_UserID",
                 table: "Learners",
                 column: "UserID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_learnerSubjects_LearnerID",
+                name: "IX_learnerSubjects_LearnerID_SubjectID",
                 table: "learnerSubjects",
-                column: "LearnerID");
+                columns: new[] { "LearnerID", "SubjectID" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_learnerSubjects_SubjectID",
@@ -647,19 +725,20 @@ namespace EduQuest.API.Migrations
                 column: "TopicID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StudyMaterials_GradeID",
-                table: "StudyMaterials",
-                column: "GradeID");
+                name: "IX_Schools_ProvinceID",
+                table: "Schools",
+                column: "ProvinceID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StudyMaterials_SubjectID",
+                name: "IX_StudyMaterials_TopicID",
                 table: "StudyMaterials",
-                column: "SubjectID");
+                column: "TopicID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Topics_SubjectID",
+                name: "IX_Topics_SubjectID_GradeLevel_TopicName",
                 table: "Topics",
-                column: "SubjectID");
+                columns: new[] { "SubjectID", "GradeLevel", "TopicName" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_RoleID",
@@ -725,10 +804,16 @@ namespace EduQuest.API.Migrations
                 name: "Grades");
 
             migrationBuilder.DropTable(
+                name: "Schools");
+
+            migrationBuilder.DropTable(
                 name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Quizzes");
+
+            migrationBuilder.DropTable(
+                name: "Provinces");
 
             migrationBuilder.DropTable(
                 name: "Roles");
