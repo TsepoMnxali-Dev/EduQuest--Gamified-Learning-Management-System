@@ -10,6 +10,5 @@
         public int SubjectID { get; set; }
         public Subject Subject { get; set; }
 
-        public required string GradeLevel { get; set; }
     }
 }

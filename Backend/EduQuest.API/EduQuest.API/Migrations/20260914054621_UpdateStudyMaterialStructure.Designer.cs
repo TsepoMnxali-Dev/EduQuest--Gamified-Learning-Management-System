@@ -4,6 +4,7 @@ using EduQuest.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EduQuest.API.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260914054621_UpdateStudyMaterialStructure")]
+    partial class UpdateStudyMaterialStructure
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -592,23 +595,6 @@ namespace EduQuest.API.Migrations
                     b.HasKey("RoleID");
 
                     b.ToTable("Roles");
-
-                    b.HasData(
-                        new
-                        {
-                            RoleID = 1,
-                            RoleName = "Learner"
-                        },
-                        new
-                        {
-                            RoleID = 2,
-                            RoleName = "Admin"
-                        },
-                        new
-                        {
-                            RoleID = 3,
-                            RoleName = "Sponsor"
-                        });
                 });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.School", b =>
@@ -683,9 +669,6 @@ namespace EduQuest.API.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StudyMaterialID"));
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FileContentType")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("FileData")
