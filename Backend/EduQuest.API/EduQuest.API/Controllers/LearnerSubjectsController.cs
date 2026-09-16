@@ -42,7 +42,7 @@ namespace EduQuest.API.Controllers
                 {
                     SubjectID = ls.SubjectID,
                     SubjectName = ls.Subject.SubjectName,
-                    GradeLevel = ls.GradeLevel
+                   
                 })
                 .ToListAsync();
 
@@ -51,9 +51,8 @@ namespace EduQuest.API.Controllers
 
         [HttpPost("{subjectId}")]
         public async Task<ActionResult<LearnerSubjectDto>> AddSubjectToLearner(
-    int learnerId,
-    int subjectId,
-    CreateLearnerSubjectDto dto)
+        int learnerId,
+        int subjectId)
         {
             var learner = await _context.Learners.FindAsync(learnerId);
 
@@ -86,11 +85,9 @@ namespace EduQuest.API.Controllers
 
             var learnerSubject = new LearnerSubject
             {
-                LearnerID = learnerId,
-                Learner = learner,
-                SubjectID = subjectId,
-                Subject = subject,
-                GradeLevel = dto.GradeLevel
+                LearnerID = learnerId,          
+                SubjectID = subjectId           
+                
             };
 
             _context.learnerSubjects.Add(learnerSubject);
@@ -100,10 +97,13 @@ namespace EduQuest.API.Controllers
             {
                 SubjectID = subject.SubjectID,
                 SubjectName = subject.SubjectName,
-                GradeLevel = learnerSubject.GradeLevel
+                
             };
 
-            return Ok(result);
+            return CreatedAtAction(
+            nameof(GetLearnerSubjects),
+            new { learnerId },
+            result);
         }
 
         [HttpDelete("{subjectId}")]

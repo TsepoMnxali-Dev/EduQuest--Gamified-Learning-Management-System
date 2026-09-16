@@ -54,6 +54,29 @@ namespace EduQuest.API.Data
             modelBuilder.Entity<GradeSubject>()
                 .HasIndex(gs => new { gs.GradeID, gs.SubjectID })
                 .IsUnique();
+
+            modelBuilder.Entity<LearnerSubject>()
+           .HasIndex(ls => new { ls.LearnerID, ls.SubjectID })
+           .IsUnique();
+
+            modelBuilder.Entity<Role>().HasData(
+                new Role
+                {
+                    RoleID = 1,
+                    RoleName = "Learner"
+                },
+                new Role
+                {
+                    RoleID = 2,
+                    RoleName = "Admin"
+                },
+                new Role
+                {
+                    RoleID = 3,
+                    RoleName = "Sponsor"
+    }
+);
+
             modelBuilder.Entity<School>()
                 .HasOne(school => school.Province)
                 .WithMany(province => province.Schools)
@@ -63,6 +86,20 @@ namespace EduQuest.API.Data
                 .HasOne(learner => learner.School)
                 .WithMany(school => school.Learners)
                 .HasForeignKey(learner => learner.SchoolID);
+
+            modelBuilder.Entity<Topic>()
+                .HasIndex(t => new
+                {
+                    t.SubjectID,
+                    t.GradeLevel,
+                    t.TopicName
+                })
+                .IsUnique();
+
+            modelBuilder.Entity<StudyMaterial>()
+                .HasOne(sm => sm.Topic)
+                .WithMany()
+                .HasForeignKey(sm => sm.TopicID);
 
             modelBuilder.Entity<Province>().HasData(
                 new Province { ProvinceID = 1, ProvinceName = "Eastern Cape" },
@@ -96,6 +133,7 @@ namespace EduQuest.API.Data
                     ProvinceID = 9
                 }
 );
+           
         }
     }
 }
