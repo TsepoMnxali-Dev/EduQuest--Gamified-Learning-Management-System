@@ -5,7 +5,7 @@
         public int TopicID { get; set; }
 
         public int SubjectID { get; set; }
-        public required Subject Subject { get; set; }
+        public Subject? Subject { get; set; }
 
         public required string TopicName { get; set; }
         public required string GradeLevel { get; set; }

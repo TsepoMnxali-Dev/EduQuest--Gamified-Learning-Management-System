@@ -4,14 +4,21 @@
     {
         public int StudyMaterialID { get; set; }
 
-        public int SubjectID { get; set; }
-        public required Subject Subject { get; set; }
-
-        public int GradeID { get; set; }
-        public required Grade Grade { get; set; }
+        public int TopicID { get; set; }
+        public Topic? Topic { get; set; } = null;
 
         public required string Title { get; set; }
-        public required string FileURL { get; set; }
+
+        public string? Description { get; set; }
+
         public required string ResourceType { get; set; }
+
+        public byte[]? FileData { get; set; }
+
+        public string? FileName { get; set; }
+
+        public string? FileContentType { get; set; }
+
+        public string? FileURL { get; set; }
     }
 }
