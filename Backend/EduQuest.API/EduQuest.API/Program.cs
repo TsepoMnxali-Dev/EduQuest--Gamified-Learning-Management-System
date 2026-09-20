@@ -36,6 +36,7 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddHttpClient<GeminiQuizGeneratorService>();
 
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 
