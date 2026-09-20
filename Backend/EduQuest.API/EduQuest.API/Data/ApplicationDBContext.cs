@@ -96,6 +96,16 @@ namespace EduQuest.API.Data
                 })
                 .IsUnique();
 
+            modelBuilder.Entity<Learner>()
+                .HasOne(learner => learner.User)
+                .WithOne()
+                .HasForeignKey<Learner>(learner => learner.UserID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
+
             modelBuilder.Entity<StudyMaterial>()
                 .HasOne(sm => sm.Topic)
                 .WithMany()
@@ -114,26 +124,88 @@ namespace EduQuest.API.Data
             );
 
             modelBuilder.Entity<School>().HasData(
-                new School
-                {
-                    SchoolID = 1,
-                    SchoolName = "EduQuest Sample School - Eastern Cape",
-                    ProvinceID = 1
-                },
-                new School
-                {
-                    SchoolID = 2,
-                    SchoolName = "EduQuest Sample School - Gauteng",
-                    ProvinceID = 3
-                },
-                new School
-                {
-                    SchoolID = 3,
-                    SchoolName = "EduQuest Sample School - Western Cape",
-                    ProvinceID = 9
-                }
+    // =========================
+    // Eastern Cape - Province 1
+    // =========================
+    new School { SchoolID = 1, SchoolName = "AM Zantsi Senior Secondary School", ProvinceID = 1 },
+    new School { SchoolID = 2, SchoolName = "Amabele Senior Secondary School", ProvinceID = 1 },
+    new School { SchoolID = 3, SchoolName = "Emdemi Senior Secondary School", ProvinceID = 1 },
+    new School { SchoolID = 4, SchoolName = "St Margaret Senior Secondary School", ProvinceID = 1 },
+    new School { SchoolID = 5, SchoolName = "St Matthews High School", ProvinceID = 1 },
+
+    // =========================
+    // Free State - Province 2
+    // =========================
+    new School { SchoolID = 6, SchoolName = "Sehlabeng Secondary School", ProvinceID = 2 },
+    new School { SchoolID = 7, SchoolName = "Sehunelo Secondary School", ProvinceID = 2 },
+    new School { SchoolID = 8, SchoolName = "Selelekelela Secondary School", ProvinceID = 2 },
+    new School { SchoolID = 9, SchoolName = "Seotlong A Secondary School", ProvinceID = 2 },
+    new School { SchoolID = 10, SchoolName = "Teto Secondary School", ProvinceID = 2 },
+
+    // =========================
+    // Gauteng - Province 3
+    // =========================
+    new School { SchoolID = 11, SchoolName = "Adam Masebe Secondary School", ProvinceID = 3 },
+    new School { SchoolID = 12, SchoolName = "Altmont Technical High School", ProvinceID = 3 },
+    new School { SchoolID = 13, SchoolName = "Asser Maloka Secondary School", ProvinceID = 3 },
+    new School { SchoolID = 14, SchoolName = "Bona Lesedi Secondary School", ProvinceID = 3 },
+    new School { SchoolID = 15, SchoolName = "Cosmo City Secondary School", ProvinceID = 3 },
+
+    // =========================
+    // KwaZulu-Natal - Province 4
+    // =========================
+    new School { SchoolID = 16, SchoolName = "A.M. Moolla Secondary School", ProvinceID = 4 },
+    new School { SchoolID = 17, SchoolName = "Abaqulusi High School", ProvinceID = 4 },
+    new School { SchoolID = 18, SchoolName = "Amazondi Secondary School", ProvinceID = 4 },
+    new School { SchoolID = 19, SchoolName = "Bonga Secondary School", ProvinceID = 4 },
+    new School { SchoolID = 20, SchoolName = "Bukelakithi High School", ProvinceID = 4 },
+
+    // =========================
+    // Limpopo - Province 5
+    // =========================
+    new School { SchoolID = 21, SchoolName = "Abel Secondary School", ProvinceID = 5 },
+    new School { SchoolID = 22, SchoolName = "Abraham Serote Secondary School", ProvinceID = 5 },
+    new School { SchoolID = 23, SchoolName = "Adolf Mhinga Secondary School", ProvinceID = 5 },
+    new School { SchoolID = 24, SchoolName = "Alfred Ngwedzeni Secondary School", ProvinceID = 5 },
+    new School { SchoolID = 25, SchoolName = "Bambeni Secondary School", ProvinceID = 5 },
+
+    // =========================
+    // Mpumalanga - Province 6
+    // =========================
+    new School { SchoolID = 26, SchoolName = "Acorn-Oaks Comprehensive High School", ProvinceID = 6 },
+    new School { SchoolID = 27, SchoolName = "Alfred Matshine Commercial School", ProvinceID = 6 },
+    new School { SchoolID = 28, SchoolName = "Amadlelo Aluhlaza Secondary School", ProvinceID = 6 },
+    new School { SchoolID = 29, SchoolName = "Bee Maseko Secondary School", ProvinceID = 6 },
+    new School { SchoolID = 30, SchoolName = "Ben Matloshe High School", ProvinceID = 6 },
+
+    // =========================
+    // Northern Cape - Province 7
+    // =========================
+    new School { SchoolID = 31, SchoolName = "!Xunkhwesa Combined School", ProvinceID = 7 },
+    new School { SchoolID = 32, SchoolName = "Ba Ga Lotlhare Intermediate School", ProvinceID = 7 },
+    new School { SchoolID = 33, SchoolName = "Bankhara Bodulong High School", ProvinceID = 7 },
+    new School { SchoolID = 34, SchoolName = "Banksdrif Secondary School", ProvinceID = 7 },
+    new School { SchoolID = 35, SchoolName = "Kimberley Boys' High School", ProvinceID = 7 },
+
+    // =========================
+    // North West - Province 8
+    // =========================
+    new School { SchoolID = 36, SchoolName = "Areganeng Secondary School", ProvinceID = 8 },
+    new School { SchoolID = 37, SchoolName = "Badumedi Secondary School", ProvinceID = 8 },
+    new School { SchoolID = 38, SchoolName = "Nqunde Secondary School", ProvinceID = 8 },
+    new School { SchoolID = 39, SchoolName = "Ntshidi Secondary School", ProvinceID = 8 },
+    new School { SchoolID = 40, SchoolName = "Potchefstroom High School for Boys", ProvinceID = 8 },
+
+    // =========================
+    // Western Cape - Province 9
+    // =========================
+    new School { SchoolID = 41, SchoolName = "Dysselsdorp Sekondêr", ProvinceID = 9 },
+    new School { SchoolID = 42, SchoolName = "Fezekile Secondary School", ProvinceID = 9 },
+    new School { SchoolID = 43, SchoolName = "Fisantekraal High School", ProvinceID = 9 },
+    new School { SchoolID = 44, SchoolName = "Garden Route High School", ProvinceID = 9 },
+    new School { SchoolID = 45, SchoolName = "Woodlands Secondary School", ProvinceID = 9 }
 );
-           
+
         }
     }
 }

@@ -23,11 +23,13 @@ namespace EduQuest.API.Controllers
         [HttpPost("register")]
         public async Task<ActionResult> Register(RegisterDto dto)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
+            var email = dto.Email.Trim().ToLowerInvariant();
+
+            if (await _context.Users.AnyAsync(u => u.Email == email))
                 return Conflict("An account with this email already exists.");
 
             var learnerRole = await _context.Roles
-    .FirstOrDefaultAsync(r => r.RoleName == "Learner");
+                .FirstOrDefaultAsync(r => r.RoleName == "Learner");
 
             if (learnerRole == null)
                 return StatusCode(500, "Learner role has not been configured.");
@@ -36,10 +38,9 @@ namespace EduQuest.API.Controllers
             {
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
-                Email = dto.Email,
+                Email = email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 RoleID = learnerRole.RoleID,
-                // removed RoleID = dto.RoleID
                 IsActive = true
             };
 
@@ -52,14 +53,17 @@ namespace EduQuest.API.Controllers
         [HttpPost("login")]
         public async Task<ActionResult> Login(LoginDto dto)
         {
+            var email = dto.Email.Trim().ToLowerInvariant();
+
             var user = await _context.Users
                 .Include(u => u.Role)
-                .FirstOrDefaultAsync(u => u.Email == dto.Email);
+                .FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
 
             if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
                 return Unauthorized("Invalid email or password.");
 
             var token = _tokenService.CreateToken(user);
+
             return Ok(new { token });
         }
     }

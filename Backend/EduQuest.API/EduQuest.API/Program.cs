@@ -37,6 +37,8 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
 
 builder.Services.AddScoped<TokenService>();
 
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+
 //JWT auth setup
 builder.Services.AddAuthentication(options =>
 {
@@ -75,6 +77,14 @@ if (app.Environment.IsDevelopment())
         .GetRequiredService<IConfiguration>();
 
     await DbSeeder.SeedAdminAsync(context, configuration);
+
+    await DbSeeder.SeedGradesAsync(context);
+    await DbSeeder.SeedSubjectsAsync(context);
+    await DbSeeder.SeedGradeSubjectsAsync(context);
+    await DbSeeder.SeedTopicsAsync(context);
+    await DbSeeder.SeedStudyMaterialsAsync(context);
+    await DbSeeder.SeedDemoLearnersAsync(context);
+    await DbSeeder.SeedLearnerSubjectsAsync(context);
 
     app.UseSwagger();
     app.UseSwaggerUI();
