@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Manage Resources | EduQuest</title>
+    <title>Manage Users | EduQuest</title>
 
     <link rel="stylesheet" href="../../css/style.css">
 </head>
@@ -64,7 +64,7 @@
                         Home
                     </a>
 
-                    <a href="users.html" class="nav-link">
+                    <a href="users.html" class="nav-link active">
                         Users
                     </a>
 
@@ -72,7 +72,7 @@
                         Quizzes
                     </a>
 
-                    <a href="resources.html" class="nav-link active">
+                    <a href="resources.html" class="nav-link">
                         Resources
                     </a>
 
@@ -105,22 +105,22 @@
             </div>
 
         </aside>
-        <!-- Main content -->
+         <!-- Main content -->
         <main class="main">
 
             <section class="home-content">
 
                 <div class="page-header">
                     <h1>
-                        Resources
+                        Users
                     </h1>
 
                     <p>
-                        Manage Textbooks, Pastpapers, Question Papers & Study Materials across all regions 
+                        Manage Learner and admin accounts accross EduQuest!
                     </p>
 
                 </div>
-                 <!-- Parent Card -->
+               <!-- Parent Card -->
 <div class="parent-card">
 
     <h2>Overview</h2>
@@ -130,23 +130,26 @@
 
         <div class="child-card">
 
-      <h3>15 </h3>
-    <p>Total Resources.</p>
+    <h3>👥 Registered Users</h3>
+      <h3> 18</h3>
+    <p>13 Learners. 5 Admins.</p>
 
 </div>
 
 
 <div class="child-card">
 
-     <h3>4</h3>
-    <p>Textbooks</p>
+    <h3>🟢 Active Accounts</h3>
+     <h3> 15</h3>
+    <p>3 suspended accounts</p>
 
 </div>
 
 
 <div class="child-card">
-       <h3>6</h3>
-    <p>Regions with content</p>
+    <h3>🆕 New This Month</h3>
+       <h3>0</h3>
+    <p>No new accounts this month</p>
 </div>
 
     </div>
@@ -156,8 +159,8 @@
 <section class="users-table-card">
 
     <div class="users-table-header">
-        <h2>Available Resources</h2>
-        <p>View resources that learners have access to.</p>
+        <h2>Registered Users</h2>
+        <p>View registered learners and administrators.</p>
     </div>
       <div class="users-toolbar">
 
@@ -167,69 +170,100 @@
 
             <input
                 type="text"
-                id="resourceSearch"
-                placeholder="Search by title or subject"
+                id="userSearch"
+                placeholder="Search by name or email"
             >
-            <button type="button" class="search-btn" id="resourceSearchBtn">
-                Search
-            </button>
 
         </div>
 
 
-        <!-- Region Filter -->
+        <!-- Role Filter -->
 
         <select id="roleFilter" class="user-filter">
-            <option value="all">All Regions</option>
-            <option value="Nelson Mandela Bay">Nelson Mandela Bay</option>
-            <option value="Buffalo City">Buffalo City</option>
-            <option value="Sarah Baartman">Sarah Baartman</option>
-            <option value="Chris Hani">Chris Hani</option>
-            <option value="Joe Gqabi">Joe Gqabi</option>
+            <option value="all">All roles</option>
+            <option value="learner">Learners </option>
+            <option value="admin"> Admins</option>
         </select>
+      <!-- Grade Filter -->
+      
+        <select id="gradeFilter" class="user-filter">
+
+            <option value="all">
+                All grades
+            </option>
+
+            <option value="8">
+                Grade 8
+            </option>
+
+            <option value="9">
+                Grade 9
+            </option>
+
+            <option value="10">
+                Grade 10
+            </option>
+
+            <option value="11">
+                Grade 11
+            </option>
+
+            <option value="12">
+                Grade 12
+            </option>
+
+        </select>
+
+
+        <!-- Status Filter -->
+
         <select id="statusFilter" class="user-filter">
 
             <option value="all">
-                All types
+                All statuses
             </option>
 
-            <option value="Textbook">
-                Textbook
+            <option value="active">
+                Active
             </option>
 
-            <option value="Past Paper">
-                Past Paper
+            <option value="pending">
+                Pending
             </option>
 
-            <option value="Question Paper">
-                Question Paper
+            <option value="suspended">
+                Suspended
             </option>
-            </select>
-            <!-- Add Resource -->
+
+        </select>
+         <!-- Add User -->
     <button
         type="button"
         class="add-user-btn"
-        id="openAddResource">
+        id="openAddUser">
 
         <span>+</span>
-        Add Resource
+        Add User
 
        </button>
-        </div>
+      </div>
       <div class="table-container">
         <table class="users-table">
 
       <thead>
         <tr>
-            <th>Resource</th>
-            <th>Type</th>
-            <th>Region</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
             <th>Grade</th>
-            <th>Uploaded</th>
+            <th>School</th>
+            <th>Region</th>
+            <th>Status</th>
             <th>Actions</th>
         </tr>
       </thead>
-       <tbody id="resourcesTableBody">
+
+      <tbody id="usersTableBody">
         <!-- The users are in the JS file which later will be the from the API -->
       </tbody>
 
@@ -238,27 +272,37 @@
        </div>
 
       </section>
-       <!-- Add Resource Modal -->
-<div id="addResourceModal" class="modal" style="display: none;">
+      <!-- Add User Modal -->
+<div id="addUserModal" class="modal" style="display: none;">
     <div class="modal-content">
-        <h2>Add Resource</h2>
+        <h2>Add User</h2>
 
-        <form id="addResourceForm">
-            <input id="resourceName" type="text" placeholder="Resource Name" required>
-            <input id="resourceSubject" type="text" placeholder="Subject" required>
+        <form>
+            <input id="firstName" type="text" placeholder="First name" required>
+            <input id="surname" type="text" placeholder="Surname" required>
+            <input id="email" type="email" placeholder="Email" required>
 
-            <select id="resourceType" required>
-                <option value="">Select type</option>
-                <option value="Textbook">Textbook</option>
-                <option value="Past Paper">Past Paper</option>
-                <option value="Question Paper">Question Paper</option>
+            <select id="role" required>
+                <option value="learner">Learner</option>
+                <option value="admin">Admin</option>
             </select>
 
-            <input id="resourceGrade" type="text" placeholder="Grade">
-            <input id="resourceRegion" type="text" placeholder="Region" required>
+            <input id="grade" type="number" placeholder="Grade">
+            <input id="school" type="text" placeholder="School">
 
-            <button type="submit">Save Resource</button>
-            <button type="button" id="closeAddResource">Cancel</button>
+            <input id="region" type="text" placeholder="Region">
+
+            <select id="status">
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="suspended">Suspended</option>
+            </select>
+
+            <input id="password" type="password" placeholder="Password" required>
+            <input id="confirmPassword" type="password" placeholder="Confirm password" required>
+
+            <button type="submit">Save User</button>
+            <button type="button" id="closeAddUser">Cancel</button>
         </form>
     </div>
 </div>
