@@ -142,6 +142,71 @@ function displayResources(list = resources) {
 }
 
 
+function displayUsers(list = users) {
+
+    const tableBody = document.getElementById("usersTableBody");
+
+    if (!tableBody) return;
+
+    tableBody.innerHTML = "";
+
+    list.forEach(user => {
+
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>
+                <strong>${getFullName(user)}</strong>
+            </td>
+
+            <td>${user.email}</td>
+
+            <td>
+                <span class="role-badge">
+                    ${user.role}
+                </span>
+            </td>
+
+            <td>${user.grade}</td>
+
+            <td>${user.school}</td>
+
+            <td>
+                <span class="region-badge">
+                    ${user.region}
+                </span>
+            </td>
+
+            <td>
+                <span class="status-badge ${user.status.toLowerCase()}">
+                    ${user.status}
+                </span>
+            </td>
+
+            <td>
+                <button 
+                    class="edit-btn" 
+                    type="button" 
+                    data-action="edit-user" 
+                    data-id="${user.id}">
+                    🖊️
+                </button>
+
+                <button 
+                    class="delete-btn" 
+                    type="button" 
+                    data-action="delete-user" 
+                    data-id="${user.id}">
+                    🗑️
+                </button>
+            </td>
+        `;
+
+        tableBody.appendChild(row);
+    });
+}
+
+
 /* full names */
 
 function getFullName(user) {
@@ -1032,5 +1097,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     displayResources();
 });
+
+
 
 

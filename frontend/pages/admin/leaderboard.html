@@ -106,9 +106,9 @@
 
         </aside>
         <!-- Main content -->
-        <main class="main-content">
+        <main class="main">
 
-           <section class="home-content">
+            <section class="home-content">
 
                 <div class="page-header">
                     <h1>
@@ -116,11 +116,77 @@
                     </h1>
 
                     <p>
-                        Regional and national rankings
+                        National and Regional Rankings
                     </p>
 
                 </div>
+                <section class="leaderboard-page">
 
-           
-                            
-                    
+    
+    <div class="leaderboard-filters">
+
+        <div class="subject-tabs">
+            <button class="subject-tab active" data-subject="Overall">
+                Overall
+            </button>
+
+            <button class="subject-tab" data-subject="Mathematics">
+                Mathematics
+            </button>
+
+            <button class="subject-tab" data-subject="Physical Sciences">
+                Physical Sciences
+            </button>
+
+            <button class="subject-tab" data-subject="Accounting">
+                Accounting
+            </button>
+        </div>
+
+        <select id="regionFilter" class="region-filter">
+            <option value="All regions">All regions</option>
+            <option value="Nelson Mandela Bay">Nelson Mandela Bay</option>
+            <option value="Buffalo City">Buffalo City</option>
+            <option value="Sarah Baartman">Sarah Baartman</option>
+            <option value="Chris Hani">Chris Hani</option>
+            <option value="Joe Gqabi">Joe Gqabi</option>
+        </select>
+
+    </div>
+
+
+    
+    <div class="section-heading">
+        <h2>Top learners <span id="rankingTitle">national</span></h2>
+
+        <p id="rankingDescription">
+            Overall ranking, all regions
+        </p>
+    </div>
+
+
+    <div class="top-learners" id="topLearners">
+
+       
+
+    </div>
+
+
+    
+    <div class="section-heading regional-heading">
+
+        <h2>Top learner by region</h2>
+
+        <p>Highest scorer in each of the five regions</p>
+
+    </div>
+
+
+    <div class="regional-leaders" id="regionalLeaders">
+
+        
+
+    </div>
+
+</section>
+<script src="../../js/leaderboard.js"></script>

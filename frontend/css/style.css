@@ -2072,3 +2072,328 @@ input {
     max-width: 92vw;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
 }
+
+
+
+
+/* =========================
+   LEADERBOARD PAGE
+========================= */
+
+.leaderboard-page {
+    width: 100%;
+    padding: 10px 0 40px;
+}
+
+
+/* =========================
+   FILTERS
+========================= */
+
+.leaderboard-filters {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.subject-tabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.subject-tab {
+    border: 1px solid #dce5ec;
+    background-color: white;
+    color: #31506e;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.subject-tab:hover {
+    border-color: #2ca9a5;
+    color: #168f8b;
+}
+
+.subject-tab.active {
+    background-color: #119b95;
+    color: white;
+    border-color: #119b95;
+}
+
+
+/* =========================
+   REGION DROPDOWN
+========================= */
+
+.region-filter {
+    width: 185px;
+    padding: 10px 15px;
+    border: 1px solid #dce5ec;
+    border-radius: 25px;
+    background-color: white;
+    color: #173f67;
+    font-size: 14px;
+    cursor: pointer;
+    outline: none;
+}
+
+.region-filter:focus {
+    border-color: #2ca9a5;
+}
+
+
+/* =========================
+   SECTION HEADINGS
+========================= */
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.section-heading h2 {
+    margin: 0;
+    color: #102f4d;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.section-heading p {
+    margin: 0;
+    color: #58718a;
+    font-size: 13px;
+}
+
+#rankingTitle {
+    text-transform: lowercase;
+}
+
+
+/* =========================
+   TOP THREE LEARNERS
+========================= */
+
+.top-learners {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+.top-learner-card {
+    position: relative;
+    min-height: 210px;
+    background-color: white;
+    border: 1px solid #dce5ec;
+    border-radius: 15px;
+    padding: 22px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* First place gets orange border */
+
+.top-learner-card.first-place {
+    border: 1px solid #f0a31e;
+}
+
+
+/* =========================
+   RANK CIRCLE
+========================= */
+
+.rank-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: white;
+    font-size: 17px;
+    font-weight: 700;
+
+    margin-bottom: 12px;
+}
+
+.rank-one {
+    background-color: #efa52d;
+}
+
+.rank-two {
+    background-color: #9ba8b0;
+}
+
+.rank-three {
+    background-color: #c37439;
+}
+
+
+/* =========================
+   LEARNER INFORMATION
+========================= */
+
+.learner-name {
+    margin: 0 0 5px;
+    color: #102f4d;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.learner-school {
+    margin: 0 0 10px;
+    color: #62788e;
+    font-size: 12px;
+}
+
+.learner-score {
+    margin: 0 0 10px;
+    color: #008f89;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+
+/* =========================
+   QUALIFIER BADGE
+========================= */
+
+.qualifier-badge {
+    background-color: #dff2f1;
+    color: #078d88;
+    padding: 5px 11px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+
+/* =========================
+   REGIONAL SECTION
+========================= */
+
+.regional-heading {
+    margin-bottom: 18px;
+}
+
+.regional-leaders {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+}
+
+.regional-card {
+    background-color: white;
+    border: 1px solid #dce5ec;
+    border-radius: 13px;
+    padding: 18px 16px;
+    min-height: 125px;
+}
+
+.region-name {
+    margin: 0 0 10px;
+    color: #52708d;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.regional-learner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.learner-initials {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background-color: #123553;
+    color: white;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.regional-learner-info {
+    min-width: 0;
+}
+
+.regional-learner-name {
+    margin: 0;
+    color: #102f4d;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.regional-school {
+    margin: 3px 0 0;
+    color: #62788e;
+    font-size: 11px;
+}
+
+.regional-score {
+    margin: 12px 0 0;
+    color: #008f89;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+
+/* =========================
+   RESPONSIVE DESIGN
+========================= */
+
+@media (max-width: 1100px) {
+
+    .regional-leaders {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+}
+
+@media (max-width: 800px) {
+
+    .leaderboard-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .region-filter {
+        width: 100%;
+    }
+
+    .top-learners {
+        grid-template-columns: 1fr;
+    }
+
+    .regional-leaders {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+@media (max-width: 500px) {
+
+    .regional-leaders {
+        grid-template-columns: 1fr;
+    }
+
+}
