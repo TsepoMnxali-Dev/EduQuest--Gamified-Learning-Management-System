@@ -105,3 +105,98 @@
             </div>
 
         </aside>
+         <!-- Main content -->
+        <main class="main">
+
+            <section class="home-content">
+
+                <div class="page-header">
+                    <h1>
+                        Competitions
+                    </h1>
+
+                    <p>
+                        Manage Competitions, view details, and oversee participant activities.
+                    </p>
+
+                </div>
+                
+        <!-- Page heading -->
+        <div class="competition-heading">
+            <h2>Competitions this season</h2>
+
+            <button class="add-competition-btn"
+                    id="addCompetitionBtn">
+                + Add competition
+            </button>
+        </div>
+
+        <!-- FILTERS -->
+        <div class="competition-filters">
+
+            <!-- Season filter -->
+            <select id="seasonFilter">
+                <option value="all">All seasons</option>
+                <option value="Term 1 2026">Term 1 2026</option>
+                <option value="Term 2 2026">Term 2 2026</option>
+                <option value="Term 3 2026">Term 3 2026</option>
+                <option value="Term 4 2026">Term 4 2026</option>
+            </select>
+
+            <!-- Competition mode filter -->
+            <select id="modeFilter">
+                <option value="all">All modes</option>
+                <option value="In-system">In-system</option>
+                <option value="Venue">Venue</option>
+            </select>
+
+            <!-- Status filter buttons -->
+            <div class="status-filters">
+
+                <button class="status-filter active"
+                        data-status="all">
+                    All
+                </button>
+
+                <button class="status-filter"
+                        data-status="Upcoming">
+                    Upcoming
+                </button>
+
+                <button class="status-filter"
+                        data-status="Active">
+                    Active
+                </button>
+
+                <button class="status-filter"
+                        data-status="Awaiting results">
+                    Awaiting results
+                </button>
+
+                <button class="status-filter"
+                        data-status="Completed">
+                    Completed
+                </button>
+
+            </div>
+        </div>
+
+        <!-- COMPETITION CARDS -->
+        <div class="competition-grid"
+             id="competitionGrid">
+        </div>
+
+        <!-- Message when no competitions match -->
+        <p id="noCompetitions"
+           class="no-competitions"
+           style="display: none;">
+            No competitions found for the selected filters.
+        </p>
+
+    </main>
+
+    <!-- Competitions JavaScript -->
+    <script src="../../js/competitions.js"></script>
+
+</body>
+</html>

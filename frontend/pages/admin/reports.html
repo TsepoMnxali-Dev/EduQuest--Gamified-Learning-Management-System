@@ -105,4 +105,262 @@
             </div>
 
         </aside>
-         
+          <!-- Main content -->
+        <main class="main">
+
+            <section class="home-content">
+
+                <div class="page-header">
+                    <h1>
+                        Reports
+                    </h1>
+
+                    <p>
+                        How EduQuest is being used and Learner performance summaries.
+                    </p>
+
+                </div>
+             <!-- FILTERS -->
+            <section class="filter-bar">
+
+                <div class="filter-field">
+                    <label for="fDate">Date range</label>
+
+                    <select id="fDate">
+                        <option value="All time">All time</option>
+                        <option value="Last 7 days">Last 7 days</option>
+                        <option value="Last 30 days">Last 30 days</option>
+                        <option value="This term">This term</option>
+                        <option value="This year">This year</option>
+                    </select>
+                </div>
+
+
+                <div class="filter-field">
+                    <label for="fProvince">Regions</label>
+
+                    <select id="fProvince">
+                        <option value="all">All regions</option>
+                        <option>Nelson Mandela Bay</option>
+                        <option>Buffallo City</option>
+                        <option>Sarah Baartman</option>
+                        <option>Chris Hani</option>
+                        <option>Joe Gqabi</option>
+                    </select>
+                </div>
+
+
+                <div class="filter-field">
+                    <label for="fGrade">Grade</label>
+
+                    <select id="fGrade">
+                        <option value="all">All grades</option>
+                        <option>Grade 10</option>
+                        <option>Grade 11</option>
+                        <option>Grade 12</option>
+                    </select>
+                </div>
+
+
+                <div class="filter-field">
+                    <label for="fSubject">Subject</label>
+
+                    <select id="fSubject">
+                        <option value="all">All subjects</option>
+                        <option>Mathematics</option>
+                        <option>Physical Sciences</option>
+                        <option>Accounting</option>
+                    </select>
+                </div>
+
+
+                <button class="report-btn report-btn-primary" id="applyBtn">
+                    Apply filters
+                </button>
+
+                <button class="report-btn report-btn-ghost" id="resetBtn">
+                    Reset
+                </button>
+
+                <button class="report-btn report-btn-ghost" id="exportBtn">
+                    Export report
+                </button>
+
+                <p class="filter-status" id="filterStatus">
+                    Showing all-time data, all provinces
+                </p>
+
+            </section>
+
+
+            <!-- SUMMARY CARDS -->
+            <section class="report-summary">
+
+                <div class="summary-card">
+                    <div class="summary-label">Total learners</div>
+                    <div class="summary-value">512</div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-label">Active learners</div>
+                    <div class="summary-value">
+                        398 <span>78%</span>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-label">Quizzes completed</div>
+                    <div class="summary-value">1,842</div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-label">Achievements earned</div>
+                    <div class="summary-value">623</div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="summary-label">Competitions held</div>
+                    <div class="summary-value">8</div>
+                </div>
+
+            </section>
+
+
+            <!-- PROVINCE AND GRADE CHARTS -->
+            <section class="report-charts">
+
+                <div class="chart-card">
+
+                    <h3>Learners by region</h3>
+
+                    <p class="chart-subtitle">
+                        Registered learners in each region
+                    </p>
+
+                    <div id="provinceChart"></div>
+
+                </div>
+
+
+                <div class="chart-card">
+
+                    <h3>Learners by grade</h3>
+
+                    <p class="chart-subtitle">
+                        Registered learners in each grade
+                    </p>
+
+                    <div id="gradeChart"></div>
+
+                </div>
+
+            </section>
+
+
+           <!-- LEARNER PROGRESS -->
+<div class="section-heading">
+    <h2>Learner progress overview</h2>
+
+    <span>
+        Academic and gamification progress, system-wide
+    </span>
+</div>
+
+<section class="progress-grid">
+
+    <!-- PROGRESS STATS GENERATED BY JAVASCRIPT -->
+    <div class="chart-card">
+        <div class="mini-stats" id="progressStats">
+        </div>
+    </div>
+
+    <!-- PERFORMANCE BY GRADE -->
+    <div class="chart-card">
+
+        <h3>Average quiz performance by grade</h3>
+
+        <p class="chart-subtitle">
+            Average score across all subjects
+        </p>
+
+        <div id="perfChart"></div>
+
+    </div>
+
+</section>
+                
+
+
+            <!-- QUIZ PERFORMANCE TABLE -->
+            <section class="table-card">
+
+                <h3>Quiz performance by subject</h3>
+
+                <p class="table-subtitle">
+                    Where learners are doing well, and where they're struggling
+                </p>
+
+                <div class="table-responsive">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Attempts</th>
+                                <th>Average score</th>
+                                <th>Pass rate</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="quizPerfBody"></tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+            <!-- RESOURCE USAGE TABLE -->
+            <section class="table-card">
+
+                <h3>Most accessed resources</h3>
+
+                <p class="table-subtitle">
+                    Resource views, most popular first
+                </p>
+
+                <div class="table-responsive">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>Resource</th>
+                                <th>Subject</th>
+                                <th>Grade</th>
+                                <th>Views</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="resourceBody"></tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+
+<script src="../../js/reports.js"></script>
+
+</body>
+</html>
