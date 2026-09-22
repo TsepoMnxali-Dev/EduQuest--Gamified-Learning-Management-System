@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EduQuest.API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialMigration : Migration
+    public partial class updatedquiztimespan : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -295,7 +295,7 @@ namespace EduQuest.API.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     QuizTitle = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Difficulty = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TimeLimit = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TimeLimit = table.Column<TimeSpan>(type: "time", nullable: false),
                     IsPublished = table.Column<bool>(type: "bit", nullable: false),
                     TopicID = table.Column<int>(type: "int", nullable: false)
                 },
@@ -342,7 +342,7 @@ namespace EduQuest.API.Migrations
                 {
                     CompetitionLearnerID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    CompetitionID = table.Column<int>(type: "int", nullable: true),
+                    CompetitionID = table.Column<int>(type: "int", nullable: false),
                     LearnerID = table.Column<int>(type: "int", nullable: false),
                     Score = table.Column<int>(type: "int", nullable: false),
                     Position = table.Column<int>(type: "int", nullable: false)
@@ -354,7 +354,8 @@ namespace EduQuest.API.Migrations
                         name: "FK_CompetitionLearners_Competitions_CompetitionID",
                         column: x => x.CompetitionID,
                         principalTable: "Competitions",
-                        principalColumn: "CompetitionID");
+                        principalColumn: "CompetitionID",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_CompetitionLearners_Learners_LearnerID",
                         column: x => x.LearnerID,

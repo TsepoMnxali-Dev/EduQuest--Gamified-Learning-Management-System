@@ -14,8 +14,7 @@ namespace EduQuest.API.DTOs
         public bool IsRead { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public required string DateSent { get; set; }
+        public DateTime DateSent { get; set; }
 
         [Required]
         public int LearnerID { get; set; }

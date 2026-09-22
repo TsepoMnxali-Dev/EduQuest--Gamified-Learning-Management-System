@@ -24,6 +24,11 @@ namespace EduQuest.API.Controllers
                 "Hard"
             };
 
+        // Layer 2: Business rule
+        // Quiz time limits must be reasonable — greater than zero, capped at 3 hours.
+        private static readonly TimeSpan MinTimeLimit = TimeSpan.Zero;
+        private static readonly TimeSpan MaxTimeLimit = TimeSpan.FromHours(3);
+
         public QuizzesController(ApplicationDBContext context)
         {
             _context = context;
@@ -99,6 +104,17 @@ namespace EduQuest.API.Controllers
             // Store the canonical version
             difficulty = validDifficulty;
 
+            // Layer 2: TimeLimit must be a positive duration, capped at 3 hours
+            if (dto.TimeLimit <= MinTimeLimit)
+            {
+                return BadRequest("TimeLimit must be greater than zero.");
+            }
+
+            if (dto.TimeLimit > MaxTimeLimit)
+            {
+                return BadRequest("TimeLimit cannot exceed 3 hours.");
+            }
+
             // Layer 2: Check that the referenced Topic actually exists
             var topicExists = await _context.Topics
                 .AnyAsync(topic => topic.TopicID == dto.TopicID);
@@ -123,7 +139,7 @@ namespace EduQuest.API.Controllers
             {
                 QuizTitle = quizTitle,
                 Difficulty = difficulty,
-                TimeLimit = dto.TimeLimit.Trim(),
+                TimeLimit = dto.TimeLimit,
                 IsPublished = dto.IsPublished,
                 TopicID = dto.TopicID
             };
@@ -182,6 +198,17 @@ namespace EduQuest.API.Controllers
 
             difficulty = validDifficulty;
 
+            // Layer 2: TimeLimit must be a positive duration, capped at 3 hours
+            if (dto.TimeLimit <= MinTimeLimit)
+            {
+                return BadRequest("TimeLimit must be greater than zero.");
+            }
+
+            if (dto.TimeLimit > MaxTimeLimit)
+            {
+                return BadRequest("TimeLimit cannot exceed 3 hours.");
+            }
+
             // Layer 2: Check that the referenced Topic actually exists
             var topicExists = await _context.Topics
                 .AnyAsync(topic => topic.TopicID == dto.TopicID);
@@ -206,7 +233,7 @@ namespace EduQuest.API.Controllers
 
             quizEntity.QuizTitle = quizTitle;
             quizEntity.Difficulty = difficulty;
-            quizEntity.TimeLimit = dto.TimeLimit.Trim();
+            quizEntity.TimeLimit = dto.TimeLimit;
             quizEntity.IsPublished = dto.IsPublished;
             quizEntity.TopicID = dto.TopicID;
 

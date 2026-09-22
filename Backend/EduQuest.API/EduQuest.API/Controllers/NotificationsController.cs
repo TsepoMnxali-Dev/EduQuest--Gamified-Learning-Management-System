@@ -72,7 +72,6 @@ namespace EduQuest.API.Controllers
             // Normalize the input
             var title = dto.Title.Trim();
             var message = dto.Message?.Trim();
-            var dateSent = dto.DateSent.Trim();
 
             // Layer 2: Check that the referenced Learner actually exists
             var learnerExists = await _context.Learners
@@ -88,7 +87,7 @@ namespace EduQuest.API.Controllers
                 Title = title,
                 Message = message,
                 IsRead = false,
-                DateSent = dateSent,
+                DateSent = dto.DateSent,
                 LeanerID = dto.LearnerID
             };
 
@@ -130,7 +129,6 @@ namespace EduQuest.API.Controllers
             // Normalize the input
             var title = dto.Title.Trim();
             var message = dto.Message?.Trim();
-            var dateSent = dto.DateSent.Trim();
 
             // Layer 2: Check that the referenced Learner actually exists
             var learnerExists = await _context.Learners
@@ -144,7 +142,7 @@ namespace EduQuest.API.Controllers
             notificationEntity.Title = title;
             notificationEntity.Message = message;
             notificationEntity.IsRead = dto.IsRead;
-            notificationEntity.DateSent = dateSent;
+            notificationEntity.DateSent = dto.DateSent;
             notificationEntity.LeanerID = dto.LearnerID;
 
             await _context.SaveChangesAsync();
@@ -172,7 +170,6 @@ namespace EduQuest.API.Controllers
         }
 
         // PATCH: api/notifications/{id}/read
-        // No [Authorize(Roles = "Admin")] — a learner marks their own notification read.
         [HttpPatch("{id}/read")]
         public async Task<IActionResult> MarkAsRead(int id)
         {

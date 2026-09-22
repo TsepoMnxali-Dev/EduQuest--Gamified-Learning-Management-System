@@ -8,12 +8,10 @@ namespace EduQuest.API.DTOs
         public string? SponsorName { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public required string StartDate { get; set; }
+        public DateTime StartDate { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public required string EndDate { get; set; }
+        public DateTime EndDate { get; set; }
 
         [Required]
         [StringLength(1000)]
