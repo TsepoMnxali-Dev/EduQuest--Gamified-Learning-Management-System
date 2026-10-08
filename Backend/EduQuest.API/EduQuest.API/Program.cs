@@ -63,7 +63,27 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 //end
+//end
 
+// CORS - allows the frontend (served from a different origin, e.g. a
+// Live Server / http-server instance) to call this API from the browser.
+// Add any other origin you serve the frontend from to this list.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("EduQuestFrontend", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:5500",
+                "http://127.0.0.1:5500",
+                "http://localhost:5501",
+                "http://127.0.0.1:5501",
+                "http://localhost:3000",
+                "http://localhost:5173"
+              )
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
@@ -93,7 +113,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("EduQuestFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
