@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EduQuest.API.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20260914063134_AddFileContentTypeToStudyMaterial")]
-    partial class AddFileContentTypeToStudyMaterial
+    [Migration("20260918042732_updated quiz timespan")]
+    partial class updatedquiztimespan
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -123,7 +123,7 @@ namespace EduQuest.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CompetitionLearnerID"));
 
-                    b.Property<int?>("CompetitionID")
+                    b.Property<int>("CompetitionID")
                         .HasColumnType("int");
 
                     b.Property<int>("LearnerID")
@@ -436,9 +436,8 @@ namespace EduQuest.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TimeLimit")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<TimeSpan>("TimeLimit")
+                        .HasColumnType("time");
 
                     b.Property<int>("TopicID")
                         .HasColumnType("int");
@@ -595,6 +594,23 @@ namespace EduQuest.API.Migrations
                     b.HasKey("RoleID");
 
                     b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            RoleID = 1,
+                            RoleName = "Learner"
+                        },
+                        new
+                        {
+                            RoleID = 2,
+                            RoleName = "Admin"
+                        },
+                        new
+                        {
+                            RoleID = 3,
+                            RoleName = "Sponsor"
+                        });
                 });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.School", b =>
@@ -811,7 +827,9 @@ namespace EduQuest.API.Migrations
                 {
                     b.HasOne("EduQuest.API.Models.Entities.Competition", "Competition")
                         .WithMany("CompetitionLearners")
-                        .HasForeignKey("CompetitionID");
+                        .HasForeignKey("CompetitionID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("EduQuest.API.Models.Entities.Learner", "Learner")
                         .WithMany("CompetitionLearners")

@@ -71,23 +71,10 @@ namespace EduQuest.API.Controllers
         {
             // Normalize the input
             var sponsorName = dto.SponsorName?.Trim();
-            var startDateRaw = dto.StartDate.Trim();
-            var endDateRaw = dto.EndDate.Trim();
             var description = dto.Description.Trim();
 
-            // Layer 2: Check that both dates actually parse
-            if (!DateTime.TryParse(startDateRaw, out var startDate))
-            {
-                return BadRequest("StartDate is not a valid date.");
-            }
-
-            if (!DateTime.TryParse(endDateRaw, out var endDate))
-            {
-                return BadRequest("EndDate is not a valid date.");
-            }
-
             // Layer 2: EndDate must be after StartDate
-            if (endDate <= startDate)
+            if (dto.EndDate <= dto.StartDate)
             {
                 return BadRequest("EndDate must be after StartDate.");
             }
@@ -104,8 +91,8 @@ namespace EduQuest.API.Controllers
             var competitionEntity = new Competition
             {
                 SponsorName = sponsorName,
-                StartDate = startDateRaw,
-                EndDate = endDateRaw,
+                StartDate = dto.StartDate,
+                EndDate = dto.EndDate,
                 Description = description,
                 SponsorID = dto.SponsorID
             };
@@ -147,23 +134,10 @@ namespace EduQuest.API.Controllers
 
             // Normalize the input
             var sponsorName = dto.SponsorName?.Trim();
-            var startDateRaw = dto.StartDate.Trim();
-            var endDateRaw = dto.EndDate.Trim();
             var description = dto.Description.Trim();
 
-            // Layer 2: Check that both dates actually parse
-            if (!DateTime.TryParse(startDateRaw, out var startDate))
-            {
-                return BadRequest("StartDate is not a valid date.");
-            }
-
-            if (!DateTime.TryParse(endDateRaw, out var endDate))
-            {
-                return BadRequest("EndDate is not a valid date.");
-            }
-
             // Layer 2: EndDate must be after StartDate
-            if (endDate <= startDate)
+            if (dto.EndDate <= dto.StartDate)
             {
                 return BadRequest("EndDate must be after StartDate.");
             }
@@ -178,8 +152,8 @@ namespace EduQuest.API.Controllers
             }
 
             competitionEntity.SponsorName = sponsorName;
-            competitionEntity.StartDate = startDateRaw;
-            competitionEntity.EndDate = endDateRaw;
+            competitionEntity.StartDate = dto.StartDate;
+            competitionEntity.EndDate = dto.EndDate;
             competitionEntity.Description = description;
             competitionEntity.SponsorID = dto.SponsorID;
 
