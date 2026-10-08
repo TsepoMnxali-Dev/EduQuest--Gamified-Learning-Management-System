@@ -4,8 +4,11 @@
     {
         public int StudyMaterialID { get; set; }
 
-        public int TopicID { get; set; }
-        public Topic? Topic { get; set; } = null;
+        public int GradeSubjectID { get; set; }
+        public GradeSubject? GradeSubject { get; set; }
+
+        public int? TopicID { get; set; }
+        public Topic? Topic { get; set; }
 
         public required string Title { get; set; }
 

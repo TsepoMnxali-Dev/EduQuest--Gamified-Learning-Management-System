@@ -12,12 +12,8 @@ namespace EduQuest.API.DTOs
         [StringLength(1000)]
         public required string Explanation { get; set; }
 
-        [Required]
-        [StringLength(10)]
-        public required string GeneratedByAI { get; set; }
-
-        [Required]
-        [StringLength(10)]
-        public required string ApprovedByAdmin { get; set; }
+        public bool GeneratedByAI { get; set; }
+    
+        public bool ApprovedByAdmin { get; set; }
     }
 }
