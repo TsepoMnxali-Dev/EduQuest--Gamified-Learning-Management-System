@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduQuest | Leaderboard</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div>
+                <div class="brand">
+                    <img src="images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo">
+                </div>
+
+                <nav class="sidebar-nav">
+                    <a href="dashboard.html" class="nav-link">Home</a>
+                    <a href="classes.html" class="nav-link">Classes</a>
+                    <a href="Quizzes.html" class="nav-link">Quizzes</a>
+                    <a href="resources.html" class="nav-link">Resources</a>
+                    <a href="leaderboard.html" class="nav-link active">Leaderboard</a>
+                    <a href="profile.html" class="nav-link">Profile</a>
+                    <a href="#" class="nav-link">Help & Support</a>
+                </nav>
+            </div>
+
+            <div class="sidebar-social">
+                <a href="#">Instagram</a>
+                <a href="#">Facebook</a>
+            </div>
+        </aside>
+
+        <main class="main">
+            <div class="leaderboard-topbar">
+                <div class="page-head">
+                    <h1>Leaderboard</h1>
+                    <p>See how you rank against your peers!</p>
+                </div>
+
+                <div class="profile-mini">
+                    <div class="profile-avatar">L</div>
+                    <span>Learner</span>
+                </div>
+            </div>
+
+            <div class="leaderboard-tabs">
+                <button class="leaderboard-tab active">This Week</button>
+                <button class="leaderboard-tab">This Month</button>
+                <button class="leaderboard-tab">All Time</button>
+            </div>
+
+            <div class="podium">
+                <div class="podium-card second">
+                    <div class="podium-medal">2</div>
+                    <div class="podium-name">Student B</div>
+                    <div class="podium-score">910 pts</div>
+                </div>
+
+                <div class="podium-card first">
+                    <div class="podium-medal">1</div>
+                    <div class="podium-name">Student A</div>
+                    <div class="podium-score">950 pts</div>
+                </div>
+
+                <div class="podium-card third">
+                    <div class="podium-medal">3</div>
+                    <div class="podium-name">Student C</div>
+                    <div class="podium-score">890 pts</div>
+                </div>
+            </div>
+
+            <section class="dashboard-section">
+                <h2 class="leaderboard-list-title">Full Rankings</h2>
+
+                <div class="dashboard-list">
+                    <div class="dashboard-list-item">
+                        <span class="rank">#1</span>
+                        <span class="list-avatar">A</span>
+                        <span class="list-name">Student A</span>
+                        <span class="list-score">950 pts</span>
+                    </div>
+
+                    <div class="dashboard-list-item">
+                        <span class="rank">#2</span>
+                        <span class="list-avatar">B</span>
+                        <span class="list-name">Student B</span>
+                        <span class="list-score">910 pts</span>
+                    </div>
+
+                    <div class="dashboard-list-item">
+                        <span class="rank">#3</span>
+                        <span class="list-avatar">C</span>
+                        <span class="list-name">Student C</span>
+                        <span class="list-score">890 pts</span>
+                    </div>
+
+                    <div class="dashboard-list-item">
+                        <span class="rank">#4</span>
+                        <span class="list-avatar">D</span>
+                        <span class="list-name">Student D</span>
+                        <span class="list-score">870 pts</span>
+                    </div>
+
+                    <div class="dashboard-list-item">
+                        <span class="rank">#5</span>
+                        <span class="list-avatar">E</span>
+                        <span class="list-name">Student E</span>
+                        <span class="list-score">860 pts</span>
+                    </div>
+
+                    <div class="dashboard-list-item me">
+                        <span class="rank">#12</span>
+                        <span class="list-avatar">L</span>
+                        <span class="list-name">You</span>
+                        <span class="list-score">850 pts</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="js/api.js"></script>
+    <script src="js/leaderboard.js" defer></script>
+</body>
+</html>

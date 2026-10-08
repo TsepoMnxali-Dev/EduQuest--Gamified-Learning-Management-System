@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduQuest | Profile</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app">
+
+    <aside class="sidebar">
+        <div>
+            <div class="brand">
+                <img src="images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo">
+                <div class="brand-name">EduQuest</div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-link">Home</a>
+                <a href="classes.html" class="nav-link">Classes</a>
+                <a href="Quizzes.html" class="nav-link">Quizzes</a>
+                <a href="resources.html" class="nav-link">Resources</a>
+                <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+                <a href="profile.html" class="nav-link active">Profile</a>
+                <a href="#" class="nav-link">Help & Support</a>
+            </nav>
+        </div>
+
+        <div class="sidebar-social">
+            <a href="#">Instagram</a>
+            <a href="#">Facebook</a>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <div class="dashboard-topbar">
+            <div class="dashboard-welcome">
+                <h1>My Profile</h1>
+                <p>Manage your account and personal information.</p>
+            </div>
+        </div>
+
+        <div class="profile-header">
+            <div class="profile-header-avatar">L</div>
+            <div class="profile-header-info">
+                <h2>Learner123</h2>
+                <p>Grade 12 &middot; Example High School &middot; Example Province</p>
+            </div>
+        </div>
+
+        <div class="profile-stats">
+            <div class="profile-stat">
+                <div class="stat-number">850</div>
+                <div class="stat-text">Total Score</div>
+            </div>
+            <div class="profile-stat">
+                <div class="stat-number">#12</div>
+                <div class="stat-text">Current Rank</div>
+            </div>
+            <div class="profile-stat">
+                <div class="stat-number">27</div>
+                <div class="stat-text">Quizzes Completed</div>
+            </div>
+        </div>
+
+        <section class="card dashboard-section">
+            <h2 class="dashboard-section-title">Account Information</h2>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>Full Name</label>
+                    <p>Learner123</p>
+                </div>
+                <div class="info-item">
+                    <label>Username</label>
+                    <p>learner123</p>
+                </div>
+                <div class="info-item">
+                    <label>Email</label>
+                    <p>learner123@example.com</p>
+                </div>
+                <div class="info-item">
+                    <label>Grade</label>
+                    <p>12</p>
+                </div>
+                <div class="info-item">
+                    <label>School</label>
+                    <p>Example High School</p>
+                </div>
+                <div class="info-item">
+                    <label>Province</label>
+                    <p>Example Province</p>
+                </div>
+                <div class="info-item">
+                    <label>Subjects</label>
+                    <p>Mathematics, Physics, Accounting</p>
+                </div>
+                <div class="info-item">
+                    <label>Enrolled Since</label>
+                    <p>January 2024</p>
+                </div>
+            </div>
+
+            <div class="profile-actions">
+                <button class="btn btn-primary">Edit Profile</button>
+                <button class="btn btn-outline">Change Password</button>
+                <button class="btn btn-outline">Manage Subjects</button>
+                <button class="btn btn-outline">Help & Support</button>
+                <button class="btn btn-danger">Logout</button>
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <h2 class="dashboard-section-title">Achievements</h2>
+
+            <div class="badge-grid">
+                <div class="badge">
+                    <div class="badge-icon">🔥</div>
+                    <p>7-Day Streak</p>
+                </div>
+                <div class="badge">
+                    <div class="badge-icon">🎯</div>
+                    <p>Quiz Master</p>
+                </div>
+                <div class="badge">
+                    <div class="badge-icon">📐</div>
+                    <p>Math Whiz</p>
+                </div>
+                <div class="badge">
+                    <div class="badge-icon">⭐</div>
+                    <p>Top 20 Learner</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+    <script src="js/api.js"></script>
+    <script src="js/profile.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduQuest | Learner Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+<div class="app">
+
+    <aside class="sidebar">
+        <div>
+            <div class="brand">
+                <img src="images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo">
+              
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-link active">Home</a>
+                <a href="classes.html" class="nav-link">Classes</a>
+                <a href="Quizzes.html" class="nav-link">Quizzes</a>
+                <a href="resources.html" class="nav-link">Resources</a>
+                <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+                <a href="profile.html" class="nav-link">Profile</a>
+                <a href="#" class="nav-link">Help & Support</a>
+                <a href="#" class="nav-link" id="logoutLink">Log Out</a>
+            </nav>
+        </div>
+
+        <div class="sidebar-social">
+            <a href="#">Instagram</a>
+            <a href="#">Facebook</a>
+        </div>
+    </aside>
+
+    <main class="main">
+
+        <div class="dashboard-topbar">
+            <div class="dashboard-welcome">
+                <h1 id="welcomeHeading">Welcome back, Learner!</h1>
+                <p>Keep learning, improving, and reach your goals.</p>
+            </div>
+
+            <div class="profile-mini">
+                <div class="profile-avatar" id="profileAvatar">L</div>
+                <span id="profileLabel">Learner</span>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+
+            <div>
+
+                <section class="dashboard-section">
+                    <h2 class="dashboard-section-title">Recent Activity</h2>
+
+                    <div class="activity-card">
+
+                        <div class="activity-item">
+                            <div class="activity-dot"></div>
+                            <div class="activity-text">
+                                Completed Mathematics Quiz
+                            </div>
+                            <div class="activity-time">Today</div>
+                        </div>
+
+                        <div class="activity-item">
+                            <div class="activity-dot"></div>
+                            <div class="activity-text">
+                                Viewed Physics resources
+                            </div>
+                            <div class="activity-time">Yesterday</div>
+                        </div>
+
+                        <div class="activity-item">
+                            <div class="activity-dot"></div>
+                            <div class="activity-text">
+                                Completed Accounting Quiz
+                            </div>
+                            <div class="activity-time">2 days ago</div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <section class="dashboard-section">
+                    <h2 class="dashboard-section-title">Classes</h2>
+
+                    <div class="subject-grid">
+
+                        <article class="subject-card">
+                            <div class="subject-icon">M</div>
+                            <h3>Mathematics</h3>
+                            <p>Numbers, equations, graphs, shapes, angles, and basic calculus. Also stats, probability and money math(interests, loans).</p>
+                            <br>
+                            <a href="#" class="btn btn-primary">Open Class</a>
+                        </article>
+
+                        <article class="subject-card">
+                            <div class="subject-icon">P</div>
+                            <h3>Physics</h3>
+                            <p>Physics: How things move, forces, electricity, light and sound.</p>
+                            <p>Chemistry: What things are made of, how substances react and combine.</p>
+                            
+                           
+                            <br>
+                            <a href="#" class="btn btn-primary">Open Class</a>
+                        </article>
+
+                        <article class="subject-card">
+                            <div class="subject-icon">A</div>
+                            <h3>Accounting </h3>
+                            <p>Recording money in and out, making financial statements, and figuring if a business is profitable.</p>
+                            <br>
+                            <a href="#" class="btn btn-primary">Open Class</a>
+                        </article>
+                    </div>
+                </section>
+            </div>
+
+            <div>
+                <section class="dashboard-section">
+                    <div class="score-card">
+                        <p>My Total Score</p>
+                        <div class="score-number">850</div>
+                        <p>Keep going! You're doing great.</p>
+                    </div>
+                </section>
+
+                <section class="dashboard-section">
+                    <h2 class="dashboard-section-title">My Ranking</h2>
+
+                    <div class="dashboard-list">
+
+                        <div class="dashboard-list-item">
+                            <span class="rank">#1</span>
+                            <span class="list-name">Student A</span>
+                            <span class="list-score">950 pts</span>
+                        </div>
+
+                        <div class="dashboard-list-item">
+                            <span class="rank">#2</span>
+                            <span class="list-name">Student B</span>
+                            <span class="list-score">910 pts</span>
+                        </div>
+
+                        <div class="dashboard-list-item">
+                            <span class="rank">#3</span>
+                            <span class="list-name">Student C</span>
+                            <span class="list-score">890 pts</span>
+                        </div>
+
+                        <div class="dashboard-list-item">
+                            <span class="rank">#12</span>
+                            <span class="list-name">You</span>
+                            <span class="list-score">850 pts</span>
+                        </div>
+
+                    </div>
+                </section>
+
+                <section class="dashboard-section">
+                    <div class="card">
+                        <h3>Learning Goal</h3>
+                        <p style="color:#666f78; margin:8px 0 14px;">
+                            Complete 5 quizzes this week.
+                        </p>
+
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width:60%"></div>
+                        </div>
+
+                        <div class="progress-label">
+                            <span>3 of 5 quizzes</span>
+                            <span>60%</span>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+        </div>
+
+    </main>
+</div>
+    <script src="js/api.js"></script>
+    <script src="js/dashboard.js" defer></script>
+</body>
+</html>

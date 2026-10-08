@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduQuest | Sign Up</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.signup-step{display:none}.signup-step.active{display:block}
+.step-indicator{display:flex;justify-content:center;align-items:center;gap:8px;margin-bottom:22px}
+.step-number{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#e7eeee;color:#68747d;font-size:12px;font-weight:700}
+.step-number.active{background:#2ca9a5;color:white}
+.step-line{width:45px;height:2px;background:#e7eeee}.step-line.active{background:#2ca9a5}
+.step-title{text-align:center;color:#173f67;margin-bottom:6px}
+.step-description{text-align:center;color:#666f78;font-size:12px;line-height:1.5;margin-bottom:20px}
+.subject-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px}
+.subject-option{position:relative;cursor:pointer}.subject-option input{position:absolute;opacity:0}
+.subject-card{min-height:115px;border:1px solid #b9dddd;border-radius:12px;padding:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:white;transition:.2s}
+.subject-card:hover{background:#e9f7f6;border-color:#2ca9a5}
+.subject-option input:checked+.subject-card{background:#2ca9a5;border-color:#2ca9a5;color:white}
+.subject-icon{font-size:25px;margin-bottom:7px}.subject-card strong{font-size:13px}.subject-status{font-size:11px;margin-top:5px}
+.selected-count{text-align:center;color:#666f78;font-size:12px;margin-bottom:17px}
+.step-buttons{display:flex;gap:10px}.step-buttons .btn{flex:1}
+.back-button{background:white;color:#173f67;border:1px solid #b9dddd}.back-button:hover{background:#e9f7f6}
+.error-message{display:none;background:#fff1f0;color:#b42318;border-radius:8px;padding:9px;font-size:12px;text-align:center;margin-bottom:14px}
+@media(max-width:550px){.subject-options{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+<div>
+<div class="brand"><img src="images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo"><div class="brand-name">EduQuest</div></div>
+<nav class="sidebar-nav">
+<a href="dashboard.html" class="nav-link">Home</a>
+<a href="classes.html" class="nav-link">Classes</a><a href="quizzes.html" class="nav-link">Quizzes</a>
+<a href="resources.html" class="nav-link">Resources</a><a href="leaderboard.html" class="nav-link">Leaderboard</a>
+<a href="profile.html" class="nav-link">Profile</a>
+<a href="#" class="nav-link">Help & Support</a>
+</nav></div>
+<div class="sidebar-social"><a href="#">Instagram</a><a href="#">Facebook</a></div>
+</aside>
+
+<main class="main auth-main"><div class="auth-wrapper"><section class="auth-card">
+<img src="images/eduquest-logo.png" alt="EduQuest logo" class="auth-logo">
+
+<div class="step-indicator">
+<div class="step-number active" id="n1">1</div><div class="step-line" id="l1"></div>
+<div class="step-number" id="n2">2</div><div class="step-line" id="l2"></div>
+<div class="step-number" id="n3">3</div>
+</div>
+
+<div class="error-message" id="error"></div>
+
+<form id="signupForm">
+
+
+<div class="signup-step active" id="s1">
+<h1>Create Account</h1><p class="auth-subtitle">Create your EduQuest learner account.</p>
+
+<div class="form-group"><label for="fullName">Full name</label>
+<input type="text" id="fullName" placeholder="Enter your full name" required></div>
+
+<div class="form-group"><label for="email">Email address</label>
+<input type="email" id="email" placeholder="Enter your email" required></div>
+
+<div class="form-group"><label for="grade">Grade</label>
+<select id="grade" required><option value="" disabled selected>Select your grade</option>
+<option>Grade 10</option>
+<option>Grade 11</option>
+<option>Grade 12</option>
+</select>
+</div>
+
+<div class="form-group"><label for="password">Password</label>
+<input type="password" id="password" placeholder="Create a password" minlength="8" required></div>
+
+<div class="form-group"><label for="confirmPassword">Confirm password</label>
+<input type="password" id="confirmPassword" placeholder="Confirm your password" minlength="8" required></div>
+
+<label class="terms-row"><input type="checkbox" id="terms" required><span>I agree to the EduQuest terms and conditions.</span></label>
+
+<button type="button" class="btn btn-primary auth-submit" id="step1-next">Continue</button>
+</div>
+
+
+<div class="signup-step" id="s2">
+<h2 class="step-title">School Information</h2>
+<p class="step-description">Select your province first.</p>
+
+<div class="form-group"><label for="province">Province</label>
+<select id="province" required>
+<option value="" disabled selected>Select your province</option>
+<option>Eastern Cape</option>
+<option>Free State</option>
+<option>Gauteng</option>
+<option>KwaZulu-Natal</option>
+<option>Limpopo</option>
+<option>Mpumalanga</option>
+<option>Northern Cape</option>
+<option>North West</option>
+<option>Western Cape</option>
+</select></div>
+
+<div class="form-group"><label for="school">School</label>
+<select id="school" disabled required><option value="">Select your province first</option></select></div>
+
+<div class="step-buttons"><button type="button" class="btn back-button" id="step2-back">Back</button>
+<button type="button" class="btn btn-primary" id="step2-next">Continue</button></div>
+</div>
+
+
+<div class="signup-step" id="s3">
+<h2 class="step-title">Choose Your Subjects</h2>
+<p class="step-description">Select the subjects you want to enroll in. You can choose more than one.</p>
+
+<div class="subject-options">
+<label class="subject-option"><input type="checkbox" name="subjects" value="Mathematics"><span class="subject-card"><span class="subject-icon">📐</span><strong>Mathematics</strong><span class="subject-status">Select</span></span></label>
+<label class="subject-option"><input type="checkbox" name="subjects" value="Physical Sciences"><span class="subject-card"><span class="subject-icon">⚗️</span><strong>Physical Sciences</strong><span class="subject-status">Select</span></span></label>
+<label class="subject-option"><input type="checkbox" name="subjects" value="Accounting"><span class="subject-card"><span class="subject-icon">🧬</span><strong>Accounting</strong><span class="subject-status">Select</span></span></label>
+</div>
+
+<p class="selected-count" id="count">0 subjects selected</p>
+<div class="step-buttons"><button type="button" class="btn back-button" id="step3-back">Back</button>
+<button type="submit" class="btn btn-primary">Create Account</button></div>
+</div>
+</form>
+
+<div class="divider">or</div>
+<p class="auth-switch">Already have an account? <a href="login.html">Sign In</a></p>
+</section></div></main>
+</div>
+
+    <script src="js/api.js"></script>
+    <script src="js/signupp.js" defer></script>
+</body>
+</html>

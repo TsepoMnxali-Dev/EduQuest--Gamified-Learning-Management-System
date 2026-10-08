@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduQuest | Mathematics</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #eef2ff;
+      --text: #172033;
+      --muted: #6b7280;
+      --background: #f7f8fc;
+      --white: #ffffff;
+      --border: #e8eaf0;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --blue: #2563eb;
+      --purple: #7c3aed;
+      --green: #059669;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--background);
+      color: var(--text);
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--white);
+      border-right: 1px solid var(--border);
+      padding: 24px 16px;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 12px 30px;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      background: var(--primary);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: bold;
+    }
+
+    .nav-title {
+      color: #9ca3af;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 0 12px 10px;
+      text-transform: uppercase;
+    }
+
+    .nav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      margin-bottom: 5px;
+      border-radius: 10px;
+      color: #4b5563;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .nav a:hover,
+    .nav a.active {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .nav-icon {
+      width: 22px;
+      text-align: center;
+    }
+
+    /* Main */
+    .main {
+      margin-left: 240px;
+      width: calc(100% - 240px);
+      min-height: 100vh;
+    }
+
+    .topbar {
+      height: 74px;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 34px;
+      gap: 20px;
+    }
+
+    .notification {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      background: white;
+      display: grid;
+      place-items: center;
+      font-size: 17px;
+    }
+
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+    }
+
+    .profile-info strong {
+      display: block;
+      font-size: 13px;
+    }
+
+    .profile-info span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    .content {
+      padding: 32px;
+      max-width: 1400px;
+      margin: auto;
+    }
+
+    .page-heading {
+      margin-bottom: 28px;
+    }
+
+    .page-heading h1 {
+      font-size: 30px;
+      margin-bottom: 7px;
+    }
+
+    .page-heading p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    /* Continue Learning */
+    .continue-card {
+      background: linear-gradient(120deg, #4f46e5, #6366f1);
+      color: white;
+      border-radius: 18px;
+      padding: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 34px;
+      box-shadow: 0 10px 30px rgba(79, 70, 229, 0.14);
+    }
+
+    .continue-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      opacity: .8;
+      text-transform: uppercase;
+      margin-bottom: 9px;
+    }
+
+    .continue-card h2 {
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+
+    .continue-card p {
+      opacity: .85;
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+
+    .continue-progress {
+      width: 300px;
+      max-width: 100%;
+    }
+
+    .progress-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 7px;
+    }
+
+    .progress-track {
+      height: 7px;
+      background: rgba(255,255,255,.25);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: white;
+    }
+
+    .btn-white {
+      border: 0;
+      background: white;
+      color: var(--primary);
+      padding: 12px 18px;
+      border-radius: 9px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    /* Sections */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .section-header h2 {
+      font-size: 19px;
+    }
+
+    .section-header a {
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .classes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 34px;
+    }
+
+    .class-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      transition: .2s ease;
+    }
+
+    .class-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(20, 25, 40, .07);
+    }
+
+    .class-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .subject-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 13px;
+      display: grid;
+      place-items: center;
+      font-size: 23px;
+    }
+
+    .math { background: #eef2ff; }
+    .science { background: #ecfdf5; }
+    .life { background: #fef3c7; }
+    .geography { background: #eff6ff; }
+
+    .menu {
+      border: 0;
+      background: transparent;
+      font-size: 18px;
+      color: #9ca3af;
+    }
+
+    .class-card h3 {
+      font-size: 17px;
+      margin-bottom: 6px;
+    }
+
+    .class-card .description {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .stats strong {
+      color: var(--text);
+      display: block;
+      margin-top: 3px;
+      font-size: 12px;
+    }
+
+    .class-progress {
+      margin-bottom: 18px;
+    }
+
+    .class-progress .progress-track {
+      background: #edf0f5;
+      height: 7px;
+    }
+
+    .class-progress .progress-fill {
+      background: var(--primary);
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      margin-bottom: 7px;
+      color: var(--muted);
+    }
+
+    .progress-label strong {
+      color: var(--primary);
+    }
+
+    .open-btn {
+      width: 100%;
+      border: 0;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 11px;
+      border-radius: 9px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .open-btn:hover {
+      background: #e0e7ff;
+    }
+
+    /* Bottom area */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 18px;
+    }
+
+    .panel {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .panel h2 {
+      font-size: 17px;
+      margin-bottom: 18px;
+    }
+
+    .performance-row {
+      display: grid;
+      grid-template-columns: 1.3fr 80px 1fr;
+      gap: 15px;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f1f5;
+    }
+
+    .performance-row:last-child {
+      border-bottom: 0;
+    }
+
+    .subject-name {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .small-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .score {
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .mini-track {
+      height: 6px;
+      background: #edf0f5;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .mini-fill {
+      height: 100%;
+      background: var(--success);
+    }
+
+    .rank-card {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      background: #fafaff;
+      border: 1px solid #ececff;
+      border-radius: 13px;
+      padding: 18px;
+      margin-bottom: 15px;
+    }
+
+    .trophy {
+      width: 52px;
+      height: 52px;
+      border-radius: 13px;
+      background: #fef3c7;
+      display: grid;
+      place-items: center;
+      font-size: 25px;
+    }
+
+    .rank-number {
+      font-size: 27px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .rank-text {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 3px;
+    }
+
+    .leaderboard-btn {
+      width: 100%;
+      padding: 11px;
+      border: 0;
+      border-radius: 9px;
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    /* Mobile */
+    .mobile-nav {
+      display: none;
+    }
+
+    @media (max-width: 1050px) {
+      .classes-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        margin-left: 0;
+        width: 100%;
+        padding-bottom: 70px;
+      }
+
+      .topbar {
+        height: 64px;
+        padding: 0 18px;
+      }
+
+      .content {
+        padding: 22px 18px;
+      }
+
+      .page-heading h1 {
+        font-size: 25px;
+      }
+
+      .continue-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .classes-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .mobile-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 64px;
+        background: white;
+        border-top: 1px solid var(--border);
+        z-index: 10;
+        justify-content: space-around;
+        align-items: center;
+      }
+
+      .mobile-nav a {
+        text-decoration: none;
+        color: var(--muted);
+        text-align: center;
+        font-size: 10px;
+        font-weight: 600;
+      }
+
+      .mobile-nav a.active {
+        color: var(--primary);
+      }
+
+      .mobile-nav span {
+        display: block;
+        font-size: 19px;
+        margin-bottom: 2px;
+      }
+    }
+
+  
+    /* Class detail page additions */
+    .class-header {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 10px;
+    }
+
+    .class-header .subject-icon {
+      width: 60px;
+      height: 60px;
+      font-size: 28px;
+      border-radius: 16px;
+    }
+
+    .class-header h1 {
+      font-size: 27px;
+      margin-bottom: 4px;
+    }
+
+    .class-header p {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .class-overall-progress {
+      margin: 22px 0 34px;
+    }
+
+    .topic-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 34px;
+    }
+
+    .topic-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .topic-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 10px;
+    }
+
+    .topic-card-top h3 {
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .topic-status {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 11px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .topic-status.completed {
+      background: #ecfdf5;
+      color: var(--green);
+    }
+
+    .topic-status.progress {
+      background: #fff7e6;
+      color: #b9762a;
+    }
+
+    .topic-status.locked {
+      background: #f1f2f6;
+      color: var(--muted);
+    }
+
+    .ai-notes {
+      background: var(--primary-light);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin: 12px 0 16px;
+      font-size: 12.5px;
+      color: #3c3f57;
+      line-height: 1.55;
+    }
+
+    .ai-notes-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 6px;
+    }
+
+    .topic-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .topic-actions .chip-btn {
+      border: 1px solid var(--border);
+      background: white;
+      color: var(--text);
+      padding: 9px 15px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .topic-actions .chip-btn:hover {
+      background: #f5f6fb;
+    }
+
+    .topic-actions .chip-btn.primary {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .topic-actions .chip-btn.primary:hover {
+      background: #4338ca;
+    }
+
+    .subject-resources {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+    }
+
+    .subject-resources h2 {
+      font-size: 18px;
+      margin-bottom: 14px;
+    }
+
+    .subject-resource-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 13px 0;
+      border-bottom: 1px solid #f0f1f5;
+    }
+
+    .subject-resource-row:last-child {
+      border-bottom: 0;
+    }
+
+    .subject-resource-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .subject-resource-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--primary-light);
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .subject-resource-info strong {
+      display: block;
+      font-size: 13px;
+    }
+
+    .subject-resource-info span {
+      color: var(--muted);
+      font-size: 11.5px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 12.5px;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    .back-link:hover {
+      color: var(--primary);
+    }
+
+    @media (max-width: 650px) {
+      .topic-card-top {
+        flex-direction: column;
+      }
+
+      .subject-resource-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+
+  </style>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <div class="app">
+
+    <aside class="sidebar">
+      <div>
+            <div class="brand">
+                <img src="images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo">
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-link">Home</a>
+                <a href="classes.html" class="nav-link active">Classes</a>
+                <a href="Quizzes.html" class="nav-link">Quizzes</a>
+                <a href="resources.html" class="nav-link">Resources</a>
+                <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+                <a href="profile.html" class="nav-link">Profile</a>
+                <a href="#" class="nav-link">Help & Support</a>
+            </nav>
+        </div>
+
+        <div class="sidebar-social">
+            <a href="#">Instagram</a>
+            <a href="#">Facebook</a>
+        </div>
+    </aside>
+
+    <main class="main">
+      <section class="content">
+
+        <a href="classes.html" class="back-link">← Back to My Classes</a>
+
+        <div class="class-header">
+          <div class="subject-icon math">📐</div>
+          <div>
+            <h1>Mathematics</h1>
+            <p>Numbers, algebra, geometry and more.</p>
+          </div>
+        </div>
+
+        <div class="class-overall-progress">
+          <div class="progress-label">
+            <span>Overall progress</span>
+            <strong>72%</strong>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width: 72%;"></div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <h2>Topics</h2>
+        </div>
+
+        <section class="topic-list">
+          
+          <article class="topic-card">
+            <div class="topic-card-top">
+              <div>
+                <h3>Algebra Basics</h3>
+                <p style="color:var(--muted);font-size:12px;">Equations, expressions and simplifying terms.</p>
+              </div>
+              <span class="topic-status completed">Completed</span>
+            </div>
+
+            <div class="ai-notes">
+              <div class="ai-notes-label">✨ AI-generated summary</div>
+              Algebra is about finding unknown values using equations. Focus on balancing both sides of an equation and simplifying like terms before solving for x.
+            </div>
+
+            <div class="topic-actions">
+              <a href="Quizzes.html" class="chip-btn primary">📝 Take Quiz</a>
+              <a href="resources.html" class="chip-btn">📄 View Notes</a>
+              <a href="resources.html" class="chip-btn">⬇️ Download Notes</a>
+            </div>
+          </article>
+          <article class="topic-card">
+            <div class="topic-card-top">
+              <div>
+                <h3>Graphs & Functions</h3>
+                <p style="color:var(--muted);font-size:12px;">Linear, quadratic and exponential graphs.</p>
+              </div>
+              <span class="topic-status completed">Completed</span>
+            </div>
+
+            <div class="ai-notes">
+              <div class="ai-notes-label">✨ AI-generated summary</div>
+              A function maps every input to exactly one output. Linear graphs are straight lines (y = mx + c), while quadratics form a parabola shaped by the x² term.
+            </div>
+
+            <div class="topic-actions">
+              <a href="Quizzes.html" class="chip-btn primary">📝 Take Quiz</a>
+              <a href="resources.html" class="chip-btn">📄 View Notes</a>
+              <a href="resources.html" class="chip-btn">⬇️ Download Notes</a>
+            </div>
+          </article>
+          <article class="topic-card">
+            <div class="topic-card-top">
+              <div>
+                <h3>Probability & Statistics</h3>
+                <p style="color:var(--muted);font-size:12px;">Chance, data handling and averages.</p>
+              </div>
+              <span class="topic-status progress">In Progress</span>
+            </div>
+
+            <div class="ai-notes">
+              <div class="ai-notes-label">✨ AI-generated summary</div>
+              Probability measures how likely an event is, from 0 (impossible) to 1 (certain). Mean, median and mode summarise a data set in different ways.
+            </div>
+
+            <div class="topic-actions">
+              <a href="Quizzes.html" class="chip-btn primary">📝 Take Quiz</a>
+              <a href="resources.html" class="chip-btn">📄 View Notes</a>
+              <a href="resources.html" class="chip-btn">⬇️ Download Notes</a>
+            </div>
+          </article>
+          <article class="topic-card">
+            <div class="topic-card-top">
+              <div>
+                <h3>Basic Calculus</h3>
+                <p style="color:var(--muted);font-size:12px;">Introduction to derivatives and rates of change.</p>
+              </div>
+              <span class="topic-status locked">Not Started</span>
+            </div>
+
+            <div class="ai-notes">
+              <div class="ai-notes-label">✨ AI-generated summary</div>
+              Calculus studies how quantities change. The derivative of a function tells you its rate of change at any given point — useful for finding gradients and turning points.
+            </div>
+
+            <div class="topic-actions">
+              <a href="Quizzes.html" class="chip-btn primary">📝 Take Quiz</a>
+              <a href="resources.html" class="chip-btn">📄 View Notes</a>
+              <a href="resources.html" class="chip-btn">⬇️ Download Notes</a>
+            </div>
+          </article>
+          <article class="topic-card">
+            <div class="topic-card-top">
+              <div>
+                <h3>Money Math: Interest & Loans</h3>
+                <p style="color:var(--muted);font-size:12px;">Simple and compound interest, loan repayments.</p>
+              </div>
+              <span class="topic-status locked">Not Started</span>
+            </div>
+
+            <div class="ai-notes">
+              <div class="ai-notes-label">✨ AI-generated summary</div>
+              Simple interest grows by a fixed amount each period, while compound interest grows on top of previously earned interest — leading to faster growth over time.
+            </div>
+
+            <div class="topic-actions">
+              <a href="Quizzes.html" class="chip-btn primary">📝 Take Quiz</a>
+              <a href="resources.html" class="chip-btn">📄 View Notes</a>
+              <a href="resources.html" class="chip-btn">⬇️ Download Notes</a>
+            </div>
+          </article>
+        </section>
+
+        <section class="subject-resources">
+          <h2>Mathematics Resources</h2>
+          
+          <div class="subject-resource-row">
+            <div class="subject-resource-info">
+              <div class="subject-resource-icon">📄</div>
+              <div>
+                <strong>Full Mathematics Notes (Terms 1–4)</strong>
+                <span>PDF · Updated this term</span>
+              </div>
+            </div>
+            <div class="topic-actions">
+              <a href="resources.html" class="chip-btn">View</a>
+              <a href="resources.html" class="chip-btn" download>Download</a>
+            </div>
+          </div>
+          <div class="subject-resource-row">
+            <div class="subject-resource-info">
+              <div class="subject-resource-icon">📝</div>
+              <div>
+                <strong>2023 Mathematics Exam Paper + Memo</strong>
+                <span>PDF · Past paper</span>
+              </div>
+            </div>
+            <div class="topic-actions">
+              <a href="resources.html" class="chip-btn">View</a>
+              <a href="resources.html" class="chip-btn" download>Download</a>
+            </div>
+          </div>
+          <div class="subject-resource-row">
+            <div class="subject-resource-info">
+              <div class="subject-resource-icon">📝</div>
+              <div>
+                <strong>2022 Mathematics Exam Paper + Memo</strong>
+                <span>PDF · Past paper</span>
+              </div>
+            </div>
+            <div class="topic-actions">
+              <a href="resources.html" class="chip-btn">View</a>
+              <a href="resources.html" class="chip-btn" download>Download</a>
+            </div>
+          </div>
+        </section>
+
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-nav">
+    <a href="dashboard.html"><span>🏠</span>Home</a>
+    <a href="classes.html" class="active"><span>📚</span>Classes</a>
+    <a href="Quizzes.html"><span>📝</span>Quizzes</a>
+    <a href="resources.html"><span>📂</span>Resources</a>
+    <a href="leaderboard.html"><span>🏅</span>Leaderboard</a>
+    <a href="profile.html"><span>👤</span>Profile</a>
+  </nav>
+
+    <script src="js/api.js"></script>
+    <script src="js/mathematics-class.js" defer></script>
+</body>
+</html>

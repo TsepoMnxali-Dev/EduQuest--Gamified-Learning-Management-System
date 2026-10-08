@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduQuest | Quiz</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div>
+                <div class="brand">
+                    <img src="images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo">
+                </div>
+
+                <nav class="sidebar-nav">
+                    <a href="dashboard.html" class="nav-link">Home</a>
+                    <a href="classes.html" class="nav-link">Classes</a>
+                    <a href="Quizzes.html" class="nav-link active">Quizzes</a>
+                    <a href="resources.html" class="nav-link">Resources</a>
+                    <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+                    <a href="profile.html" class="nav-link">Profile</a>
+                    <a href="#" class="nav-link">Help & Support</a>
+                </nav>
+            </div>
+
+            <div class="sidebar-social">
+                <a href="#">Instagram</a>
+                <a href="#">Facebook</a>
+            </div>
+        </aside>
+
+        <main class="main">
+            <div class="quizzes-topbar">
+                <div class="dashboard-welcome">
+                    <h1 id="quiz-title">Quiz</h1>
+                    <p id="quiz-subject"></p>
+                </div>
+                <div class="quiz-timer" id="quiz-timer" hidden>Time 00:00</div>
+            </div>
+
+            <div id="quiz-root" class="quiz-root"></div>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/quiz.js" defer></script>
+</body>
+</html>
