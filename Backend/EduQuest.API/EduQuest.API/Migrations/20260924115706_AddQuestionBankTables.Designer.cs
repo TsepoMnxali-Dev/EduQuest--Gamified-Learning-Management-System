@@ -4,6 +4,7 @@ using EduQuest.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EduQuest.API.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260924115706_AddQuestionBankTables")]
+    partial class AddQuestionBankTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -120,7 +123,7 @@ namespace EduQuest.API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CompetitionLearnerID"));
 
-                    b.Property<int>("CompetitionID")
+                    b.Property<int?>("CompetitionID")
                         .HasColumnType("int");
 
                     b.Property<int>("LearnerID")
@@ -513,8 +516,9 @@ namespace EduQuest.API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeSpan>("TimeLimit")
-                        .HasColumnType("time");
+                    b.Property<string>("TimeLimit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TopicID")
                         .HasColumnType("int");
@@ -1191,9 +1195,7 @@ namespace EduQuest.API.Migrations
                 {
                     b.HasOne("EduQuest.API.Models.Entities.Competition", "Competition")
                         .WithMany("CompetitionLearners")
-                        .HasForeignKey("CompetitionID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CompetitionID");
 
                     b.HasOne("EduQuest.API.Models.Entities.Learner", "Learner")
                         .WithMany("CompetitionLearners")

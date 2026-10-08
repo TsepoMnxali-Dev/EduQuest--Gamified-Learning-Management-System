@@ -6,7 +6,10 @@ namespace EduQuest.API.DTOs
     public class UpdateStudyMaterialDto
     {
         [Range(1, int.MaxValue)]
-        public int TopicID { get; set; }
+        public int GradeSubjectID { get; set; }
+
+        [Range(1, int.MaxValue)]
+        public int? TopicID { get; set; }
 
         [Required]
         [StringLength(200)]

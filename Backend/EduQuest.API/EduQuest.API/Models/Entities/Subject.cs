@@ -1,4 +1,4 @@
-﻿using EduQuest.API.Models.Entities;
+﻿namespace EduQuest.API.Models.Entities;
 
 public class Subject
 {

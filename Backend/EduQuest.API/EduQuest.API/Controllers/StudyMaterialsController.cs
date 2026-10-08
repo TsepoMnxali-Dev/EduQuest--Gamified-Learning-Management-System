@@ -23,14 +23,27 @@ namespace EduQuest.API.Controllers
         public async Task<ActionResult<IEnumerable<StudyMaterialDto>>> GetStudyMaterials()
         {
             var materials = await _context.StudyMaterials
+                .Include(sm => sm.GradeSubject)
+                    .ThenInclude(gs => gs.Subject)
+                .Include(sm => sm.GradeSubject)
+                    .ThenInclude(gs => gs.Grade)
+                .Include(sm => sm.Topic)
                 .Select(sm => new StudyMaterialDto
                 {
                     StudyMaterialID = sm.StudyMaterialID,
+
+                    GradeSubjectID = sm.GradeSubjectID,
+
                     TopicID = sm.TopicID,
-                    TopicName = sm.Topic.TopicName,
-                    SubjectID = sm.Topic.SubjectID,
-                    SubjectName = sm.Topic.Subject.SubjectName,
-                    GradeLevel = sm.Topic.GradeLevel,
+                    TopicName = sm.Topic != null
+                        ? sm.Topic.TopicName
+                        : null,
+
+                    SubjectID = sm.GradeSubject.SubjectID,
+                    SubjectName = sm.GradeSubject.Subject.SubjectName,
+
+                    GradeLevel = sm.GradeSubject.Grade.GradeName,
+
                     Title = sm.Title,
                     Description = sm.Description,
                     ResourceType = sm.ResourceType,
@@ -46,15 +59,28 @@ namespace EduQuest.API.Controllers
         public async Task<ActionResult<StudyMaterialDto>> GetStudyMaterial(int id)
         {
             var material = await _context.StudyMaterials
+                .Include(sm => sm.GradeSubject)
+                    .ThenInclude(gs => gs.Subject)
+                .Include(sm => sm.GradeSubject)
+                    .ThenInclude(gs => gs.Grade)
+                .Include(sm => sm.Topic)
                 .Where(sm => sm.StudyMaterialID == id)
                 .Select(sm => new StudyMaterialDto
                 {
                     StudyMaterialID = sm.StudyMaterialID,
+
+                    GradeSubjectID = sm.GradeSubjectID,
+
                     TopicID = sm.TopicID,
-                    TopicName = sm.Topic.TopicName,
-                    SubjectID = sm.Topic.SubjectID,
-                    SubjectName = sm.Topic.Subject.SubjectName,
-                    GradeLevel = sm.Topic.GradeLevel,
+                    TopicName = sm.Topic != null
+                        ? sm.Topic.TopicName
+                        : null,
+
+                    SubjectID = sm.GradeSubject.SubjectID,
+                    SubjectName = sm.GradeSubject.Subject.SubjectName,
+
+                    GradeLevel = sm.GradeSubject.Grade.GradeName,
+
                     Title = sm.Title,
                     Description = sm.Description,
                     ResourceType = sm.ResourceType,
@@ -75,12 +101,38 @@ namespace EduQuest.API.Controllers
         public async Task<ActionResult<StudyMaterialDto>> CreateStudyMaterial(
             [FromForm] CreateStudyMaterialDto dto)
         {
-            var topic = await _context.Topics
-                .Include(t => t.Subject)
-                .FirstOrDefaultAsync(t => t.TopicID == dto.TopicID);
+            var gradeSubject = await _context.GradeSubjects
+                .Include(gs => gs.Grade)
+                .Include(gs => gs.Subject)
+                .FirstOrDefaultAsync(gs =>
+                    gs.GradeSubjectID == dto.GradeSubjectID);
 
-            if (topic == null)
-                return NotFound("Topic not found.");
+            if (gradeSubject == null)
+                return NotFound("GradeSubject not found.");
+
+            Topic? topic = null;
+
+            if (dto.TopicID.HasValue)
+            {
+                topic = await _context.Topics
+                    .Include(t => t.Subject)
+                    .FirstOrDefaultAsync(t => t.TopicID == dto.TopicID.Value);
+
+                if (topic == null)
+                    return NotFound("Topic not found.");
+
+                var topicGradeMatches =
+    topic.GradeLevel == gradeSubject.Grade.GradeName;
+
+                var topicSubjectMatches =
+                    topic.SubjectID == gradeSubject.SubjectID;
+
+                if (!topicGradeMatches || !topicSubjectMatches)
+                {
+                    return BadRequest(
+                        "The selected topic does not belong to the selected GradeSubject.");
+                }
+            }
 
             var title = dto.Title.Trim();
             var resourceType = dto.ResourceType.Trim();
@@ -98,8 +150,12 @@ namespace EduQuest.API.Controllers
 
             var material = new StudyMaterial
             {
+                GradeSubjectID = dto.GradeSubjectID,
+                GradeSubject = gradeSubject,
+
                 TopicID = dto.TopicID,
                 Topic = topic,
+
                 Title = title,
                 Description = dto.Description?.Trim(),
                 ResourceType = resourceType,
@@ -123,11 +179,17 @@ namespace EduQuest.API.Controllers
             var result = new StudyMaterialDto
             {
                 StudyMaterialID = material.StudyMaterialID,
-                TopicID = topic.TopicID,
-                TopicName = topic.TopicName,
-                SubjectID = topic.SubjectID,
-                SubjectName = topic.Subject.SubjectName,
-                GradeLevel = topic.GradeLevel,
+
+                GradeSubjectID = gradeSubject.GradeSubjectID,
+
+                TopicID = topic?.TopicID,
+                TopicName = topic?.TopicName,
+
+                SubjectID = gradeSubject.SubjectID,
+                SubjectName = gradeSubject.Subject.SubjectName,
+
+                GradeLevel = gradeSubject.Grade.GradeName,
+
                 Title = material.Title,
                 Description = material.Description,
                 ResourceType = material.ResourceType,
@@ -155,12 +217,38 @@ namespace EduQuest.API.Controllers
             if (material == null)
                 return NotFound();
 
-            var topic = await _context.Topics
-                .Include(t => t.Subject)
-                .FirstOrDefaultAsync(t => t.TopicID == dto.TopicID);
+            var gradeSubject = await _context.GradeSubjects
+                .Include(gs => gs.Grade)
+                .Include(gs => gs.Subject)
+                .FirstOrDefaultAsync(gs =>
+                    gs.GradeSubjectID == dto.GradeSubjectID);
 
-            if (topic == null)
-                return NotFound("Topic not found.");
+            if (gradeSubject == null)
+                return NotFound("GradeSubject not found.");
+
+            Topic? topic = null;
+
+            if (dto.TopicID.HasValue)
+            {
+                topic = await _context.Topics
+                    .Include(t => t.Subject)
+                    .FirstOrDefaultAsync(t => t.TopicID == dto.TopicID.Value);
+
+                if (topic == null)
+                    return NotFound("Topic not found.");
+
+                var topicGradeMatches =
+    topic.GradeLevel == gradeSubject.Grade.GradeName;
+
+                var topicSubjectMatches =
+                    topic.SubjectID == gradeSubject.SubjectID;
+
+                if (!topicGradeMatches || !topicSubjectMatches)
+                {
+                    return BadRequest(
+                        "The selected topic does not belong to the selected GradeSubject.");
+                }
+            }
 
             var hasNewFile = dto.File != null;
             var hasNewUrl = !string.IsNullOrWhiteSpace(dto.FileURL);
@@ -169,8 +257,12 @@ namespace EduQuest.API.Controllers
                 return BadRequest(
                     "A study material cannot have both a file and a URL.");
 
+            material.GradeSubjectID = dto.GradeSubjectID;
+            material.GradeSubject = gradeSubject;
+
             material.TopicID = dto.TopicID;
             material.Topic = topic;
+
             material.Title = dto.Title.Trim();
             material.Description = dto.Description?.Trim();
             material.ResourceType = dto.ResourceType.Trim();

@@ -69,10 +69,13 @@ namespace EduQuest.API.Controllers
         [HttpPost]
         public async Task<ActionResult<UserDto>> CreateUser(CreateUserDto dto)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
+            var email = dto.Email.Trim().ToLowerInvariant();
+
+            if (await _context.Users.AnyAsync(u => u.Email == email))
                 return Conflict("An account with this email already exists.");
 
             var role = await _context.Roles.FindAsync(dto.RoleID);
+
             if (role == null)
                 return NotFound("Role not found.");
 
@@ -80,7 +83,7 @@ namespace EduQuest.API.Controllers
             {
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
-                Email = dto.Email,
+                Email = email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 RoleID = dto.RoleID,
                 IsActive = true
@@ -108,16 +111,26 @@ namespace EduQuest.API.Controllers
         public async Task<IActionResult> UpdateUser(int id, UpdateUserDto dto)
         {
             var user = await _context.Users.FindAsync(id);
+
             if (user == null)
                 return NotFound();
 
+            var email = dto.Email.Trim().ToLowerInvariant();
+
+            var emailExists = await _context.Users
+                .AnyAsync(u => u.Email == email && u.UserID != id);
+
+            if (emailExists)
+                return Conflict("An account with this email already exists.");
+
             var role = await _context.Roles.FindAsync(dto.RoleID);
+
             if (role == null)
                 return NotFound("Role not found.");
 
             user.FirstName = dto.FirstName;
             user.LastName = dto.LastName;
-            user.Email = dto.Email;
+            user.Email = email;
             user.RoleID = dto.RoleID;
 
             await _context.SaveChangesAsync();
@@ -126,14 +139,17 @@ namespace EduQuest.API.Controllers
         }
 
         // DELETE: api/users/{id}
+       
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
+
             if (user == null)
                 return NotFound();
 
-            _context.Users.Remove(user);
+            user.IsActive = false;
+
             await _context.SaveChangesAsync();
 
             return NoContent();
