@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Manage Resources | EduQuest</title>
+
+    <link rel="stylesheet" href="../../css/style.css">
+</head>
+
+<body>
+
+    <!-- Topbar -->
+    <header class="topbar">
+
+        <div class="topbar-search">
+            <input 
+                type="search" 
+                placeholder="Search EduQuest..."
+            >
+        </div>
+
+        <div class="topbar-actions">
+
+            <button class="notification-btn">
+                🔔
+            </button>
+
+            <button class="profile-btn">
+                👤 Admin
+            </button>
+
+        </div>
+
+    </header>
+    <!-- Dashboard layout -->
+    <div class="app">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+
+            <div>
+
+                <div class="brand">
+
+                    <img 
+                        src="../../images/EduQuestLogo.jpg"
+                        alt="EduQuest Logo"
+                        class="brand-logo"
+                    >
+
+                    <div class="brand-name">
+                        EduQuest
+                    </div>
+
+                </div>
+
+
+                <!-- Navigation -->
+                <nav class="sidebar-nav">
+
+                    <a href="dashboard.html" class="nav-link">
+                        Home
+                    </a>
+
+                    <a href="users.html" class="nav-link">
+                        Users
+                    </a>
+
+                    <a href="quiz.html" class="nav-link">
+                        Quizzes
+                    </a>
+
+                    <a href="resources.html" class="nav-link active">
+                        Resources
+                    </a>
+
+                    <a href="competition.html" class="nav-link">
+                        Competitions
+                    </a>
+
+                    <a href="leaderboard.html" class="nav-link">
+                        Leaderboard
+                    </a>
+
+                    <a href="reports.html" class="nav-link">
+                        Reports
+                    </a>
+
+                </nav>
+
+            </div>
+             <!-- Sidebar footer -->
+            <div class="sidebar-footer">
+
+                <p>
+                    Enhancing education through tech.
+                </p>
+
+                <small>
+                    © 2026 EduQuest
+                </small>
+
+            </div>
+
+        </aside>
+        <!-- Main content -->
+        <main class="main">
+
+            <section class="home-content">
+
+                <div class="page-header">
+                    <h1>
+                        Resources
+                    </h1>
+
+                    <p>
+                        Manage Textbooks, Pastpapers, Question Papers & Study Materials across all regions 
+                    </p>
+
+                </div>
+                 <!-- Parent Card -->
+<div class="parent-card">
+
+    <h2>Overview</h2>
+
+    <!-- Child Cards -->
+    <div class="child-cards">
+
+        <div class="child-card">
+
+      <h3>15 </h3>
+    <p>Total Resources.</p>
+
+</div>
+
+
+<div class="child-card">
+
+     <h3>4</h3>
+    <p>Textbooks</p>
+
+</div>
+
+
+<div class="child-card">
+       <h3>6</h3>
+    <p>Regions with content</p>
+</div>
+
+    </div>
+
+</div>
+<!-- Users Table -->
+<section class="users-table-card">
+
+    <div class="users-table-header">
+        <h2>Available Resources</h2>
+        <p>View resources that learners have access to.</p>
+    </div>
+      <div class="users-toolbar">
+
+        <!-- Search -->
+
+        <div class="user-search-box">
+
+            <input
+                type="text"
+                id="resourceSearch"
+                placeholder="Search by title or subject"
+            >
+            <button type="button" class="search-btn" id="resourceSearchBtn">
+                Search
+            </button>
+
+        </div>
+
+
+        <!-- Region Filter -->
+
+        <select id="roleFilter" class="user-filter">
+            <option value="all">All Regions</option>
+            <option value="Nelson Mandela Bay">Nelson Mandela Bay</option>
+            <option value="Buffalo City">Buffalo City</option>
+            <option value="Sarah Baartman">Sarah Baartman</option>
+            <option value="Chris Hani">Chris Hani</option>
+            <option value="Joe Gqabi">Joe Gqabi</option>
+        </select>
+        <select id="statusFilter" class="user-filter">
+
+            <option value="all">
+                All types
+            </option>
+
+            <option value="Textbook">
+                Textbook
+            </option>
+
+            <option value="Past Paper">
+                Past Paper
+            </option>
+
+            <option value="Question Paper">
+                Question Paper
+            </option>
+            </select>
+            <!-- Add Resource -->
+    <button
+        type="button"
+        class="add-user-btn"
+        id="openAddResource">
+
+        <span>+</span>
+        Add Resource
+
+       </button>
+        </div>
+      <div class="table-container">
+        <table class="users-table">
+
+      <thead>
+        <tr>
+            <th>Resource</th>
+            <th>Type</th>
+            <th>Region</th>
+            <th>Grade</th>
+            <th>Uploaded</th>
+            <th>Actions</th>
+        </tr>
+      </thead>
+       <tbody id="resourcesTableBody">
+        <!-- The users are in the JS file which later will be the from the API -->
+      </tbody>
+
+      </table>
+
+       </div>
+
+      </section>
+       <!-- Add Resource Modal -->
+<div id="addResourceModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <h2>Add Resource</h2>
+
+        <form id="addResourceForm">
+            <input id="resourceName" type="text" placeholder="Resource Name" required>
+            <input id="resourceSubject" type="text" placeholder="Subject" required>
+
+            <select id="resourceType" required>
+                <option value="">Select type</option>
+                <option value="Textbook">Textbook</option>
+                <option value="Past Paper">Past Paper</option>
+                <option value="Question Paper">Question Paper</option>
+            </select>
+
+            <input id="resourceGrade" type="text" placeholder="Grade">
+            <input id="resourceRegion" type="text" placeholder="Region" required>
+
+            <button type="submit">Save Resource</button>
+            <button type="button" id="closeAddResource">Cancel</button>
+        </form>
+    </div>
+</div>
+
+
+       <script src="../../js/main.js"></script>
+   </main>
+
+  </div>
+</body>
+</html>
