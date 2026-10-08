@@ -236,14 +236,23 @@ namespace EduQuest.API.Controllers
             // ---------------------------------------------------------------
             // 7. Create the quiz attempt
             // ---------------------------------------------------------------
+
+
+
+
+
             var attempt = new QuizAttempt
             {
                 Score = 0,
-                DateTaken = DateTime.Now.ToString("yyyy-MM-dd"),
-                TimeTaken = "00:00:00",
+                DateTaken = DateTime.Now,        // or DateTime.Today if you only want the date
+                TimeTaken = TimeSpan.Zero,       // same as new TimeSpan(0, 0, 0)
                 QuizID = quizId,
                 LearnerID = learner.LearnerID
             };
+
+
+
+
 
             _context.QuizAttempts.Add(attempt);
 

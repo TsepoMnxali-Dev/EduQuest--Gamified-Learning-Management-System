@@ -8,7 +8,7 @@
 
         public required string QuizTitle { get; set; }
         public required string Difficulty { get; set; }
-        public required string TimeLimit { get; set; }
+        public required TimeSpan TimeLimit { get; set; }
 
         public List<QuizAttemptQuestionDto> Questions { get; set; } = new();
     }

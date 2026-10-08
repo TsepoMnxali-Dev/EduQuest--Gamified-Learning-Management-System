@@ -11,8 +11,8 @@
         public int TotalQuestions { get; set; }
         public double Percentage { get; set; }
 
-        public required string DateTaken { get; set; }
-        public required string TimeTaken { get; set; }
+        public required DateTime DateTaken { get; set; }
+        public required TimeSpan TimeTaken { get; set; }
 
         public List<QuizAttemptResultQuestionDto> Questions { get; set; } = new();
     }
