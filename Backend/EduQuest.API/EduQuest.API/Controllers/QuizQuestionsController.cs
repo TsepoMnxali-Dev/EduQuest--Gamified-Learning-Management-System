@@ -16,15 +16,7 @@ namespace EduQuest.API.Controllers
         private readonly ApplicationDBContext _context;
         private readonly GeminiQuizGeneratorService _quizGenerator;
 
-        // Layer 2: Business rule
-        // GeneratedByAI / ApprovedByAdmin are stored as Yes/No flags for now.
-        private static readonly HashSet<string> AllowedYesNo =
-            new(StringComparer.OrdinalIgnoreCase)
-            {
-                "Yes",
-                "No"
-            };
-
+        
         public QuizQuestionsController(
             ApplicationDBContext context,
             GeminiQuizGeneratorService quizGenerator)
@@ -83,30 +75,8 @@ namespace EduQuest.API.Controllers
             // Normalize the input
             var questionText = dto.QuestionText.Trim();
             var explanation = dto.Explanation.Trim();
-            var generatedByAI = dto.GeneratedByAI.Trim();
-            var approvedByAdmin = dto.ApprovedByAdmin.Trim();
-
-            // Layer 2: Check that GeneratedByAI is Yes or No
-            var validGeneratedByAI = AllowedYesNo.FirstOrDefault(
-                v => string.Equals(v, generatedByAI, StringComparison.OrdinalIgnoreCase));
-
-            if (validGeneratedByAI == null)
-            {
-                return BadRequest("GeneratedByAI must be Yes or No.");
-            }
-
-            // Layer 2: Check that ApprovedByAdmin is Yes or No
-            var validApprovedByAdmin = AllowedYesNo.FirstOrDefault(
-                v => string.Equals(v, approvedByAdmin, StringComparison.OrdinalIgnoreCase));
-
-            if (validApprovedByAdmin == null)
-            {
-                return BadRequest("ApprovedByAdmin must be Yes or No.");
-            }
-
-            // Store canonical versions
-            generatedByAI = validGeneratedByAI;
-            approvedByAdmin = validApprovedByAdmin;
+            var generatedByAI = dto.GeneratedByAI;
+            var approvedByAdmin = dto.ApprovedByAdmin;
 
             var questionEntity = new QuizQuestion
             {
@@ -137,6 +107,103 @@ namespace EduQuest.API.Controllers
                 new { quizId = questionEntity.QuizID },
                 result
             );
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("from-bank")]
+        public async Task<ActionResult<GenerateQuizQuestionsResponseDto>> AssignFromBank(
+    int quizId,
+    AssignFromBankDto dto)
+        {
+            // --- Step 1: make sure the quiz exists -----------------------------
+
+            var quiz = await _context.Quizzes
+                .FirstOrDefaultAsync(q => q.QuizID == quizId);
+
+            if (quiz == null)
+            {
+                return NotFound("The specified quiz does not exist.");
+            }
+
+            // --- Step 2: find Question Bank questions matching the quiz ---------
+
+            var bankItems = await _context.QuestionBankItems
+                .Where(qbi =>
+                    qbi.TopicID == quiz.TopicID &&
+                    qbi.Difficulty == quiz.Difficulty)
+                .Include(qbi => qbi.QuestionBankOptions)
+                .ToListAsync();
+
+            if (bankItems.Count < dto.Count)
+            {
+                return BadRequest(
+                    $"Not enough Question Bank questions available for this quiz. " +
+                    $"The quiz requires {dto.Count}, but only {bankItems.Count} are available.");
+            }
+
+            // Randomly select the requested number of questions
+            bankItems = bankItems
+                .OrderBy(_ => Guid.NewGuid())
+                .Take(dto.Count)
+                .ToList();
+
+            // --- Step 3: copy each bank item into a real QuizQuestion -----------
+
+            var savedQuestions = new List<QuizQuestion>();
+
+            foreach (var bankItem in bankItems)
+            {
+                var questionEntity = new QuizQuestion
+                {
+                    QuestionText = bankItem.QuestionText,
+                    Explanation = bankItem.Explanation,
+                    SourceExtract = bankItem.SourceExtract,
+                    GeneratedByAI = false,
+                    ApprovedByAdmin = true,
+                    QuizID = quizId,
+
+                    QuizOptions = bankItem.QuestionBankOptions
+                        .Select(o => new QuizOption
+                        {
+                            OptionText = o.OptionText,
+                            IsCorrect = o.IsCorrect
+                        })
+                        .ToList()
+                };
+
+                _context.QuizQuestions.Add(questionEntity);
+                savedQuestions.Add(questionEntity);
+            }
+
+            await _context.SaveChangesAsync();
+
+            // --- Build the response --------------------------------------------
+
+            var questionDtos = savedQuestions.Select(question => new GeneratedQuizQuestionDto
+            {
+                QuizQuestionID = question.QuizQuestionID,
+                QuestionText = question.QuestionText,
+                SourceExtract = question.SourceExtract,
+                Explanation = question.Explanation,
+                GeneratedByAI = question.GeneratedByAI,
+                ApprovedByAdmin = question.ApprovedByAdmin,
+                QuizID = question.QuizID,
+                Options = question.QuizOptions!
+                    .Select(o => new QuizOptionDto
+                    {
+                        QuizOptionID = o.QuizOptionID,
+                        OptionText = o.OptionText,
+                        IsCorrect = o.IsCorrect,
+                        QuestionID = question.QuizQuestionID
+                    })
+                    .ToList()
+            }).ToList();
+
+            return Ok(new GenerateQuizQuestionsResponseDto
+            {
+                Questions = questionDtos,
+                Notes = new List<string>()
+            });
         }
 
 
@@ -269,21 +336,15 @@ namespace EduQuest.API.Controllers
                 {
                     QuestionText = q.QuestionText.Trim(),
                     Explanation = q.Explanation.Trim(),
+                    SourceExtract = q.SourceExtract?.Trim(),
 
-                    // Step 6: flag as AI-generated. ApprovedByAdmin is set to
-                    // "Yes" straight away — no manual review step, the
-                    // question is live and usable in the quiz immediately.
-                    GeneratedByAI = "Yes",
-                    ApprovedByAdmin = "Yes",
+                    // Mark the question as AI-generated.
+                    // It must remain unapproved until an admin reviews it.
+                    GeneratedByAI = true,
+                    ApprovedByAdmin = true,
                     QuizID = quizId,
 
-                    // This is where the correct answer gets stored: each
-                    // QuizOption keeps its own IsCorrect flag, exactly like
-                    // options created by hand through the normal endpoints.
-                    // Nothing extra needed for "review your work" later —
-                    // the learner-facing review screen just needs to read
-                    // IsCorrect off the option the learner picked (and the
-                    // one that was actually correct) once the attempt is over.
+                    
                     QuizOptions = q.Options
                         .Select(o => new QuizOption
                         {
@@ -304,6 +365,7 @@ namespace EduQuest.API.Controllers
             {
                 QuizQuestionID = question.QuizQuestionID,
                 QuestionText = question.QuestionText,
+                SourceExtract = question.SourceExtract,
                 Explanation = question.Explanation,
                 GeneratedByAI = question.GeneratedByAI,
                 ApprovedByAdmin = question.ApprovedByAdmin,
@@ -314,7 +376,7 @@ namespace EduQuest.API.Controllers
                         QuizOptionID = o.QuizOptionID,
                         OptionText = o.OptionText,
                         IsCorrect = o.IsCorrect,
-                        QuestionID = o.QuestionID
+                        QuestionID = question.QuizQuestionID
                     })
                     .ToList()
             }).ToList();
@@ -346,31 +408,13 @@ namespace EduQuest.API.Controllers
             // Normalize the input
             var questionText = dto.QuestionText.Trim();
             var explanation = dto.Explanation.Trim();
-            var generatedByAI = dto.GeneratedByAI.Trim();
-            var approvedByAdmin = dto.ApprovedByAdmin.Trim();
-
-            // Layer 2: Check that GeneratedByAI is Yes or No
-            var validGeneratedByAI = AllowedYesNo.FirstOrDefault(
-                v => string.Equals(v, generatedByAI, StringComparison.OrdinalIgnoreCase));
-
-            if (validGeneratedByAI == null)
-            {
-                return BadRequest("GeneratedByAI must be Yes or No.");
-            }
-
-            // Layer 2: Check that ApprovedByAdmin is Yes or No
-            var validApprovedByAdmin = AllowedYesNo.FirstOrDefault(
-                v => string.Equals(v, approvedByAdmin, StringComparison.OrdinalIgnoreCase));
-
-            if (validApprovedByAdmin == null)
-            {
-                return BadRequest("ApprovedByAdmin must be Yes or No.");
-            }
+            var generatedByAI = dto.GeneratedByAI;
+            var approvedByAdmin = dto.ApprovedByAdmin;
 
             questionEntity.QuestionText = questionText;
             questionEntity.Explanation = explanation;
-            questionEntity.GeneratedByAI = validGeneratedByAI;
-            questionEntity.ApprovedByAdmin = validApprovedByAdmin;
+            questionEntity.GeneratedByAI = generatedByAI;
+            questionEntity.ApprovedByAdmin = approvedByAdmin;
             // QuizID intentionally left unchanged — see UpdateQuizQuestionDto note above
 
             await _context.SaveChangesAsync();

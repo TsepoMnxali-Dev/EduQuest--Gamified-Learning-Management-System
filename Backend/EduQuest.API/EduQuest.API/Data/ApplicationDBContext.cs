@@ -35,6 +35,9 @@ namespace EduQuest.API.Data
         public DbSet<ActivityLog> activityLogs { get; set; }
         public DbSet<Province> Provinces { get; set; }
         public DbSet<School> Schools { get; set; }
+        public DbSet<QuizAttemptQuestion> QuizAttemptQuestions { get; set; }
+        public DbSet<QuestionBankItem> QuestionBankItems { get; set; }
+        public DbSet<QuestionBankOption> QuestionBankOptions { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -58,6 +61,18 @@ namespace EduQuest.API.Data
             modelBuilder.Entity<LearnerSubject>()
            .HasIndex(ls => new { ls.LearnerID, ls.SubjectID })
            .IsUnique();
+
+            modelBuilder.Entity<QuizAttemptQuestion>()
+                .HasOne(qaq => qaq.QuizAttempt)
+                .WithMany(qa => qa.QuizAttemptQuestions)
+                .HasForeignKey(qaq => qaq.QuizAttemptID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<QuizAttemptQuestion>()
+                .HasOne(qaq => qaq.QuizQuestion)
+                .WithMany(qq => qq.QuizAttemptQuestions)
+                .HasForeignKey(qaq => qaq.QuizQuestionID)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Role>().HasData(
                 new Role
@@ -107,9 +122,46 @@ namespace EduQuest.API.Data
                 .IsUnique();
 
             modelBuilder.Entity<StudyMaterial>()
+                .HasOne(sm => sm.GradeSubject)
+                .WithMany()
+                .HasForeignKey(sm => sm.GradeSubjectID)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<StudyMaterial>()
                 .HasOne(sm => sm.Topic)
                 .WithMany()
-                .HasForeignKey(sm => sm.TopicID);
+                .HasForeignKey(sm => sm.TopicID)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<QuestionBankItem>()
+                .HasOne(qbi => qbi.Topic)
+                .WithMany()
+                .HasForeignKey(qbi => qbi.TopicID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<QuestionBankOption>()
+                .HasOne(qbo => qbo.QuestionBankItem)
+                .WithMany(qbi => qbi.QuestionBankOptions)
+                .HasForeignKey(qbo => qbo.QuestionBankItemID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Grade>().HasData(
+                new Grade
+                {
+                    GradeID = 10,
+                    GradeName = "Grade 10"
+                },
+                new Grade
+                {
+                    GradeID = 11,
+                    GradeName = "Grade 11"
+                },
+                new Grade
+                {
+                    GradeID = 12,
+                    GradeName = "Grade 12"
+                }
+            );
 
             modelBuilder.Entity<Province>().HasData(
                 new Province { ProvinceID = 1, ProvinceName = "Eastern Cape" },

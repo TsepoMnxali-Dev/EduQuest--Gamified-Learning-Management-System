@@ -4,6 +4,7 @@ using EduQuest.API.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EduQuest.API.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    partial class ApplicationDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260924114448_AddQuestionBank")]
+    partial class AddQuestionBank
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -430,68 +433,6 @@ namespace EduQuest.API.Migrations
                             ProvinceID = 9,
                             ProvinceName = "Western Cape"
                         });
-                });
-
-            modelBuilder.Entity("EduQuest.API.Models.Entities.QuestionBankItem", b =>
-                {
-                    b.Property<int>("QuestionBankItemID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuestionBankItemID"));
-
-                    b.Property<string>("Difficulty")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Explanation")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("QuestionText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Source")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SourceExtract")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TopicID")
-                        .HasColumnType("int");
-
-                    b.HasKey("QuestionBankItemID");
-
-                    b.HasIndex("TopicID");
-
-                    b.ToTable("QuestionBankItems");
-                });
-
-            modelBuilder.Entity("EduQuest.API.Models.Entities.QuestionBankOption", b =>
-                {
-                    b.Property<int>("QuestionBankOptionID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuestionBankOptionID"));
-
-                    b.Property<bool>("IsCorrect")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("OptionText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("QuestionBankItemID")
-                        .HasColumnType("int");
-
-                    b.HasKey("QuestionBankOptionID");
-
-                    b.HasIndex("QuestionBankItemID");
-
-                    b.ToTable("QuestionBankOptions");
                 });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Quiz", b =>
@@ -1079,23 +1020,6 @@ namespace EduQuest.API.Migrations
                     b.ToTable("StudyMaterials");
                 });
 
-            modelBuilder.Entity("EduQuest.API.Models.Entities.Subject", b =>
-                {
-                    b.Property<int>("SubjectID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubjectID"));
-
-                    b.Property<string>("SubjectName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("SubjectID");
-
-                    b.ToTable("Subjects");
-                });
-
             modelBuilder.Entity("EduQuest.API.Models.Entities.Topic", b =>
                 {
                     b.Property<int>("TopicID")
@@ -1166,6 +1090,23 @@ namespace EduQuest.API.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Subject", b =>
+                {
+                    b.Property<int>("SubjectID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubjectID"));
+
+                    b.Property<string>("SubjectName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("SubjectID");
+
+                    b.ToTable("Subjects");
+                });
+
             modelBuilder.Entity("EduQuest.API.Models.Entities.ActivityLog", b =>
                 {
                     b.HasOne("EduQuest.API.Models.Entities.User", "User")
@@ -1213,7 +1154,7 @@ namespace EduQuest.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EduQuest.API.Models.Entities.Subject", "Subject")
+                    b.HasOne("Subject", "Subject")
                         .WithMany("GradeSubjects")
                         .HasForeignKey("SubjectID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1289,7 +1230,7 @@ namespace EduQuest.API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EduQuest.API.Models.Entities.Subject", "Subject")
+                    b.HasOne("Subject", "Subject")
                         .WithMany()
                         .HasForeignKey("SubjectID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1318,28 +1259,6 @@ namespace EduQuest.API.Migrations
                         .IsRequired();
 
                     b.Navigation("Competition");
-                });
-
-            modelBuilder.Entity("EduQuest.API.Models.Entities.QuestionBankItem", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Topic", "Topic")
-                        .WithMany()
-                        .HasForeignKey("TopicID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Topic");
-                });
-
-            modelBuilder.Entity("EduQuest.API.Models.Entities.QuestionBankOption", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.QuestionBankItem", "QuestionBankItem")
-                        .WithMany("QuestionBankOptions")
-                        .HasForeignKey("QuestionBankItemID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("QuestionBankItem");
                 });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Quiz", b =>
@@ -1465,7 +1384,7 @@ namespace EduQuest.API.Migrations
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Topic", b =>
                 {
-                    b.HasOne("EduQuest.API.Models.Entities.Subject", "Subject")
+                    b.HasOne("Subject", "Subject")
                         .WithMany()
                         .HasForeignKey("SubjectID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1522,11 +1441,6 @@ namespace EduQuest.API.Migrations
                     b.Navigation("Schools");
                 });
 
-            modelBuilder.Entity("EduQuest.API.Models.Entities.QuestionBankItem", b =>
-                {
-                    b.Navigation("QuestionBankOptions");
-                });
-
             modelBuilder.Entity("EduQuest.API.Models.Entities.Quiz", b =>
                 {
                     b.Navigation("QuizAttempts");
@@ -1570,14 +1484,14 @@ namespace EduQuest.API.Migrations
                     b.Navigation("Collections");
                 });
 
-            modelBuilder.Entity("EduQuest.API.Models.Entities.Subject", b =>
-                {
-                    b.Navigation("GradeSubjects");
-                });
-
             modelBuilder.Entity("EduQuest.API.Models.Entities.Topic", b =>
                 {
                     b.Navigation("Quiz");
+                });
+
+            modelBuilder.Entity("Subject", b =>
+                {
+                    b.Navigation("GradeSubjects");
                 });
 #pragma warning restore 612, 618
         }

@@ -7,10 +7,10 @@ namespace EduQuest.API.DTOs
     // ------------------------------------------------------------------
     public class GenerateQuizQuestionsDto
     {
-        // How many questions to ask Gemini for. Capped at 10 per request so a
+        // How many questions to ask Gemini for. Capped at 50 per request so a
         // single call can't blow up the AI response size or take too long.
-        [Range(1, 10)]
-        public int Count { get; set; } = 5;
+        [Range(1, 50)]
+        public int Count { get; set; } = 10;
 
         // Optional override — if not supplied we fall back to the Quiz's own
         // Difficulty field (set when the quiz itself was created).
@@ -32,14 +32,14 @@ namespace EduQuest.API.DTOs
     {
         public int QuizQuestionID { get; set; }
         public required string QuestionText { get; set; }
-
+        public string? SourceExtract { get; set; }
         // Why the correct option is correct — shown to learners when they
         // review their finished quiz attempt.
         public required string Explanation { get; set; }
 
         // "Yes"/"No" flags (matches the existing QuizQuestion entity design).
-        public required string GeneratedByAI { get; set; }
-        public required string ApprovedByAdmin { get; set; }
+        public bool GeneratedByAI { get; set; }
+        public bool ApprovedByAdmin { get; set; }
 
         public int QuizID { get; set; }
 

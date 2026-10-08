@@ -83,6 +83,7 @@ if (app.Environment.IsDevelopment())
     await DbSeeder.SeedSubjectsAsync(context);
     await DbSeeder.SeedGradeSubjectsAsync(context);
     await DbSeeder.SeedTopicsAsync(context);
+    await DbSeeder.SeedQuestionBankAsync(context);
     await DbSeeder.SeedStudyMaterialsAsync(context);
     await DbSeeder.SeedDemoLearnersAsync(context);
     await DbSeeder.SeedLearnerSubjectsAsync(context);

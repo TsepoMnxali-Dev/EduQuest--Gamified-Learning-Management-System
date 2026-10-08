@@ -37,6 +37,7 @@ namespace EduQuest.API.Services
     public record GeneratedQuestion(
         [property: JsonPropertyName("questionText")] string QuestionText,
         [property: JsonPropertyName("explanation")] string Explanation,
+        [property: JsonPropertyName("sourceExtract")] string? SourceExtract,
         [property: JsonPropertyName("options")] List<GeneratedOption> Options);
 
     // ======================================================================
@@ -51,6 +52,7 @@ namespace EduQuest.API.Services
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
+        private readonly ILogger<GeminiQuizGeneratorService> _logger;
 
         // Mime types Gemini can actually read as "document" content. Anything
         // else (e.g. a .docx or .pptx upload) gets skipped by the controller
@@ -74,10 +76,17 @@ namespace EduQuest.API.Services
         // for the prompt text and JSON overhead too.
         private const long MaxTotalMaterialBytes = 15L * 1024 * 1024; // 15 MB
 
-        public GeminiQuizGeneratorService(HttpClient httpClient, IConfiguration config)
+        private const int MaxRetries = 3;
+        private const int InitialRetryDelayMs = 1000;
+
+        public GeminiQuizGeneratorService(
+    HttpClient httpClient,
+    IConfiguration config,
+    ILogger<GeminiQuizGeneratorService> logger)
         {
             _httpClient = httpClient;
             _config = config;
+            _logger = logger;
         }
 
         // ------------------------------------------------------------------
@@ -141,16 +150,60 @@ namespace EduQuest.API.Services
             var url =
                 $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
 
-            using var response = await _httpClient.PostAsync(
-                url,
-                new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json"));
+            var jsonRequest = JsonSerializer.Serialize(requestBody);
 
-            var responseBody = await response.Content.ReadAsStringAsync();
+            HttpResponseMessage? response = null;
+            string responseBody = "";
 
-            if (!response.IsSuccessStatusCode)
+            for (int attempt = 0; attempt <= MaxRetries; attempt++)
             {
-                throw new QuizGenerationException(
-                    $"Gemini API returned {(int)response.StatusCode}: {responseBody}");
+                using var content = new StringContent(
+                    jsonRequest,
+                    Encoding.UTF8,
+                    "application/json");
+
+                response = await _httpClient.PostAsync(url, content);
+
+                responseBody = await response.Content.ReadAsStringAsync();
+
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation(
+                        "Gemini request succeeded on attempt {Attempt}.",
+                        attempt + 1);
+
+                    break;
+                }
+
+                bool shouldRetry =
+                    (int)response.StatusCode == 408 ||
+                    (int)response.StatusCode == 429 ||
+                    (int)response.StatusCode >= 500;
+
+                if (!shouldRetry || attempt == MaxRetries)
+                {
+                    _logger.LogError(
+                        "Gemini request failed with status code {StatusCode}. No more retries.",
+                        (int)response.StatusCode);
+
+                    throw new QuizGenerationException(
+                        $"Gemini API returned {(int)response.StatusCode}: {responseBody}");
+                }
+
+                int exponentialDelay =
+                    InitialRetryDelayMs * (int)Math.Pow(2, attempt);
+
+                int jitter = Random.Shared.Next(0, 500);
+
+                int delay = exponentialDelay + jitter;
+
+                _logger.LogWarning(
+                    "Gemini request attempt {Attempt} failed with status code {StatusCode}. Retrying in {Delay}ms.",
+                    attempt + 1,
+                    (int)response.StatusCode,
+                    delay);
+
+                await Task.Delay(delay);
             }
 
             // Gemini's reply is wrapped in an envelope like:
@@ -199,17 +252,21 @@ namespace EduQuest.API.Services
             // the database. Anything malformed just gets dropped rather than
             // saved with a missing/duplicate correct answer.
             var valid = questions
-                .Where(q =>
-                    !string.IsNullOrWhiteSpace(q.QuestionText) &&
-                    q.Options.Count == 4 &&
-                    q.Options.Count(o => o.IsCorrect) == 1)
-                .ToList();
+    .Where(q =>
+        !string.IsNullOrWhiteSpace(q.QuestionText) &&
+        q.Options.Count == 4 &&
+        q.Options.Count(o => o.IsCorrect) == 1)
+    .ToList();
 
             if (valid.Count == 0)
-            {
                 throw new QuizGenerationException(
                     "Gemini's questions didn't match the expected format (4 options, one correct).");
-            }
+
+            // Gemini may return more questions than requested.
+            // Only keep the number requested by the admin.
+            valid = valid
+                .Take(count)
+                .ToList();
 
             return valid;
         }
@@ -232,24 +289,31 @@ namespace EduQuest.API.Services
             bool hasMaterial)
         {
             var sourceInstruction = hasMaterial
-                ? "Base every question strictly on the study material attached to this request " +
-                  "(the files that follow this text). Do not invent facts that aren't supported by " +
-                  "the attached material."
-                : "No study material was attached, so use your general knowledge of the South African " +
-                  "high school curriculum for this subject and topic.";
+                ? "The attached study material is the primary source for this quiz. "
+                  + "Use the actual content in the attached material when creating questions. "
+                  + "Do not rely on information that is not present in the supplied material "
+                  + "when a question depends on that material."
+                : "No usable study material was attached. "
+                  + "Create questions using general South African high-school knowledge "
+                  + "appropriate to the specified subject, topic, grade and difficulty.";
 
             return
                 $"You are helping build a multiple-choice quiz for a South African high school " +
                 $"learner in Grade {gradeLevel}, subject \"{subjectName}\", topic \"{topicName}\". " +
                 $"{sourceInstruction} " +
-                $"Generate {count} original multiple-choice questions at \"{difficulty}\" difficulty. " +
+                $"Generate exactly {count} original multiple-choice questions at \"{difficulty}\" difficulty. " +
                 $"Each question must have exactly 4 options, with exactly one option marked as the " +
                 $"correct answer (isCorrect: true) and the other three clearly wrong but plausible " +
-                $"(isCorrect: false). Also include a short explanation (1-2 sentences) of why the " +
-                $"correct option is right — this explanation is shown to learners afterwards when " +
-                $"they review their completed quiz, so make sure the correct answer and explanation " +
-                $"line up. Do not repeat questions. Keep question text under 400 characters and " +
-                $"explanation text under 800 characters.";
+                $"(isCorrect: false). " +
+                $"If a question depends on a specific passage, diagram, graph, table, image, " +
+                $"equation or other source material, include the relevant source content in " +
+                $"sourceExtract so that the learner has the information needed to answer the question. " +
+                $"If the question does not require specific source material, set sourceExtract to null. " +
+                $"Also include a short explanation (1-2 sentences) of why the correct option is right. " +
+                $"The explanation must be supported by the supplied material when material is provided. " +
+                $"Do not repeat questions. " +
+                $"Keep question text under 400 characters, sourceExtract under 1500 characters, " +
+                $"and explanation text under 800 characters.";
         }
 
         // ------------------------------------------------------------------
@@ -267,6 +331,7 @@ namespace EduQuest.API.Services
                 properties = new
                 {
                     questionText = new { type = "STRING" },
+                    sourceExtract = new { type = "STRING" },
                     explanation = new { type = "STRING" },
                     options = new
                     {
@@ -283,7 +348,7 @@ namespace EduQuest.API.Services
                         }
                     }
                 },
-                required = new[] { "questionText", "explanation", "options" }
+                required = new[] { "questionText","sourceExtract", "explanation", "options" }
             }
         };
     }

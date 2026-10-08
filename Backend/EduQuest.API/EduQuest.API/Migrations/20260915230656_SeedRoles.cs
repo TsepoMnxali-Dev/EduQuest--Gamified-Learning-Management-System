@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -11,6 +12,8 @@ namespace EduQuest.API.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"
+                SET IDENTITY_INSERT Roles ON;
+
                 IF NOT EXISTS (SELECT 1 FROM Roles WHERE RoleID = 1)
                 BEGIN
                     INSERT INTO Roles (RoleID, RoleName)
@@ -28,14 +31,18 @@ namespace EduQuest.API.Migrations
                     INSERT INTO Roles (RoleID, RoleName)
                     VALUES (3, 'Sponsor');
                 END;
+
+                SET IDENTITY_INSERT Roles OFF;
             ");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Roles are required system data and may already exist
-            // independently of this migration.
+            migrationBuilder.Sql(@"
+                DELETE FROM Roles
+                WHERE RoleID IN (1, 2, 3);
+            ");
         }
     }
 }

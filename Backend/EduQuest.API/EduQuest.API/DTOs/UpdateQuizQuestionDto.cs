@@ -14,10 +14,10 @@ namespace EduQuest.API.DTOs
 
         [Required]
         [StringLength(10)]
-        public required string GeneratedByAI { get; set; }
+        public bool GeneratedByAI { get; set; }
 
         [Required]
         [StringLength(10)]
-        public required string ApprovedByAdmin { get; set; }
+        public bool ApprovedByAdmin { get; set; }
     }
 }
