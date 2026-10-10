@@ -32,6 +32,7 @@ namespace EduQuest.API.Controllers
         }
 
         // GET: api/subjects
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<SubjectDto>>> GetSubjects()
         {
@@ -47,6 +48,7 @@ namespace EduQuest.API.Controllers
         }
 
         // GET: api/subjects/{id}
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<SubjectDto>> GetSubject(int id)
         {

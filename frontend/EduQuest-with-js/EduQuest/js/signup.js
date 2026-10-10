@@ -1,24 +1,17 @@
 /* =============================================================
-   EduQuest - signupp.js  (used by signupp.html)
+   EduQuest - signup.js  (used by signup.html)
 
    Three-step sign-up: 1) account details, 2) province and school,
    3) subjects. Provinces, schools, grades and subjects are loaded
-   live from the backend; the final submit creates the account,
-   signs the learner in, creates their learner profile, attaches
-   their chosen subjects, then sends them to the dashboard.
+   live from the backend; the final submit sends everything to ONE
+   endpoint (POST /auth/register-learner), which creates the account,
+   learner profile and subject enrolments in a single transaction and
+   returns a token, then sends the learner to the dashboard.
 ============================================================= */
 (function () {
     "use strict";
 
-    var SUBJECT_ICONS = {
-        "Mathematics": "\uD83D\uDCD0",
-        "Physical Sciences": "\u2697\uFE0F",
-        "Life Sciences": "\uD83E\uDDEC",
-        "English": "\uD83D\uDCDA",
-        "Geography": "\uD83C\uDF0D",
-        "Life Orientation": "\uD83E\uDDED",
-        "Accounting": "\uD83E\uDDEE"
-    };
+    /* Shown only when the backend does not send an icon for a subject. */
     var DEFAULT_ICON = "\uD83D\uDCD8";
 
     function byId(id) {
@@ -77,14 +70,20 @@
     function loadProvinces() {
         return EduQuestAPI.get("/provinces", { auth: false })
             .then(function (provinces) {
+                if (!provinces || provinces.length === 0) {
+                    populateSelect(byId("province"), [], null, null, "No provinces configured yet - contact an admin");
+                    return;
+                }
                 populateSelect(
                     byId("province"), provinces,
                     "provinceID", "provinceName",
                     "Select your province"
                 );
             })
-            .catch(function () {
-                showError("Could not load the list of provinces from the server.");
+            .catch(function (err) {
+                console.error("Provinces failed to load:", err);
+                populateSelect(byId("province"), [], null, null, "Could not load provinces - refresh the page");
+                showError(err.message || "Could not load the list of provinces from the server.");
             });
     }
 
@@ -101,22 +100,45 @@
                     "Select your grade"
                 );
             })
-            .catch(function () {
-                showError("Could not load the list of grades from the server.");
+            .catch(function (err) {
+                console.error("Grades failed to load:", err);
+                populateSelect(byId("grade"), [], null, null, "Could not load grades - refresh the page");
+                showError(err.message || "Could not load the list of grades from the server.");
             });
     }
 
-    function subjectCardHtml(subject) {
-        var icon = SUBJECT_ICONS[subject.subjectName] || DEFAULT_ICON;
-        return (
-            '<label class="subject-option">' +
-            '<input type="checkbox" name="subjects" value="' + subject.subjectID + '">' +
-            '<span class="subject-card">' +
-            '<span class="subject-icon">' + icon + '</span>' +
-            '<strong>' + subject.subjectName + '</strong>' +
-            '<span class="subject-status">Select</span>' +
-            '</span></label>'
-        );
+    /* Built with createElement/textContent (not innerHTML) so a
+       subject name can never inject markup into the page. */
+    function buildSubjectCard(subject) {
+        var label = document.createElement("label");
+        label.className = "subject-option";
+
+        var input = document.createElement("input");
+        input.type = "checkbox";
+        input.name = "subjects";
+        input.value = subject.subjectID;
+        input.addEventListener("change", updateSubjects);
+
+        var card = document.createElement("span");
+        card.className = "subject-card";
+
+        var icon = document.createElement("span");
+        icon.className = "subject-icon";
+        icon.textContent = subject.icon || DEFAULT_ICON;
+
+        var name = document.createElement("strong");
+        name.textContent = subject.subjectName;
+
+        var status = document.createElement("span");
+        status.className = "subject-status";
+        status.textContent = "Select";
+
+        card.appendChild(icon);
+        card.appendChild(name);
+        card.appendChild(status);
+        label.appendChild(input);
+        label.appendChild(card);
+        return label;
     }
 
     function loadSubjects() {
@@ -124,28 +146,34 @@
 
         return EduQuestAPI.get("/subjects", { auth: false })
             .then(function (subjects) {
+                container.innerHTML = "";
+
                 if (!subjects || subjects.length === 0) {
-                    container.innerHTML = "<p>No subjects are configured yet - contact an admin.</p>";
+                    var empty = document.createElement("p");
+                    empty.textContent = "No subjects are configured yet - contact an admin.";
+                    container.appendChild(empty);
                     return;
                 }
 
-                container.innerHTML = subjects.map(subjectCardHtml).join("");
-
-                container.querySelectorAll('input[name="subjects"]').forEach(function (input) {
-                    input.addEventListener("change", updateSubjects);
+                subjects.forEach(function (subject) {
+                    container.appendChild(buildSubjectCard(subject));
                 });
                 updateSubjects();
             })
-            .catch(function () {
-                showError("Could not load the list of subjects from the server.");
+            .catch(function (err) {
+                console.error("Subjects failed to load:", err);
+                container.innerHTML = "";
+                var failed = document.createElement("p");
+                failed.textContent = "Could not load subjects - refresh the page.";
+                container.appendChild(failed);
+                showError(err.message || "Could not load the list of subjects from the server.");
             });
     }
 
     /* Fill the school list for the chosen province. */
     function loadSchools() {
-        var provinceSelect = byId("province");
+        var provinceId = byId("province").value;
         var school = byId("school");
-        var provinceId = provinceSelect.value;
 
         school.innerHTML = "";
 
@@ -162,6 +190,9 @@
 
         EduQuestAPI.get("/schools?provinceId=" + encodeURIComponent(provinceId), { auth: false })
             .then(function (schools) {
+                /* Ignore stale responses if the province changed meanwhile. */
+                if (byId("province").value !== provinceId) return;
+
                 if (!schools || schools.length === 0) {
                     populateSelect(school, [], null, null, "No schools configured for this province yet");
                     return;
@@ -173,8 +204,11 @@
                 );
                 school.disabled = false;
             })
-            .catch(function () {
-                showError("Could not load the list of schools for that province.");
+            .catch(function (err) {
+                if (byId("province").value !== provinceId) return;
+                console.error("Schools failed to load:", err);
+                populateSelect(school, [], null, null, "Could not load schools - pick the province again");
+                showError(err.message || "Could not load the list of schools for that province.");
             });
     }
 
@@ -188,6 +222,10 @@
                 field.reportValidity();
                 return;
             }
+        }
+        if (byId("fullName").value.trim().split(/\s+/).length < 2) {
+            showError("Please enter your first name and surname.");
+            return;
         }
         if (byId("password").value !== byId("confirmPassword").value) {
             showError("Passwords do not match.");
@@ -222,53 +260,32 @@
     function splitName(fullName) {
         var parts = fullName.trim().split(/\s+/);
         var firstName = parts.shift();
-        var lastName = parts.join(" ") || firstName;
+        var lastName = parts.join(" ");
         return { firstName: firstName, lastName: lastName };
     }
 
-    /* Creates the account, signs in, creates the learner profile and
-       attaches the chosen subjects - in that order, since each step
-       needs something the previous step returned. */
-    function createAccount() {
+    /* One request creates the account, learner profile and subject
+       enrolments atomically, so a failure can never leave a half-made
+       account behind. The server returns a token, so no separate
+       login call is needed. */
+    async function createAccount() {
         var name = splitName(byId("fullName").value);
-        var email = byId("email").value.trim();
-        var password = byId("password").value;
-        var gradeId = Number(byId("grade").value);
-        var schoolId = Number(byId("school").value);
-        var subjectIds = Array.prototype.map.call(
-            document.querySelectorAll('input[name="subjects"]:checked'),
-            function (input) { return Number(input.value); }
-        );
 
-        return EduQuestAPI.post("/auth/register", {
+        var result = await EduQuestAPI.post("/auth/register-learner", {
             firstName: name.firstName,
             lastName: name.lastName,
-            email: email,
-            password: password
-        }, { auth: false })
-            .then(function () {
-                return EduQuestAPI.post("/auth/login", { email: email, password: password }, { auth: false });
-            })
-            .then(function (loginResult) {
-                EduQuestAPI.saveToken(loginResult.token);
-                var currentUser = EduQuestAPI.getCurrentUser();
+            email: byId("email").value.trim(),
+            password: byId("password").value,
+            gradeID: Number(byId("grade").value),
+            schoolID: Number(byId("school").value),
+            subjectIDs: Array.prototype.map.call(
+                document.querySelectorAll('input[name="subjects"]:checked'),
+                function (input) { return Number(input.value); }
+            )
+        }, { auth: false });
 
-                return EduQuestAPI.post("/learners", {
-                    userID: currentUser.userId,
-                    gradeID: gradeId,
-                    schoolID: schoolId
-                });
-            })
-            .then(function (learner) {
-                return Promise.all(
-                    subjectIds.map(function (subjectId) {
-                        return EduQuestAPI.post("/learners/" + learner.learnerID + "/subjects/" + subjectId, null);
-                    })
-                );
-            })
-            .then(function () {
-                window.location.href = "dashboard.html";
-            });
+        EduQuestAPI.saveToken(result.token);
+        window.location.href = "dashboard.html";
     }
 
     /* Wire up the page. */
