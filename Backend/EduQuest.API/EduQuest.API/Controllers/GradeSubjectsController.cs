@@ -37,6 +37,7 @@ namespace EduQuest.API.Controllers
                 .Where(gradeSubject => gradeSubject.GradeID == gradeId)
                 .Select(gradeSubject => new GradeSubjectDto
                 {
+                    GradeSubjectID = gradeSubject.GradeSubjectID,   // NEW
                     SubjectID = gradeSubject.SubjectID,
                     SubjectName = gradeSubject.Subject.SubjectName
                 })
@@ -96,6 +97,7 @@ namespace EduQuest.API.Controllers
 
             var result = new GradeSubjectDto
             {
+                GradeSubjectID = gradeSubject.GradeSubjectID,   // NEW
                 SubjectID = subject.SubjectID,
                 SubjectName = subject.SubjectName
             };
