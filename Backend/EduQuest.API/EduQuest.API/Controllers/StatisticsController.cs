@@ -1,7 +1,10 @@
 ﻿using EduQuest.API.DTOs.Statistics;
 using EduQuest.API.Services;
 using Microsoft.AspNetCore.Authorization;
+using EduQuest.API.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace EduQuest.API.Controllers
 {
@@ -11,12 +14,15 @@ namespace EduQuest.API.Controllers
     public class StatisticsController : ControllerBase
     {
         private readonly IStatisticsService _statisticsService;
+        private readonly ApplicationDBContext _context;
 
-        public StatisticsController(IStatisticsService statisticsService)
+        public StatisticsController(IStatisticsService statisticsService, ApplicationDBContext context)
         {
             _statisticsService = statisticsService;
+            _context = context;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("overview")]
         public async Task<ActionResult<StatisticsOverviewDto>> GetOverview()
         {
@@ -25,6 +31,7 @@ namespace EduQuest.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("learners/by-province")]
         public async Task<ActionResult<List<LearnerCountByProvinceDto>>> GetLearnersByProvince()
         {
@@ -33,6 +40,7 @@ namespace EduQuest.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("learners/by-school")]
         public async Task<ActionResult<List<LearnerCountBySchoolDto>>> GetLearnersBySchool()
         {
@@ -41,6 +49,7 @@ namespace EduQuest.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("learners/by-grade")]
         public async Task<ActionResult<List<LearnerCountByGradeDto>>> GetLearnersByGrade()
         {
@@ -48,6 +57,7 @@ namespace EduQuest.API.Controllers
 
             return Ok(result);
         }
+        [Authorize(Roles = "Admin")]
         [HttpGet("performance/by-province")]
         public async Task<ActionResult<List<AverageScoreByProvinceDto>>> GetAverageScoreByProvince()
         {
@@ -56,6 +66,7 @@ namespace EduQuest.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("performance/by-school")]
         public async Task<ActionResult<List<AverageScoreBySchoolDto>>> GetAverageScoreBySchool()
         {
@@ -64,6 +75,7 @@ namespace EduQuest.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("performance/by-grade")]
         public async Task<ActionResult<List<AverageScoreByGradeDto>>> GetAverageScoreByGrade()
         {
@@ -72,6 +84,7 @@ namespace EduQuest.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("performance/by-subject")]
         public async Task<ActionResult<List<AverageScoreBySubjectDto>>> GetAverageScoreBySubject()
         {
@@ -80,6 +93,7 @@ namespace EduQuest.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("performance/by-topic")]
         public async Task<ActionResult<List<AverageScoreByTopicDto>>> GetAverageScoreByTopic()
         {
@@ -88,6 +102,7 @@ namespace EduQuest.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("performance/pass-fail")]
         public async Task<ActionResult<PassFailStatisticsDto>> GetPassFailStatistics()
         {
@@ -95,6 +110,7 @@ namespace EduQuest.API.Controllers
 
             return Ok(result);
         }
+        [Authorize(Roles = "Admin")]
         [HttpGet("engagement/quiz-attempts")]
         public async Task<ActionResult<QuizStatisticsDto>> GetQuizAttemptsStatistics()
         {
@@ -103,6 +119,7 @@ namespace EduQuest.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("engagement/quiz-completion")]
         public async Task<ActionResult<QuizCompletionStatisticsDto>> GetQuizCompletionStatistics()
         {
@@ -110,6 +127,7 @@ namespace EduQuest.API.Controllers
 
             return Ok(result);
         }
+        [Authorize(Roles = "Admin")]
         [HttpGet("engagement/competitions")]
         public async Task<ActionResult<CompetitionStatisticsDto>> GetCompetitionStatistics()
         {
@@ -117,6 +135,7 @@ namespace EduQuest.API.Controllers
 
             return Ok(result);
         }
+        [Authorize(Roles = "Admin")]
         [HttpGet("engagement/achievements")]
         public async Task<ActionResult<AchievementStatisticsDto>> GetAchievementStatistics()
         {
@@ -124,9 +143,23 @@ namespace EduQuest.API.Controllers
 
             return Ok(result);
         }
+        // Admins can view any learner; a learner can only view their own statistics.
         [HttpGet("learners/{learnerId}")]
         public async Task<ActionResult<IndividualLearnerStatisticsDto>> GetIndividualLearnerStatistics(int learnerId)
         {
+            if (!User.IsInRole("Admin"))
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdClaim, out var currentUserId))
+                    return Unauthorized();
+
+                var ownsLearner = await _context.Learners
+                    .AnyAsync(l => l.LearnerID == learnerId && l.UserID == currentUserId);
+
+                if (!ownsLearner)
+                    return Forbid();
+            }
+
             var result = await _statisticsService.GetIndividualLearnerStatisticsAsync(learnerId);
 
             if (result == null)

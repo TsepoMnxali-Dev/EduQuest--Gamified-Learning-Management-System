@@ -6,11 +6,65 @@ namespace EduQuest.API.Services
 {
     public class StatisticsService : IStatisticsService
     {
+        /* A quiz attempt passes at 50% or more. */
+        private const double PassMarkPercentage = 50;
+
         private readonly ApplicationDBContext _context;
+
+        /* One finished quiz attempt, with its score as a percentage. */
+        private sealed record AttemptScore(
+            int LearnerID,
+            int SchoolID, string SchoolName,
+            int ProvinceID, string ProvinceName,
+            int GradeID, string GradeName,
+            int SubjectID, string SubjectName,
+            int TopicID, string TopicName,
+            double Percentage);
 
         public StatisticsService(ApplicationDBContext context)
         {
             _context = context;
+        }
+
+        /* QuizAttempt.Score is the NUMBER OF CORRECT ANSWERS (see QuizAttemptsController),
+           not a percentage, so it is converted using the attempt's question count.
+           Attempts are created with Score = 0 when a learner starts a quiz, so only
+           attempts that have submitted answers count as completed. The grouping is done
+           in memory because SQL can't aggregate over a per-row sub-count. */
+        private async Task<List<AttemptScore>> GetCompletedAttemptScoresAsync(int? learnerId = null)
+        {
+            var rows = await _context.QuizAttempts
+                .AsNoTracking()
+                .Where(a => a.QuizAttemptAnswers.Any())
+                .Where(a => !learnerId.HasValue || a.LearnerID == learnerId.Value)
+                .Select(a => new
+                {
+                    a.LearnerID,
+                    a.Learner.SchoolID,
+                    a.Learner.School.SchoolName,
+                    a.Learner.School.ProvinceID,
+                    a.Learner.School.Province.ProvinceName,
+                    a.Learner.GradeID,
+                    a.Learner.Grade.GradeName,
+                    a.Quiz.Topic.SubjectID,
+                    a.Quiz.Topic.Subject.SubjectName,
+                    a.Quiz.TopicID,
+                    a.Quiz.Topic.TopicName,
+                    a.Score,
+                    TotalQuestions = a.QuizAttemptQuestions.Count
+                })
+                .ToListAsync();
+
+            return rows
+                .Select(r => new AttemptScore(
+                    r.LearnerID,
+                    r.SchoolID, r.SchoolName,
+                    r.ProvinceID, r.ProvinceName,
+                    r.GradeID, r.GradeName,
+                    r.SubjectID, r.SubjectName,
+                    r.TopicID, r.TopicName,
+                    r.TotalQuestions > 0 ? r.Score * 100.0 / r.TotalQuestions : 0))
+                .ToList();
         }
 
         public async Task<StatisticsOverviewDto> GetOverviewAsync()
@@ -23,7 +77,8 @@ namespace EduQuest.API.Services
             var inactiveLearners = await _context.Learners
                 .CountAsync(l => l.User != null && !l.User.IsActive);
 
-            var totalQuizAttempts = await _context.QuizAttempts.CountAsync();
+            var totalQuizAttempts = await _context.QuizAttempts
+                .CountAsync(a => a.QuizAttemptAnswers.Any());
 
             var totalCompetitionParticipants =
                 await _context.CompetitionLearners.CountAsync();
@@ -101,108 +156,91 @@ namespace EduQuest.API.Services
 
         public async Task<List<AverageScoreByProvinceDto>> GetAverageScoreByProvinceAsync()
         {
-            return await _context.QuizAttempts
-                .AsNoTracking()
-                .GroupBy(a => new
-                {
-                    a.Learner.School.ProvinceID,
-                    a.Learner.School.Province.ProvinceName
-                })
+            var attempts = await GetCompletedAttemptScoresAsync();
+
+            return attempts
+                .GroupBy(a => new { a.ProvinceID, a.ProvinceName })
                 .Select(g => new AverageScoreByProvinceDto
                 {
                     ProvinceID = g.Key.ProvinceID,
                     ProvinceName = g.Key.ProvinceName,
-                    AverageScore = g.Average(a => a.Score)
+                    AverageScore = g.Average(a => a.Percentage)
                 })
                 .OrderBy(x => x.ProvinceName)
-                .ToListAsync();
+                .ToList();
         }
 
         public async Task<List<AverageScoreBySchoolDto>> GetAverageScoreBySchoolAsync()
         {
-            return await _context.QuizAttempts
-                .AsNoTracking()
-                .GroupBy(a => new
-                {
-                    a.Learner.SchoolID,
-                    a.Learner.School.SchoolName
-                })
+            var attempts = await GetCompletedAttemptScoresAsync();
+
+            return attempts
+                .GroupBy(a => new { a.SchoolID, a.SchoolName })
                 .Select(g => new AverageScoreBySchoolDto
                 {
                     SchoolID = g.Key.SchoolID,
                     SchoolName = g.Key.SchoolName,
-                    AverageScore = g.Average(a => a.Score)
+                    AverageScore = g.Average(a => a.Percentage)
                 })
                 .OrderBy(x => x.SchoolName)
-                .ToListAsync();
+                .ToList();
         }
 
         public async Task<List<AverageScoreByGradeDto>> GetAverageScoreByGradeAsync()
         {
-            return await _context.QuizAttempts
-                .AsNoTracking()
-                .GroupBy(a => new
-                {
-                    a.Learner.GradeID,
-                    a.Learner.Grade.GradeName
-                })
+            var attempts = await GetCompletedAttemptScoresAsync();
+
+            return attempts
+                .GroupBy(a => new { a.GradeID, a.GradeName })
                 .Select(g => new AverageScoreByGradeDto
                 {
                     GradeID = g.Key.GradeID,
                     GradeName = g.Key.GradeName,
-                    AverageScore = g.Average(a => a.Score)
+                    AverageScore = g.Average(a => a.Percentage)
                 })
                 .OrderBy(x => x.GradeID)
-                .ToListAsync();
+                .ToList();
         }
 
         public async Task<List<AverageScoreBySubjectDto>> GetAverageScoreBySubjectAsync()
         {
-            return await _context.QuizAttempts
-                .AsNoTracking()
-                .GroupBy(a => new
-                {
-                    a.Quiz.Topic.SubjectID,
-                    a.Quiz.Topic.Subject.SubjectName
-                })
+            var attempts = await GetCompletedAttemptScoresAsync();
+
+            return attempts
+                .GroupBy(a => new { a.SubjectID, a.SubjectName })
                 .Select(g => new AverageScoreBySubjectDto
                 {
                     SubjectID = g.Key.SubjectID,
                     SubjectName = g.Key.SubjectName,
-                    AverageScore = g.Average(a => a.Score)
+                    AverageScore = g.Average(a => a.Percentage)
                 })
                 .OrderBy(x => x.SubjectName)
-                .ToListAsync();
+                .ToList();
         }
 
         public async Task<List<AverageScoreByTopicDto>> GetAverageScoreByTopicAsync()
         {
-            return await _context.QuizAttempts
-                .AsNoTracking()
-                .GroupBy(a => new
-                {
-                    a.Quiz.TopicID,
-                    a.Quiz.Topic.TopicName
-                })
+            var attempts = await GetCompletedAttemptScoresAsync();
+
+            return attempts
+                .GroupBy(a => new { a.TopicID, a.TopicName })
                 .Select(g => new AverageScoreByTopicDto
                 {
                     TopicID = g.Key.TopicID,
                     TopicName = g.Key.TopicName,
-                    AverageScore = g.Average(a => a.Score)
+                    AverageScore = g.Average(a => a.Percentage)
                 })
                 .OrderBy(x => x.TopicName)
-                .ToListAsync();
+                .ToList();
         }
 
         public async Task<PassFailStatisticsDto> GetPassFailStatisticsAsync()
         {
-            var totalAttempts = await _context.QuizAttempts.CountAsync();
+            var attempts = await GetCompletedAttemptScoresAsync();
 
-            var passedAttempts = await _context.QuizAttempts
-                .CountAsync(a => a.Score >= 50);
-
-            var failedAttempts = await _context.QuizAttempts
-                .CountAsync(a => a.Score < 50);
+            var totalAttempts = attempts.Count;
+            var passedAttempts = attempts.Count(a => a.Percentage >= PassMarkPercentage);
+            var failedAttempts = totalAttempts - passedAttempts;
 
             var passRate = totalAttempts == 0
                 ? 0
@@ -221,6 +259,7 @@ namespace EduQuest.API.Services
                 FailRate = failRate
             };
         }
+
         public async Task<QuizStatisticsDto> GetQuizAttemptsStatisticsAsync()
         {
             var totalAttempts = await _context.QuizAttempts
@@ -238,20 +277,19 @@ namespace EduQuest.API.Services
             };
         }
 
+        /* Unlike GetQuizAttemptsStatisticsAsync (every attempt that was started),
+           this counts only attempts the learner actually submitted. */
         public async Task<QuizCompletionStatisticsDto> GetQuizCompletionStatisticsAsync()
         {
-            var totalCompleted = await _context.QuizAttempts
-                .CountAsync();
-
-            var uniqueLearners = await _context.QuizAttempts
+            var completed = await _context.QuizAttempts
+                .Where(a => a.QuizAttemptAnswers.Any())
                 .Select(a => a.LearnerID)
-                .Distinct()
-                .CountAsync();
+                .ToListAsync();
 
             return new QuizCompletionStatisticsDto
             {
-                TotalCompleted = totalCompleted,
-                UniqueLearners = uniqueLearners
+                TotalCompleted = completed.Count,
+                UniqueLearners = completed.Distinct().Count()
             };
         }
         public async Task<CompetitionStatisticsDto> GetCompetitionStatisticsAsync()
@@ -301,22 +339,19 @@ namespace EduQuest.API.Services
                 return null;
             }
 
-            var quizAttempts = await _context.QuizAttempts
-                .AsNoTracking()
-                .Where(a => a.LearnerID == learnerId)
-                .ToListAsync();
+            /* Completed attempts only, with scores as percentages. */
+            var quizAttempts = await GetCompletedAttemptScoresAsync(learnerId);
 
             var totalQuizAttempts = quizAttempts.Count;
 
             var averageQuizScore = totalQuizAttempts == 0
                 ? 0
-                : quizAttempts.Average(a => a.Score);
+                : quizAttempts.Average(a => a.Percentage);
 
             var passedQuizzes = quizAttempts
-                .Count(a => a.Score >= 50);
+                .Count(a => a.Percentage >= PassMarkPercentage);
 
-            var failedQuizzes = quizAttempts
-                .Count(a => a.Score < 50);
+            var failedQuizzes = totalQuizAttempts - passedQuizzes;
 
             var competitionsParticipated = await _context.CompetitionLearners
                 .CountAsync(cl => cl.LearnerID == learnerId);

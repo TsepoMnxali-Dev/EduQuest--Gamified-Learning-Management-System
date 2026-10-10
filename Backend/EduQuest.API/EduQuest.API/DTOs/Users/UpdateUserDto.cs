@@ -18,5 +18,6 @@ namespace EduQuest.API.DTOs.Users
         [EmailAddress]
         [StringLength(100)]
         public string Email { get; set; } = string.Empty;
+        public bool? IsActive { get; set; }
     }
 }

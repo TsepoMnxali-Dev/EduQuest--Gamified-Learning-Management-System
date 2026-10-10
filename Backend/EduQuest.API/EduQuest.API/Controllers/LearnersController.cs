@@ -27,19 +27,189 @@ namespace EduQuest.API.Controllers
         {
             var learners = await _context.Learners
             .Select(l => new LearnerDto
-    {
-            LearnerID = l.LearnerID,
-            UserID = l.UserID,
-            GradeID = l.GradeID,
-            GradeName = l.Grade.GradeName,
-            SchoolID = l.SchoolID,
-            SchoolName = l.School.SchoolName,
-            ProvinceID = l.School.ProvinceID,
-            ProvinceName = l.School.Province.ProvinceName
-    })
+            {
+                LearnerID = l.LearnerID,
+                UserID = l.UserID,
+                GradeID = l.GradeID,
+                GradeName = l.Grade.GradeName,
+                SchoolID = l.SchoolID,
+                SchoolName = l.School.SchoolName,
+                ProvinceID = l.School.ProvinceID,
+                ProvinceName = l.School.Province.ProvinceName
+            })
              .ToListAsync();
 
             return Ok(learners);
+        }
+
+        // GET: api/learners/me   (the signed-in user's own profile)
+        [HttpGet("me")]
+        public async Task<ActionResult<LearnerProfileDto>> GetMyProfile()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var currentUserId))
+                return Unauthorized();
+
+            var profile = await _context.Learners
+                .Where(l => l.UserID == currentUserId)
+                .Select(l => new LearnerProfileDto
+                {
+                    LearnerID = l.LearnerID,
+                    UserID = l.UserID,
+                    FirstName = l.User!.FirstName,
+                    LastName = l.User.LastName,
+                    Email = l.User.Email,
+                    DateCreated = l.User.DateCreated,
+                    GradeID = l.GradeID,
+                    GradeName = l.Grade.GradeName,
+                    SchoolID = l.SchoolID,
+                    SchoolName = l.School.SchoolName,
+                    ProvinceID = l.School.ProvinceID,
+                    ProvinceName = l.School.Province.ProvinceName
+                })
+                .FirstOrDefaultAsync();
+
+            if (profile == null)
+                return NotFound("No learner profile exists for this account.");
+
+            return Ok(profile);
+        }
+
+        // GET: api/learners/me/quizzes
+        // The published quizzes for the signed-in learner's grade and chosen subjects,
+        // each with the learner's latest submitted result.
+        [HttpGet("me/quizzes")]
+        public async Task<ActionResult<IEnumerable<MyQuizDto>>> GetMyQuizzes()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var currentUserId))
+                return Unauthorized();
+
+            var learner = await _context.Learners
+                .AsNoTracking()
+                .Include(l => l.Grade)
+                .FirstOrDefaultAsync(l => l.UserID == currentUserId);
+
+            if (learner == null)
+                return NotFound("No learner profile exists for this account.");
+
+            var gradeName = learner.Grade.GradeName;
+
+            var subjectIds = await _context.learnerSubjects
+                .Where(ls => ls.LearnerID == learner.LearnerID)
+                .Select(ls => ls.SubjectID)
+                .ToListAsync();
+
+            // A quiz can only be started once it has 10 approved questions,
+            // so only those are listed.
+            var quizzes = await _context.Quizzes
+                .AsNoTracking()
+                .Where(q => q.IsPublished
+                    && q.Topic!.GradeLevel == gradeName
+                    && subjectIds.Contains(q.Topic.SubjectID)
+                    && q.QuizQuestions.Count(x => x.ApprovedByAdmin) >= 10)
+                .Select(q => new
+                {
+                    q.QuizID,
+                    q.QuizTitle,
+                    q.Difficulty,
+                    q.Topic!.SubjectID,
+                    q.Topic.Subject!.SubjectName,
+                    q.Topic.TopicName
+                })
+                .ToListAsync();
+
+            var quizIds = quizzes.Select(q => q.QuizID).ToList();
+
+            // Only submitted attempts (ones with saved answers) count as completed.
+            var attempts = await _context.QuizAttempts
+                .AsNoTracking()
+                .Where(a => a.LearnerID == learner.LearnerID
+                    && quizIds.Contains(a.QuizID)
+                    && a.QuizAttemptAnswers.Any())
+                .Select(a => new
+                {
+                    a.QuizID,
+                    a.QuizAttemptID,
+                    a.Score,
+                    a.DateTaken,
+                    TotalQuestions = a.QuizAttemptQuestions.Count
+                })
+                .ToListAsync();
+
+            var attemptsByQuiz = attempts
+                .GroupBy(a => a.QuizID)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(a => a.DateTaken).ToList());
+
+            var result = quizzes
+                .Select(q =>
+                {
+                    attemptsByQuiz.TryGetValue(q.QuizID, out var mine);
+                    var latest = mine?.FirstOrDefault();
+
+                    return new MyQuizDto
+                    {
+                        QuizID = q.QuizID,
+                        QuizTitle = q.QuizTitle,
+                        Difficulty = q.Difficulty,
+                        SubjectID = q.SubjectID,
+                        SubjectName = q.SubjectName,
+                        TopicName = q.TopicName,
+                        QuestionCount = 10,
+                        Completed = latest != null,
+                        AttemptCount = mine?.Count ?? 0,
+                        LatestAttemptID = latest?.QuizAttemptID,
+                        // Score is the number of correct answers, so convert to a percentage.
+                        LatestPercentage = latest == null
+                            ? null
+                            : (latest.TotalQuestions > 0
+                                ? (int)Math.Round(latest.Score * 100.0 / latest.TotalQuestions)
+                                : 0),
+                        LatestDateTaken = latest?.DateTaken
+                    };
+                })
+                .OrderBy(q => q.SubjectName)
+                .ThenBy(q => q.QuizTitle)
+                .ToList();
+
+            return Ok(result);
+        }
+
+        // PUT: api/learners/me   (the signed-in learner edits their own name, grade and school)
+        [HttpPut("me")]
+        public async Task<IActionResult> UpdateMyProfile(UpdateMyProfileDto dto)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var currentUserId))
+                return Unauthorized();
+
+            var learner = await _context.Learners
+                .Include(l => l.User)
+                .FirstOrDefaultAsync(l => l.UserID == currentUserId);
+
+            if (learner == null || learner.User == null)
+                return NotFound("No learner profile exists for this account.");
+
+            var firstName = dto.FirstName.Trim();
+            var lastName = dto.LastName.Trim();
+
+            if (firstName.Length == 0 || lastName.Length == 0)
+                return BadRequest("First name and last name are required.");
+
+            if (await _context.Grades.FindAsync(dto.GradeID) == null)
+                return NotFound("Grade not found.");
+
+            if (await _context.Schools.FindAsync(dto.SchoolID) == null)
+                return NotFound("School not found.");
+
+            learner.User.FirstName = firstName;
+            learner.User.LastName = lastName;
+            learner.GradeID = dto.GradeID;
+            learner.SchoolID = dto.SchoolID;
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
         // GET: api/learners/{id}   (Admin, or the learner viewing their own record)
@@ -49,7 +219,7 @@ namespace EduQuest.API.Controllers
             var learner = await _context.Learners
                 .Include(l => l.Grade)
                 .Include(l => l.School)
-                .ThenInclude(s=> s.Province)
+                .ThenInclude(s => s.Province)
                 .FirstOrDefaultAsync(l => l.LearnerID == id);
 
             if (learner == null)

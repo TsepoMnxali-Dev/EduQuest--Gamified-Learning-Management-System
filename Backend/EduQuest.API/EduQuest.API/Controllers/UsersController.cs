@@ -1,4 +1,5 @@
-﻿using EduQuest.API.Data;
+﻿using System.Security.Claims;
+using EduQuest.API.Data;
 using EduQuest.API.DTOs.Users;
 using EduQuest.API.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
@@ -19,7 +20,7 @@ namespace EduQuest.API.Controllers
             _context = context;
         }
 
-       
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
@@ -33,14 +34,15 @@ namespace EduQuest.API.Controllers
                     Email = u.Email,
                     RoleID = u.RoleID,
                     RoleName = u.Role!.RoleName,
-                    IsActive = u.IsActive
+                    IsActive = u.IsActive,
+                    DateCreated = u.DateCreated
                 })
                 .ToListAsync();
 
             return Ok(users);
         }
 
-     
+
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDto>> GetUser(int id)
         {
@@ -55,7 +57,8 @@ namespace EduQuest.API.Controllers
                     Email = u.Email,
                     RoleID = u.RoleID,
                     RoleName = u.Role!.RoleName,
-                    IsActive = u.IsActive
+                    IsActive = u.IsActive,
+                    DateCreated = u.DateCreated
                 })
                 .FirstOrDefaultAsync();
 
@@ -100,7 +103,8 @@ namespace EduQuest.API.Controllers
                 Email = user.Email,
                 RoleID = user.RoleID,
                 RoleName = role.RoleName,
-                IsActive = user.IsActive
+                IsActive = user.IsActive,
+                DateCreated = user.DateCreated
             };
 
             return CreatedAtAction(nameof(GetUser), new { id = user.UserID }, result);
@@ -110,12 +114,26 @@ namespace EduQuest.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, UpdateUserDto dto)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserID == id);
 
             if (user == null)
                 return NotFound();
 
+            // Admin accounts can't be suspended through the API.
+            if (dto.IsActive == false && user.Role?.RoleName == "Admin")
+                return StatusCode(StatusCodes.Status403Forbidden, "Admin accounts cannot be deactivated.");
+
             var email = dto.Email.Trim().ToLowerInvariant();
+
+            // An admin may change their own email, but not another admin's.
+            var isCurrentUser = int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var currentUserId)
+                                && currentUserId == user.UserID;
+
+            if (user.Role?.RoleName == "Admin" && !isCurrentUser
+                && !string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase))
+                return StatusCode(StatusCodes.Status403Forbidden, "You cannot change another admin's email.");
 
             var emailExists = await _context.Users
                 .AnyAsync(u => u.Email == email && u.UserID != id);
@@ -133,20 +151,29 @@ namespace EduQuest.API.Controllers
             user.Email = email;
             user.RoleID = dto.RoleID;
 
+            if (dto.IsActive.HasValue)
+                user.IsActive = dto.IsActive.Value;
+
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
         // DELETE: api/users/{id}
-       
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserID == id);
 
             if (user == null)
                 return NotFound();
+
+            // Admin accounts can't be deactivated, including by other admins.
+            if (user.Role?.RoleName == "Admin")
+                return StatusCode(StatusCodes.Status403Forbidden, "Admin accounts cannot be deactivated.");
 
             user.IsActive = false;
 
