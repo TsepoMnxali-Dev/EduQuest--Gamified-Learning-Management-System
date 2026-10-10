@@ -7,6 +7,7 @@
     <title>Manage Users | EduQuest</title>
 
     <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/users-modal.css">
 </head>
 
 <body>
@@ -131,8 +132,8 @@
         <div class="child-card">
 
     <h3>👥 Registered Users</h3>
-      <h3> 18</h3>
-    <p>13 Learners. 5 Admins.</p>
+      <h3 id="statTotal">0</h3>
+    <p id="statTotalSub">Loading...</p>
 
 </div>
 
@@ -140,16 +141,16 @@
 <div class="child-card">
 
     <h3>🟢 Active Accounts</h3>
-     <h3> 15</h3>
-    <p>3 suspended accounts</p>
+     <h3 id="statActive">0</h3>
+    <p id="statActiveSub">Loading...</p>
 
 </div>
 
 
 <div class="child-card">
     <h3>🆕 New This Month</h3>
-       <h3>0</h3>
-    <p>No new accounts this month</p>
+       <h3 id="statNew">0</h3>
+    <p id="statNewSub">Loading...</p>
 </div>
 
     </div>
@@ -183,35 +184,12 @@
             <option value="all">All roles</option>
             <option value="learner">Learners </option>
             <option value="admin"> Admins</option>
+            <option value="sponsor"> Sponsors</option>
         </select>
       <!-- Grade Filter -->
       
         <select id="gradeFilter" class="user-filter">
-
-            <option value="all">
-                All grades
-            </option>
-
-            <option value="8">
-                Grade 8
-            </option>
-
-            <option value="9">
-                Grade 9
-            </option>
-
-            <option value="10">
-                Grade 10
-            </option>
-
-            <option value="11">
-                Grade 11
-            </option>
-
-            <option value="12">
-                Grade 12
-            </option>
-
+            <option value="all">All grades</option>
         </select>
 
 
@@ -225,10 +203,6 @@
 
             <option value="active">
                 Active
-            </option>
-
-            <option value="pending">
-                Pending
             </option>
 
             <option value="suspended">
@@ -272,45 +246,124 @@
        </div>
 
       </section>
-      <!-- Add User Modal -->
-<div id="addUserModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <h2>Add User</h2>
+      <!-- Add / Edit User Modal -->
+<div id="addUserModal" class="modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="userModalTitle">
+    <div class="modal-content user-modal">
 
-        <form>
-            <input id="firstName" type="text" placeholder="First name" required>
-            <input id="surname" type="text" placeholder="Surname" required>
-            <input id="email" type="email" placeholder="Email" required>
+        <div class="user-modal-header">
+            <div>
+                <h2 id="userModalTitle">Add User</h2>
+                <p class="user-modal-subtitle" id="userModalSubtitle">Create a new account.</p>
+            </div>
+            <button type="button" class="user-modal-close" id="closeAddUserX" aria-label="Close">&times;</button>
+        </div>
 
-            <select id="role" required>
-                <option value="learner">Learner</option>
-                <option value="admin">Admin</option>
-            </select>
+        <p id="userFormError" class="form-error" style="display: none;" role="alert"></p>
 
-            <input id="grade" type="number" placeholder="Grade">
-            <input id="school" type="text" placeholder="School">
+        <form id="userForm">
 
-            <input id="region" type="text" placeholder="Region">
+            <!-- Account details -->
+            <div class="form-section">
+                <h3 class="form-section-title">Account details</h3>
 
-            <select id="status">
-                <option value="active">Active</option>
-                <option value="pending">Pending</option>
-                <option value="suspended">Suspended</option>
-            </select>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="firstName">First name</label>
+                        <input id="firstName" type="text" placeholder="e.g. Thandi" maxlength="50" required>
+                    </div>
 
-            <input id="password" type="password" placeholder="Password" required>
-            <input id="confirmPassword" type="password" placeholder="Confirm password" required>
+                    <div class="form-field">
+                        <label for="surname">Surname</label>
+                        <input id="surname" type="text" placeholder="e.g. Nkosi" maxlength="50" required>
+                    </div>
 
-            <button type="submit">Save User</button>
-            <button type="button" id="closeAddUser">Cancel</button>
+                    <div class="form-field full">
+                        <label for="email">Email address</label>
+                        <input id="email" type="email" placeholder="name@example.com" maxlength="100" required>
+                        <span class="field-hint" id="emailHint" hidden>You can't change another admin's email.</span>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="role">Role</label>
+                        <select id="role" required>
+                            <option value="learner">Learner</option>
+                            <option value="admin">Admin</option>
+                            <option value="sponsor">Sponsor</option>
+                        </select>
+                        <span class="field-hint" id="roleHint" hidden>A role can't be changed after the account is created.</span>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="status">Status</label>
+                        <select id="status">
+                            <option value="active">Active</option>
+                            <option value="suspended">Suspended</option>
+                        </select>
+                        <span class="field-hint" id="statusHint" hidden>Admin accounts can't be deactivated.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learners only: filled from /api/grades and /api/schools -->
+            <div class="form-section" id="learnerFields">
+                <h3 class="form-section-title">School details</h3>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="grade">Grade</label>
+                        <select id="grade"><option value="">Select grade</option></select>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="province">Province <span class="field-optional">(optional filter)</span></label>
+                        <select id="province"><option value="">All provinces</option></select>
+                    </div>
+
+                    <div class="form-field full">
+                        <label for="schoolSearch">School</label>
+                        <div class="school-combo" id="schoolCombo">
+                            <input type="text" id="schoolSearch" placeholder="Type to search schools..."
+                                   autocomplete="off" role="combobox" aria-expanded="false"
+                                   aria-controls="schoolList" aria-autocomplete="list">
+                            <input type="hidden" id="school">
+                            <ul class="school-list" id="schoolList" role="listbox" hidden></ul>
+                        </div>
+                        <span class="field-hint" id="schoolHint"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New accounts only -->
+            <div class="form-section" id="passwordFields">
+                <h3 class="form-section-title">Password</h3>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="password">Password</label>
+                        <input id="password" type="password" placeholder="Min. 8 characters" minlength="8" autocomplete="new-password" required>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="confirmPassword">Confirm password</label>
+                        <input id="confirmPassword" type="password" placeholder="Repeat password" autocomplete="new-password" required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-modal-footer">
+                <button type="button" id="closeAddUser" class="user-modal-btn secondary">Cancel</button>
+                <button type="submit" id="saveUserBtn" class="user-modal-btn primary">Save User</button>
+            </div>
         </form>
     </div>
 </div>
+            </section>
 
+        </main>
 
-       <script src="../../js/main.js"></script>
-   </main>
+    </div>
 
-  </div>
+    <script src="../../EduQuest-with-js/EduQuest/js/api.js"></script>
+    <script src="../../js/users.js"></script>
 </body>
 </html>

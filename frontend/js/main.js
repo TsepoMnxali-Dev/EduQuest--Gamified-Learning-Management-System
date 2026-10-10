@@ -1,62 +1,52 @@
 /*
    User page table data that will be replace with data from the database in the future */
 
-const users = [
+let users = [];
 
-    {
-        id: 1,
-        firstName: "Emihle",
-        surname: "Mtshawulana",
-        email: "emihle.mtshawulana@EduQuest.com",
-        role: "Learner",
-        grade: 11,
-        school: "KwaMagxaki High School",
-        region: "Eastern Cape",
-        status: "Active",
+function displayResources(list = resources) {
 
-        registered: "15 March 2026",
-        quizzesCompleted: 38,
-        averageScore: 78,
-        achievements: 7,
-        competitions: 2
-    },
+    const tableBody = document.getElementById("resourcesTableBody");
 
-    {
-        id: 2,
-        firstName: "Liqhamile",
-        surname: "Silinga",
-        email: "liqhamile.silinga@EduQuest.com",
-        role: "Learner",
-        grade: 12,
-        school: "VP Boys High School",
-        region: "Eastern Cape",
-        status: "Active",
+    if (!tableBody) return;
 
-        registered: "20 March 2026",
-        quizzesCompleted: 42,
-        averageScore: 82,
-        achievements: 9,
-        competitions: 3
-    },
+    tableBody.innerHTML = "";
 
-    {
-        id: 3,
-        firstName: "Athenkosi",
-        surname: "Bika",
-        email: "athenkosi.bika@EduQuest.com",
-        role: "Admin",
-        grade: null,
-        school: null,
-        region: null,
-        status: "Active",
+    list.forEach(resource => {
 
-        registered: "10 February 2026",
-        quizzesUploaded: 24,
-        resourcesUploaded: 18,
-        competitionsCreated: 5
-    }
+        const row = document.createElement("tr");
 
-];
+        row.innerHTML = `
+            <td>
+                <strong>${resource.name}</strong>
+                <small>${resource.subject}</small>
+            </td>
+
+            <td>
+                <span class="resource-type">
+                    ${resource.type}
+                </span>
+            </td>
+
+            <td>
+                <span class="region-badge">
+                    ${resource.region}
+                </span>
+            </td>
+
+            <td>${resource.grade}</td>
+
+            <td>${resource.uploaded}</td>
+
+            <td>
+                <button class="edit-btn" type="button" data-action="edit-resource" data-id="${resource.id}">🖊️</button>
+                <button class="delete-btn" type="button" data-action="delete-resource" data-id="${resource.id}">🗑️</button>
+            </td>
+        `;
+
+        tableBody.appendChild(row);
+    });
+}
+
 
 
 
@@ -240,148 +230,104 @@ function createUserDetails(user) {
 
 /* Display users in the table */
 
-function displayUsers(userList = users) {
 
+function displayUsers(userList = users) {
     const tableBody = document.getElementById("usersTableBody");
 
-    if (!tableBody) {
-        return;
-    }
+    if (!tableBody) return;
 
     tableBody.innerHTML = "";
 
-
     userList.forEach(user => {
-
         const row = document.createElement("tr");
 
         row.innerHTML = `
-
             <td class="user-name-column">
-
                 <div class="user-name-cell user-hover-trigger">
-
                     <div class="avatar">
                         ${getInitials(user)}
                     </div>
-
                     <div class="user-name-information">
-
-                        <strong>
-                            ${getFullName(user)}
-                        </strong>
-
-                        <div class="user-email">
-                            ${user.email}
-                        </div>
-
+                        <strong>${getFullName(user)}</strong>
+                        <div class="user-email">${user.email}</div>
                     </div>
-
                     ${createUserDetails(user)}
-
                 </div>
-
             </td>
-
-
+            <td>${user.email}</td>
+            <td>${user.role}</td>
+            <td>${user.grade ? `Grade ${user.grade}` : "—"}</td>
+            <td>${user.school || "—"}</td>
+            <td>${user.region || "—"}</td>
             <td>
-                ${user.email}
+                <span class="status-badge ${user.status.toLowerCase()}">
+                    ${user.status}
+                </span>
             </td>
-
-
             <td>
-                ${user.role}
+                <div class="row-actions">
+                    <button
+                        type="button"
+                        class="icon-action edit-action"
+                        onclick="editUser(${user.id})"
+                        title="Edit user">
+                        Edit
+                    </button>
+                    <button
+                        type="button"
+                        class="icon-action delete-action"
+                        onclick="deleteUser(${user.id})"
+                        title="Delete user">
+                        Delete
+                    </button>
+                </div>
             </td>
-
-
-            <td>
-                ${user.grade ? `Grade ${user.grade}` : "—"}
-            </td>
-
-
-            <td>
-                ${user.school || "—"}
-            </td>
-
-
-            <td>
-                ${user.region || "—"}
-            </td>
-
-
-            <td>
-                ${user.status}
-            </td>
-
-
-            <td>
-
-    <div class="row-actions">
-
-        <button
-            type="button"
-            class="icon-action edit-action"
-            onclick="editUser(${user.id})"
-            title="Edit user"
-            aria-label="Edit ${getFullName(user)}">
-
-            <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round">
-
-                <path d="M12 20h9"></path>
-
-                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"></path>
-
-            </svg>
-
-        </button>
-
-
-        <button
-            type="button"
-            class="icon-action delete-action"
-            onclick="deleteUser(${user.id})"
-            title="Delete user"
-            aria-label="Delete ${getFullName(user)}">
-
-            <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round">
-
-                <polyline points="3 6 5 6 21 6"></polyline>
-
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
-
-                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-
-            </svg>
-
-        </button>
-
-    </div>
-
-</td>
-
         `;
 
         tableBody.appendChild(row);
-
     });
-
 }
+
+async function loadUsers() {
+    const tableBody = document.getElementById("usersTableBody");
+
+    if (!tableBody) return;
+
+    tableBody.innerHTML = `
+        <tr>
+            <td colspan="8">Loading users...</td>
+        </tr>
+    `;
+
+    try {
+        const data = await EduQuestAPI.get("/users");
+
+        users = data.map(user => ({
+            id: user.userID,
+            firstName: user.firstName,
+            surname: user.lastName,
+            email: user.email,
+            role: user.roleName,
+            grade: null,
+            school: null,
+            region: null,
+            status: user.isActive ? "Active" : "Suspended"
+        }));
+
+        displayUsers();
+    } catch (error) {
+        console.error("Failed to load users:", error);
+
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="8">
+                    Failed to load users: ${error.message}
+                </td>
+            </tr>
+        `;
+    }
+}
+
 
 /*SEARCH + FILTER USERS */
 
@@ -712,7 +658,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    displayUsers();
+    loadUsers();
     const addUserModal = document.getElementById("addUserModal");
     const closeAddUserButton = document.getElementById("closeAddUser");
 

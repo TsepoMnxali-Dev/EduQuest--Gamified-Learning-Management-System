@@ -1,93 +1,141 @@
 /* =============================================================
    EduQuest - quizzes.js  (used by Quizzes.html)
 
-   Marks quizzes the learner has finished as completed, and keeps the
-   summary numbers (completed, still to do, average score) and each
-   subject's "x of y quizzes completed" line in step with the list.
+   Shows the signed-in learner's real quizzes:
 
-   BACKEND: fetchResults() is the only data access on this page.
-   Swap its body for a fetch() call that returns the learner's results
-   keyed by quiz id, e.g. { "calculus": { score: 90, date: "<ISO date>" } }.
-   The list itself (titles, question counts, subjects) is still written
-   into Quizzes.html; render it from the backend when that is ready.
+     GET /api/learners/me          name for the top-right badge
+     GET /api/learners/me/quizzes  published quizzes for the learner's grade
+                                   and chosen subjects, each with their
+                                   latest submitted result
+
+   The summary numbers (completed, still to do, average score) and each
+   subject's "x of y quizzes completed" line are counted from that list.
+
+   Needs js/api.js (EduQuestAPI) loaded first.
 ============================================================= */
 (function () {
     "use strict";
 
-    var STORE_KEY = "eduquest.quizResults"; /* browser-only storage used for now */
+    EduQuestAPI.requireAuth();
 
-    /* DATA ACCESS - replace with a backend call. Resolve with {} if none. */
-    function fetchResults() {
-        try {
-            return Promise.resolve(JSON.parse(localStorage.getItem(STORE_KEY)) || {});
-        } catch (e) {
-            return Promise.resolve({});
-        }
+    function byId(id) { return document.getElementById(id); }
+
+    function esc(value) {
+        return String(value === null || value === undefined ? "" : value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    function showMessage(html) {
+        var box = byId("quizzesMessage");
+        box.innerHTML = html;
+        box.style.display = "block";
     }
 
     function timeAgo(iso) {
         var days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
-        if (days < 1) { return "today"; }
+        if (isNaN(days) || days < 1) { return "today"; }
         if (days < 7) { return days + (days === 1 ? " day ago" : " days ago"); }
         var weeks = Math.floor(days / 7);
-        return weeks + (weeks === 1 ? " week ago" : " weeks ago");
+        if (weeks < 5) { return weeks + (weeks === 1 ? " week ago" : " weeks ago"); }
+        var months = Math.floor(days / 30);
+        return months + (months === 1 ? " month ago" : " months ago");
     }
 
-    /* Turn "Start Quiz" rows into "Review" rows for quizzes with a saved result. */
-    function markCompleted(results) {
-        document.querySelectorAll(".quiz-item[data-quiz-id]").forEach(function (item) {
-            var id = item.getAttribute("data-quiz-id");
-            var r = results[id];
-            if (!r) { return; }
+    function quizRow(quiz) {
+        var meta = quiz.questionCount + " questions &middot; " + esc(quiz.difficulty);
 
-            var icon = item.querySelector(".quiz-status-icon");
-            var info = item.querySelector(".quiz-info p");
-            var badge = item.querySelector(".quiz-badge");
-            var btn = item.querySelector(".btn");
+        if (quiz.completed) {
+            return '<div class="quiz-item" data-quiz-id="' + quiz.quizID + '">' +
+                '<div class="quiz-status-icon done">✓</div>' +
+                '<div class="quiz-info"><h4>' + esc(quiz.quizTitle) + "</h4>" +
+                    "<p>" + meta + " &middot; Completed " + timeAgo(quiz.latestDateTaken) + "</p></div>" +
+                '<span class="quiz-badge completed">' + quiz.latestPercentage + "%</span>" +
+                '<a href="quiz.html?id=' + quiz.quizID + '&amp;review=1" class="btn btn-outline">Review</a>' +
+            "</div>";
+        }
 
-            icon.className = "quiz-status-icon done";
-            icon.textContent = "\u2713";
-            info.textContent = info.textContent.split("\u00b7")[0].trim() + " \u00b7 Completed " + timeAgo(r.date);
-            badge.className = "quiz-badge completed";
-            badge.textContent = r.score + "%";
-            btn.className = "btn btn-outline";
-            btn.textContent = "Review";
-            btn.setAttribute("href", "quiz.html?id=" + id + "&review=1");
+        return '<div class="quiz-item" data-quiz-id="' + quiz.quizID + '">' +
+            '<div class="quiz-status-icon pending">•</div>' +
+            '<div class="quiz-info"><h4>' + esc(quiz.quizTitle) + "</h4>" +
+                "<p>" + meta + " &middot; Not started</p></div>" +
+            '<span class="quiz-badge pending">To Do</span>' +
+            '<a href="quiz.html?id=' + quiz.quizID + '" class="btn btn-primary">Start Quiz</a>' +
+        "</div>";
+    }
+
+    function subjectBlock(name, quizzes) {
+        var done = quizzes.filter(function (q) { return q.completed; }).length;
+
+        return '<section class="subject-block">' +
+            '<div class="subject-block-head">' +
+                '<div class="subject-icon">' + esc(name.charAt(0).toUpperCase()) + "</div>" +
+                "<div><h2>" + esc(name) + "</h2>" +
+                    "<p>" + done + " of " + quizzes.length + " quizzes completed</p></div>" +
+            "</div>" +
+            '<div class="quiz-list">' + quizzes.map(quizRow).join("") + "</div>" +
+        "</section>";
+    }
+
+    function render(quizzes) {
+        var grid = byId("quizzesGrid");
+
+        var done = quizzes.filter(function (q) { return q.completed; });
+        var scoreSum = done.reduce(function (sum, q) { return sum + q.latestPercentage; }, 0);
+
+        byId("sumDone").textContent = done.length;
+        byId("sumTodo").textContent = quizzes.length - done.length;
+        byId("sumAvg").textContent = done.length ? Math.round(scoreSum / done.length) + "%" : "–";
+
+        if (quizzes.length === 0) {
+            grid.innerHTML = "";
+            showMessage("There are no quizzes for your grade and subjects yet. " +
+                'You can choose your subjects under <a href="profile.html">Profile &rarr; Manage Subjects</a>.');
+            return;
+        }
+
+        var bySubject = {};
+        var order = [];
+        quizzes.forEach(function (q) {
+            if (!bySubject[q.subjectName]) {
+                bySubject[q.subjectName] = [];
+                order.push(q.subjectName);
+            }
+            bySubject[q.subjectName].push(q);
         });
+
+        grid.innerHTML = order.map(function (name) {
+            return subjectBlock(name, bySubject[name]);
+        }).join("");
     }
 
-    /* Recount everything from what is on the page. */
-    function updateSummary() {
-        var done = 0, todo = 0, sum = 0, scored = 0;
+    async function load() {
+        var results;
+        try {
+            results = await Promise.all([
+                EduQuestAPI.get("/learners/me"),
+                EduQuestAPI.get("/learners/me/quizzes")
+            ]);
+        } catch (err) {
+            if (/session has expired/i.test(err.message)) {
+                window.location.href = "login.html";
+                return;
+            }
+            byId("quizzesGrid").innerHTML = "";
+            ["sumDone", "sumTodo", "sumAvg"].forEach(function (id) { byId(id).textContent = "-"; });
+            showMessage(esc(err.message));
+            return;
+        }
 
-        document.querySelectorAll(".subject-block").forEach(function (block) {
-            var items = block.querySelectorAll(".quiz-item");
-            var d = 0;
+        var me = results[0];
+        byId("quizLearnerName").textContent = me.firstName;
+        byId("quizAvatar").textContent = (me.firstName || "?").charAt(0).toUpperCase();
 
-            items.forEach(function (it) {
-                if (it.querySelector(".quiz-status-icon.done")) {
-                    d += 1;
-                    var m = it.querySelector(".quiz-badge").textContent.match(/(\d+)%/);
-                    if (m) {
-                        sum += parseInt(m[1], 10);
-                        scored += 1;
-                    }
-                }
-            });
-
-            block.querySelector(".subject-block-head p").textContent = d + " of " + items.length + " quizzes completed";
-            done += d;
-            todo += items.length - d;
-        });
-
-        var nums = document.querySelectorAll(".quiz-summary .stat-number");
-        nums[0].textContent = done;
-        nums[1].textContent = todo;
-        nums[2].textContent = scored ? Math.round(sum / scored) + "%" : "\u2013";
+        render(results[1]);
     }
 
-    fetchResults().catch(function () { return {}; }).then(function (results) {
-        markCompleted(results);
-        updateSummary();
-    });
+    load();
 })();

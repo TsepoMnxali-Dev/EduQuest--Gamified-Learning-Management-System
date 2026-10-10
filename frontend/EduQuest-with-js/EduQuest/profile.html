@@ -43,24 +43,26 @@
         </div>
 
         <div class="profile-header">
-            <div class="profile-header-avatar">L</div>
+            <div class="profile-header-avatar" id="profileAvatar">&nbsp;</div>
             <div class="profile-header-info">
-                <h2>Learner123</h2>
-                <p>Grade 12 &middot; Example High School &middot; Example Province</p>
+                <h2 id="profileName">Loading...</h2>
+                <p id="profileSummary">&nbsp;</p>
             </div>
         </div>
 
+        <p id="profileError" class="profile-error" style="display:none; color:#c0392b; margin:0 0 16px;"></p>
+
         <div class="profile-stats">
             <div class="profile-stat">
-                <div class="stat-number">850</div>
+                <div class="stat-number" id="statScore">-</div>
                 <div class="stat-text">Total Score</div>
             </div>
             <div class="profile-stat">
-                <div class="stat-number">#12</div>
+                <div class="stat-number" id="statRank">-</div>
                 <div class="stat-text">Current Rank</div>
             </div>
             <div class="profile-stat">
-                <div class="stat-number">27</div>
+                <div class="stat-number" id="statQuizzes">-</div>
                 <div class="stat-text">Quizzes Completed</div>
             </div>
         </div>
@@ -71,72 +73,70 @@
             <div class="info-grid">
                 <div class="info-item">
                     <label>Full Name</label>
-                    <p>Learner123</p>
-                </div>
-                <div class="info-item">
-                    <label>Username</label>
-                    <p>learner123</p>
+                    <p id="infoName">-</p>
                 </div>
                 <div class="info-item">
                     <label>Email</label>
-                    <p>learner123@example.com</p>
+                    <p id="infoEmail">-</p>
                 </div>
                 <div class="info-item">
                     <label>Grade</label>
-                    <p>12</p>
+                    <p id="infoGrade">-</p>
                 </div>
                 <div class="info-item">
                     <label>School</label>
-                    <p>Example High School</p>
+                    <p id="infoSchool">-</p>
                 </div>
                 <div class="info-item">
                     <label>Province</label>
-                    <p>Example Province</p>
+                    <p id="infoProvince">-</p>
                 </div>
                 <div class="info-item">
                     <label>Subjects</label>
-                    <p>Mathematics, Physics, Accounting</p>
+                    <p id="infoSubjects">-</p>
                 </div>
                 <div class="info-item">
                     <label>Enrolled Since</label>
-                    <p>January 2024</p>
+                    <p id="infoEnrolled">-</p>
                 </div>
             </div>
 
             <div class="profile-actions">
-                <button class="btn btn-primary">Edit Profile</button>
-                <button class="btn btn-outline">Change Password</button>
-                <button class="btn btn-outline">Manage Subjects</button>
-                <button class="btn btn-outline">Help & Support</button>
-                <button class="btn btn-danger">Logout</button>
+                <button class="btn btn-primary" id="editProfileBtn">Edit Profile</button>
+                <button class="btn btn-outline" id="changePasswordBtn">Change Password</button>
+                <button class="btn btn-outline" id="manageSubjectsBtn">Manage Subjects</button>
+                <button class="btn btn-outline" id="helpBtn">Help & Support</button>
+                <button class="btn btn-danger" id="logoutBtn">Logout</button>
             </div>
         </section>
 
         <section class="dashboard-section">
             <h2 class="dashboard-section-title">Achievements</h2>
 
-            <div class="badge-grid">
-                <div class="badge">
-                    <div class="badge-icon">🔥</div>
-                    <p>7-Day Streak</p>
-                </div>
-                <div class="badge">
-                    <div class="badge-icon">🎯</div>
-                    <p>Quiz Master</p>
-                </div>
-                <div class="badge">
-                    <div class="badge-icon">📐</div>
-                    <p>Math Whiz</p>
-                </div>
-                <div class="badge">
-                    <div class="badge-icon">⭐</div>
-                    <p>Top 20 Learner</p>
-                </div>
+            <div class="badge-grid" id="badgeGrid">
+                <p>Loading achievements...</p>
             </div>
         </section>
 
     </main>
 </div>
+
+    <div class="pf-modal" id="pfModal" hidden>
+        <div class="pf-modal-box" role="dialog" aria-modal="true" aria-labelledby="pfTitle">
+            <div class="pf-modal-head">
+                <h2 id="pfTitle"></h2>
+                <button type="button" class="pf-modal-close" id="pfClose" aria-label="Close">&times;</button>
+            </div>
+            <form id="pfForm" novalidate>
+                <div id="pfBody"></div>
+                <p class="pf-error" id="pfError" hidden></p>
+                <div class="pf-modal-foot">
+                    <button type="button" class="btn btn-outline" id="pfCancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="pfSave">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <script src="js/api.js"></script>
     <script src="js/profile.js" defer></script>
 </body>

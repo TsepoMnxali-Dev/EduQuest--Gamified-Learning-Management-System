@@ -342,33 +342,170 @@
         });
         provinces.sort(function (a, b) { return a.name.localeCompare(b.name); });
 
-        select.innerHTML = '<option value="">Select province</option>' +
+        select.innerHTML = '<option value="">All provinces</option>' +
             provinces.map(function (p) {
                 return '<option value="' + p.id + '">' + esc(p.name) + "</option>";
             }).join("");
     }
 
-    function fillSchoolOptions(provinceId, selectedSchoolId) {
-        var select = byId("school");
-        if (!select) { return; }
+    /* ---------- Searchable school picker ----------
+       Lists every school from /api/schools. The province select is only an
+       optional filter, and typing narrows the list by school or province name.
+       The chosen school's ID lives in the hidden #school input. */
 
-        if (!provinceId) {
-            select.innerHTML = '<option value="">Select a province first</option>';
-            select.disabled = true;
+    var schoolMatches = [];   /* schools currently shown in the list */
+    var schoolActive = -1;    /* highlighted row (keyboard navigation) */
+
+    function schoolList() { return byId("schoolList"); }
+
+    function openSchoolList() {
+        schoolList().hidden = false;
+        byId("schoolSearch").setAttribute("aria-expanded", "true");
+    }
+
+    function closeSchoolList() {
+        schoolList().hidden = true;
+        byId("schoolSearch").setAttribute("aria-expanded", "false");
+        schoolActive = -1;
+    }
+
+    function updateSchoolHint() {
+        var hint = byId("schoolHint");
+        if (!hint) { return; }
+        var total = schools.length;
+        var provinceId = byId("province").value;
+        var inScope = provinceId
+            ? schools.filter(function (s) { return String(s.provinceID) === String(provinceId); }).length
+            : total;
+        hint.textContent = inScope + " school" + (inScope === 1 ? "" : "s") +
+            (provinceId ? " in this province" : " available") + " - type to search";
+    }
+
+    function renderSchoolList() {
+        var list = schoolList();
+        var provinceId = byId("province").value;
+        /* Once a school is picked, show the full list again instead of only the chosen name. */
+        var query = byId("school").value ? "" : byId("schoolSearch").value.trim().toLowerCase();
+
+        schoolMatches = schools
+            .filter(function (s) {
+                if (provinceId && String(s.provinceID) !== String(provinceId)) { return false; }
+                if (!query) { return true; }
+                return s.schoolName.toLowerCase().indexOf(query) !== -1 ||
+                    String(s.provinceName || "").toLowerCase().indexOf(query) !== -1;
+            })
+            .sort(function (a, b) { return a.schoolName.localeCompare(b.schoolName); });
+
+        if (schoolMatches.length === 0) {
+            list.innerHTML = '<li class="empty">No schools match "' + esc(byId("schoolSearch").value.trim()) + '"</li>';
+            schoolActive = -1;
             return;
         }
 
-        var inProvince = schools
-            .filter(function (s) { return String(s.provinceID) === String(provinceId); })
-            .sort(function (a, b) { return a.schoolName.localeCompare(b.schoolName); });
+        var selectedId = byId("school").value;
+        schoolActive = -1;
+        list.innerHTML = schoolMatches.map(function (s, i) {
+            var isSelected = String(s.schoolID) === selectedId;
+            if (isSelected) { schoolActive = i; }
+            return '<li role="option" data-index="' + i + '"' +
+                (isSelected ? ' class="active" aria-selected="true"' : "") + ">" +
+                "<span>" + esc(s.schoolName) + "</span><small>" + esc(s.provinceName || "") + "</small></li>";
+        }).join("");
+    }
 
-        select.innerHTML = '<option value="">Select school</option>' +
-            inProvince.map(function (s) {
-                return '<option value="' + s.schoolID + '">' + esc(s.schoolName) + "</option>";
-            }).join("");
-        select.disabled = false;
+    function highlightSchool(index) {
+        var items = schoolList().querySelectorAll("li[data-index]");
+        if (items.length === 0) { return; }
+        schoolActive = (index + items.length) % items.length;
+        Array.prototype.forEach.call(items, function (li, i) {
+            li.classList.toggle("active", i === schoolActive);
+        });
+        items[schoolActive].scrollIntoView({ block: "nearest" });
+    }
 
-        if (selectedSchoolId) { select.value = String(selectedSchoolId); }
+    /* Select a school by ID (or clear with null) and keep the province filter in step. */
+    function setSchool(schoolId) {
+        var school = schoolId ? schools.filter(function (s) {
+            return s.schoolID === Number(schoolId);
+        })[0] : null;
+
+        byId("school").value = school ? String(school.schoolID) : "";
+        byId("schoolSearch").value = school ? school.schoolName : "";
+
+        if (school) { byId("province").value = String(school.provinceID); }
+        updateSchoolHint();
+        closeSchoolList();
+    }
+
+    function resetSchoolPicker() {
+        byId("school").value = "";
+        byId("schoolSearch").value = "";
+        byId("province").value = "";
+        closeSchoolList();
+        updateSchoolHint();
+    }
+
+    function initSchoolPicker() {
+        var search = byId("schoolSearch");
+        var list = schoolList();
+        if (!search || !list) { return; }
+
+        search.addEventListener("focus", function () {
+            renderSchoolList();
+            openSchoolList();
+        });
+        search.addEventListener("click", function () {
+            renderSchoolList();
+            openSchoolList();
+        });
+
+        search.addEventListener("input", function () {
+            byId("school").value = "";   /* typing invalidates any earlier pick */
+            renderSchoolList();
+            openSchoolList();
+        });
+
+        search.addEventListener("keydown", function (e) {
+            if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                e.preventDefault();
+                if (list.hidden) { renderSchoolList(); openSchoolList(); }
+                highlightSchool(schoolActive + (e.key === "ArrowDown" ? 1 : -1));
+            } else if (e.key === "Enter") {
+                if (!list.hidden && schoolMatches.length > 0) {
+                    e.preventDefault();
+                    /* A lone match is accepted even without arrowing to it. */
+                    var pick = schoolMatches[schoolActive >= 0 ? schoolActive : (schoolMatches.length === 1 ? 0 : -1)];
+                    if (pick) { setSchool(pick.schoolID); }
+                }
+            } else if (e.key === "Escape") {
+                if (!list.hidden) { e.stopPropagation(); closeSchoolList(); }
+            }
+        });
+
+        /* mousedown (not click) so the pick lands before the input loses focus. */
+        list.addEventListener("mousedown", function (e) {
+            e.preventDefault();
+            var li = e.target.closest("li[data-index]");
+            if (li) { setSchool(schoolMatches[Number(li.getAttribute("data-index"))].schoolID); }
+        });
+
+        search.addEventListener("blur", function () {
+            closeSchoolList();
+            /* Unpicked free text isn't a valid school - drop it so it can't look selected. */
+            if (!byId("school").value) { search.value = ""; }
+        });
+
+        byId("province").addEventListener("change", function () {
+            var picked = byId("school").value;
+            if (picked) {
+                var school = schools.filter(function (s) { return s.schoolID === Number(picked); })[0];
+                if (school && byId("province").value &&
+                    String(school.provinceID) !== byId("province").value) {
+                    setSchool(null);
+                }
+            }
+            updateSchoolHint();
+        });
     }
 
     /* ---------- Add / Edit modal ---------- */
@@ -390,8 +527,7 @@
         var isLearner = byId("role").value === "learner";
         byId("learnerFields").style.display = isLearner ? "" : "none";
         byId("grade").required = isLearner;
-        byId("province").required = isLearner;
-        byId("school").required = isLearner;
+        byId("schoolSearch").required = isLearner;
     }
 
     /* Admins can't be suspended, so lock the status to Active for them.
@@ -429,7 +565,12 @@
         /* Changing role after creation would orphan the learner profile. */
         byId("role").disabled = !!editingUser;
 
-        fillSchoolOptions("", null);
+        /* An admin can change their own email, but not another admin's (the API enforces this too). */
+        var lockEmail = !!editingUser && editingUser.role === "Admin" && editingUser.id !== me.userId;
+        byId("email").readOnly = lockEmail;
+        byId("email").title = lockEmail ? "You can't change another admin's email" : "";
+
+        resetSchoolPicker();
 
         if (editingUser) {
             byId("firstName").value = editingUser.firstName;
@@ -444,10 +585,7 @@
                 })[0];
 
                 byId("grade").value = String(editingUser.gradeId);
-                if (school) {
-                    byId("province").value = String(school.provinceID);
-                    fillSchoolOptions(school.provinceID, editingUser.schoolId);
-                }
+                if (school) { setSchool(school.schoolID); }
             }
         }
 
@@ -548,6 +686,12 @@
             schoolId: Number(byId("school").value),
             password: byId("password").value
         };
+
+        if (role === "learner" && !values.schoolId) {
+            showFormError("Please search for and select a school from the list.");
+            byId("schoolSearch").focus();
+            return;
+        }
 
         if (!editingUser) {
             if (values.password.length < 8) {
@@ -674,9 +818,7 @@
             toggleLearnerFields();
             syncStatusField();
         });
-        byId("province").addEventListener("change", function () {
-            fillSchoolOptions(byId("province").value, null);
-        });
+        initSchoolPicker();
 
         byId("userSearch").addEventListener("input", applyFilters);
         ["roleFilter", "gradeFilter", "statusFilter"].forEach(function (id) {

@@ -38,184 +38,30 @@
                     <p>Work through each subject's quizzes at your own pace.</p>
                 </div>
                 <div class="profile-mini">
-                    <div class="profile-avatar">L</div>
-                    <span>Learner</span>
+                    <div class="profile-avatar" id="quizAvatar">&nbsp;</div>
+                    <span id="quizLearnerName">Learner</span>
                 </div>
             </div>
 
             <div class="quiz-summary">
                 <div class="profile-stat">
-                    <div class="stat-number">7</div>
+                    <div class="stat-number" id="sumDone">-</div>
                     <div class="stat-text">Completed</div>
                 </div>
                 <div class="profile-stat">
-                    <div class="stat-number">5</div>
+                    <div class="stat-number" id="sumTodo">-</div>
                     <div class="stat-text">Still To Do</div>
                 </div>
                 <div class="profile-stat">
-                    <div class="stat-number">84%</div>
+                    <div class="stat-number" id="sumAvg">-</div>
                     <div class="stat-text">Average Score</div>
                 </div>
             </div>
 
-            <div class="quizzes-grid">
+            <p id="quizzesMessage" class="quizzes-message" style="display:none; margin:0 0 16px;"></p>
 
-                <section class="subject-block">
-                    <div class="subject-block-head">
-                        <div class="subject-icon">M</div>
-                        <div>
-                            <h2>Mathematics</h2>
-                            <p>3 of 5 quizzes completed</p>
-                        </div>
-                    </div>
-
-                    <div class="quiz-list">
-                        <div class="quiz-item">
-                            <div class="quiz-status-icon done">✓</div>
-                            <div class="quiz-info">
-                                <h4>Algebra Basics</h4>
-                                <p>10 questions &middot; Completed 3 days ago</p>
-                            </div>
-                            <span class="quiz-badge completed">92%</span>
-                            <a href="#" class="btn btn-outline">Review</a>
-                        </div>
-
-                        <div class="quiz-item">
-                            <div class="quiz-status-icon done">✓</div>
-                            <div class="quiz-info">
-                                <h4>Graphs & Functions</h4>
-                                <p>12 questions &middot; Completed 1 week ago</p>
-                            </div>
-                            <span class="quiz-badge completed">85%</span>
-                            <a href="#" class="btn btn-outline">Review</a>
-                        </div>
-
-                        <div class="quiz-item">
-                            <div class="quiz-status-icon done">✓</div>
-                            <div class="quiz-info">
-                                <h4>Probability & Statistics</h4>
-                                <p>8 questions &middot; Completed 2 weeks ago</p>
-                            </div>
-                            <span class="quiz-badge completed">78%</span>
-                            <a href="#" class="btn btn-outline">Review</a>
-                        </div>
-
-                        <div class="quiz-item" data-quiz-id="calculus">
-                            <div class="quiz-status-icon pending">•</div>
-                            <div class="quiz-info">
-                                <h4>Basic Calculus</h4>
-                                <p>10 questions &middot; Not started</p>
-                            </div>
-                            <span class="quiz-badge pending">To Do</span>
-                            <a href="quiz.html?id=calculus" class="btn btn-primary">Start Quiz</a>
-                        </div>
-
-                        <div class="quiz-item" data-quiz-id="money-math">
-                            <div class="quiz-status-icon pending">•</div>
-                            <div class="quiz-info">
-                                <h4>Money Math: Interest & Loans</h4>
-                                <p>10 questions &middot; Not started</p>
-                            </div>
-                            <span class="quiz-badge pending">To Do</span>
-                            <a href="quiz.html?id=money-math" class="btn btn-primary">Start Quiz</a>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="subject-block">
-                    <div class="subject-block-head">
-                        <div class="subject-icon">P</div>
-                        <div>
-                            <h2>Physics</h2>
-                            <p>2 of 4 quizzes completed</p>
-                        </div>
-                    </div>
-
-                    <div class="quiz-list">
-                        <div class="quiz-item">
-                            <div class="quiz-status-icon done">✓</div>
-                            <div class="quiz-info">
-                                <h4>Forces & Motion</h4>
-                                <p>10 questions &middot; Completed 4 days ago</p>
-                            </div>
-                            <span class="quiz-badge completed">88%</span>
-                            <a href="#" class="btn btn-outline">Review</a>
-                        </div>
-
-                        <div class="quiz-item">
-                            <div class="quiz-status-icon done">✓</div>
-                            <div class="quiz-info">
-                                <h4>Electricity Basics</h4>
-                                <p>10 questions &middot; Completed 1 week ago</p>
-                            </div>
-                            <span class="quiz-badge completed">70%</span>
-                            <a href="#" class="btn btn-outline">Review</a>
-                        </div>
-
-                        <div class="quiz-item" data-quiz-id="light-sound">
-                            <div class="quiz-status-icon pending">•</div>
-                            <div class="quiz-info">
-                                <h4>Light & Sound</h4>
-                                <p>8 questions &middot; Not started</p>
-                            </div>
-                            <span class="quiz-badge pending">To Do</span>
-                            <a href="quiz.html?id=light-sound" class="btn btn-primary">Start Quiz</a>
-                        </div>
-
-                        <div class="quiz-item" data-quiz-id="chem-reactions">
-                            <div class="quiz-status-icon pending">•</div>
-                            <div class="quiz-info">
-                                <h4>Chemistry: Reactions</h4>
-                                <p>10 questions &middot; Not started</p>
-                            </div>
-                            <span class="quiz-badge pending">To Do</span>
-                            <a href="quiz.html?id=chem-reactions" class="btn btn-primary">Start Quiz</a>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="subject-block">
-                    <div class="subject-block-head">
-                        <div class="subject-icon">A</div>
-                        <div>
-                            <h2>Accounting</h2>
-                            <p>2 of 3 quizzes completed</p>
-                        </div>
-                    </div>
-
-                    <div class="quiz-list">
-                        <div class="quiz-item">
-                            <div class="quiz-status-icon done">✓</div>
-                            <div class="quiz-info">
-                                <h4>Recording Transactions</h4>
-                                <p>10 questions &middot; Completed 5 days ago</p>
-                            </div>
-                            <span class="quiz-badge completed">95%</span>
-                            <a href="#" class="btn btn-outline">Review</a>
-                        </div>
-
-                        <div class="quiz-item">
-                            <div class="quiz-status-icon done">✓</div>
-                            <div class="quiz-info">
-                                <h4>Financial Statements</h4>
-                                <p>10 questions &middot; Completed 2 weeks ago</p>
-                            </div>
-                            <span class="quiz-badge completed">80%</span>
-                            <a href="#" class="btn btn-outline">Review</a>
-                        </div>
-
-                        <div class="quiz-item" data-quiz-id="profitability">
-                            <div class="quiz-status-icon pending">•</div>
-                            <div class="quiz-info">
-                                <h4>Profitability Analysis</h4>
-                                <p>8 questions &middot; Not started</p>
-                            </div>
-                            <span class="quiz-badge pending">To Do</span>
-                            <a href="quiz.html?id=profitability" class="btn btn-primary">Start Quiz</a>
-                        </div>
-                    </div>
-                </section>
-
+            <div class="quizzes-grid" id="quizzesGrid">
+                <p>Loading your quizzes...</p>
             </div>
         </main>
     </div>
