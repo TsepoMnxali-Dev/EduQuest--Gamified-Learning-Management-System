@@ -57,154 +57,7 @@ const users = [
     }
 
 ];
- /* Resource data that will be replaced with data from the database in the future */
-const resources = [
-    {
-        id: 1,
-        name: "Natural Sciences Question Paper",
-        subject: "Natural Sciences",
-        type: "Question Paper",
-        region: "Sarah Baartman",
-        grade: "Grade 9",
-        uploaded: "19 Aug 2026"
-    },
-    {
-        id: 2,
-        name: "Accounting Textbook",
-        subject: "Accounting",
-        type: "Textbook",
-        region: "Chris Hani",
-        grade: "Grade 11",
-        uploaded: "11 Aug 2026"
-    },
-    {
-        id: 3,
-        name: "Mathematics Study Guide",
-        subject: "Mathematics",
-        type: "Study Guide",
-        region: "All Regions",
-        grade: "Grade 12",
-        uploaded: "02 Aug 2026"
-    },
-    {
-        id: 4,
-        name: "Physical Sciences Textbook",
-        subject: "Physical Sciences",
-        type: "Textbook",
-        region: "Nelson Mandela Bay",
-        grade: "Grade 11",
-        uploaded: "18 Jul 2026"
-    }
-];
 
-function displayResources(list = resources) {
-
-    const tableBody = document.getElementById("resourcesTableBody");
-
-    if (!tableBody) return;
-
-    tableBody.innerHTML = "";
-
-    list.forEach(resource => {
-
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
-            <td>
-                <strong>${resource.name}</strong>
-                <small>${resource.subject}</small>
-            </td>
-
-            <td>
-                <span class="resource-type">
-                    ${resource.type}
-                </span>
-            </td>
-
-            <td>
-                <span class="region-badge">
-                    ${resource.region}
-                </span>
-            </td>
-
-            <td>${resource.grade}</td>
-
-            <td>${resource.uploaded}</td>
-
-            <td>
-                <button class="edit-btn" type="button" data-action="edit-resource" data-id="${resource.id}">🖊️</button>
-                <button class="delete-btn" type="button" data-action="delete-resource" data-id="${resource.id}">🗑️</button>
-            </td>
-        `;
-
-        tableBody.appendChild(row);
-    });
-}
-
-
-function displayUsers(list = users) {
-
-    const tableBody = document.getElementById("usersTableBody");
-
-    if (!tableBody) return;
-
-    tableBody.innerHTML = "";
-
-    list.forEach(user => {
-
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
-            <td>
-                <strong>${getFullName(user)}</strong>
-            </td>
-
-            <td>${user.email}</td>
-
-            <td>
-                <span class="role-badge">
-                    ${user.role}
-                </span>
-            </td>
-
-            <td>${user.grade}</td>
-
-            <td>${user.school}</td>
-
-            <td>
-                <span class="region-badge">
-                    ${user.region}
-                </span>
-            </td>
-
-            <td>
-                <span class="status-badge ${user.status.toLowerCase()}">
-                    ${user.status}
-                </span>
-            </td>
-
-            <td>
-                <button 
-                    class="edit-btn" 
-                    type="button" 
-                    data-action="edit-user" 
-                    data-id="${user.id}">
-                    🖊️
-                </button>
-
-                <button 
-                    class="delete-btn" 
-                    type="button" 
-                    data-action="delete-user" 
-                    data-id="${user.id}">
-                    🗑️
-                </button>
-            </td>
-        `;
-
-        tableBody.appendChild(row);
-    });
-}
 
 
 /* full names */
@@ -609,18 +462,12 @@ function applyUserFilters() {
 function searchUsers() {
     applyUserFilters();
 }
-function searchResources(){
-    applyResourceFilters();
-}
 
 
 /* Filters */
 
 function filterUsers() {
     applyUserFilters();
-}
-function filterResources(){
-    applyResourceFilters();
 }
 
 /* delete the user or resource */
@@ -659,42 +506,6 @@ function deleteUser(userId) {
     }
 
 }
-/* delete the resource */
-function deleteResource(resourceId) {
-
-    const resource = resources.find(resource => resource.id === resourceId);
-
-
-    if (!resource) {
-        return;
-    }
-
-
-    const confirmed = confirm(
-    `Are you sure you want to delete ${resource.name}?`
-);
-
-
-    if (!confirmed) {
-        return;
-    }
-
-
-    const resourceIndex = resources.findIndex(
-        resource => resource.id === resourceId
-    );
-
-
-    if (resourceIndex !== -1) {
-
-        resources.splice(resourceIndex, 1);
-
-        displayResources();
-
-    }
-
-}
-
 
 /* 
    EDIT USER
@@ -725,24 +536,6 @@ function editUser(userId) {
     );
 
 }
-/*Edit Resource*/
-function editResource(resourceId) {
-
-    const resource = resources.find(
-        resource => resource.id === resourceId
-    );
-
-
-    if (!resource) {
-        return;
-    }
-
-
-    alert(
-        `Edit resource: ${resource.name}`
-    );
-
-}
 
 /* add */
 
@@ -759,18 +552,6 @@ function addUser(newUser) {
     applyUserFilters();
 }
 
-function addResource(newResource) {
-
-    const nextId = resources.length > 0
-        ? Math.max(...resources.map(resource => resource.id)) + 1
-        : 1;
-
-    newResource.id = nextId;
-
-    resources.push(newResource);
-
-    applyResourceFilters();
-}
 /*
    ADD USER MODAL
  */
@@ -962,142 +743,3 @@ document.addEventListener("DOMContentLoaded", () => {
         statusFilter.addEventListener("change", filterUsers);
     }
 });
-
-/*This is filters the resources page*/
-function applyResourceFilters() {
-
-    const searchInput = document.getElementById("resourceSearch");
-    const roleFilter = document.getElementById("roleFilter");
-    const statusFilter = document.getElementById("statusFilter");
-
-    const searchValue = searchInput
-        ? searchInput.value.toLowerCase().trim()
-        : "";
-
-    const selectedRegion = roleFilter
-        ? roleFilter.value
-        : "all";
-
-    const selectedType = statusFilter
-        ? statusFilter.value
-        : "all";
-
-    const filteredResources = resources.filter(resource => {
-        const resourceText = `${resource.name} ${resource.subject}`.toLowerCase();
-        const matchesSearch = resourceText.includes(searchValue);
-        const matchesRegion =
-            selectedRegion === "all" ||
-            resource.region.toLowerCase() === selectedRegion.toLowerCase();
-        const matchesType =
-            selectedType === "all" ||
-            resource.type.toLowerCase() === selectedType.toLowerCase();
-
-        return matchesSearch && matchesRegion && matchesType;
-    });
-
-    displayResources(filteredResources);
-}
-
-/* Event Listener for the filters and search of the resource page*/
-document.addEventListener("DOMContentLoaded", () => {
-
-    const tableBody = document.getElementById("resourcesTableBody");
-    const addResourceModal = document.getElementById("addResourceModal");
-    const closeAddResourceButton = document.getElementById("closeAddResource");
-    const searchInput = document.getElementById("resourceSearch");
-    const resourceSearchBtn = document.getElementById("resourceSearchBtn");
-    const roleFilter = document.getElementById("roleFilter");
-    const statusFilter = document.getElementById("statusFilter");
-    const addResourceButton = document.getElementById("openAddResource");
-    const addResourceForm = addResourceModal
-        ? addResourceModal.querySelector("form")
-        : null;
-
-    if (tableBody) {
-        tableBody.addEventListener("click", (event) => {
-            const clickedButton = event.target.closest("button[data-action]");
-
-            if (!clickedButton) return;
-
-            const action = clickedButton.dataset.action;
-            const resourceId = Number(clickedButton.dataset.id);
-
-            if (action === "delete-resource") {
-                deleteResource(resourceId);
-            }
-
-            if (action === "edit-resource") {
-                editResource(resourceId);
-            }
-        });
-    }
-
-    if (closeAddResourceButton && addResourceModal) {
-        closeAddResourceButton.addEventListener("click", () => {
-            addResourceModal.style.display = "none";
-        });
-    }
-
-    if (addResourceButton && addResourceModal) {
-        addResourceButton.addEventListener("click", () => {
-            addResourceModal.style.display = "flex";
-        });
-    }
-
-    if (searchInput) {
-        searchInput.addEventListener("input", searchResources);
-    }
-
-    if (resourceSearchBtn) {
-        resourceSearchBtn.addEventListener("click", searchResources);
-    }
-
-    if (roleFilter) {
-        roleFilter.addEventListener("change", filterResources);
-    }
-
-    if (statusFilter) {
-        statusFilter.addEventListener("change", filterResources);
-    }
-
-    if (addResourceForm) {
-        addResourceForm.addEventListener("submit", function(event) {
-            event.preventDefault();
-
-            const name = document.getElementById("resourceName")?.value.trim();
-            const subject = document.getElementById("resourceSubject")?.value.trim();
-            const type = document.getElementById("resourceType")?.value;
-            const region = document.getElementById("resourceRegion")?.value.trim();
-            const grade = document.getElementById("resourceGrade")?.value.trim();
-
-            if (!name || !subject || !type || !region) {
-                alert("Please complete the resource name, subject, type, and region fields.");
-                return;
-            }
-
-            const newResource = {
-                name,
-                subject,
-                type,
-                region,
-                grade: grade || "General",
-                uploaded: new Date().toLocaleDateString("en-GB", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric"
-                })
-            };
-
-            addResource(newResource);
-            addResourceModal.style.display = "none";
-            addResourceForm.reset();
-            alert(`${newResource.name} has been added successfully.`);
-        });
-    }
-
-    displayResources();
-});
-
-
-
-

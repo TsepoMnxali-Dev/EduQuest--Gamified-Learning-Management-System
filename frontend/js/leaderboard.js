@@ -1,364 +1,673 @@
-/* =========================
-   MOCK LEADERBOARD DATA
-========================= */
 
-const learners = [
+/*
+========================================================
+EduQuest - Admin Leaderboard
 
-    {
-        name: "Amanda Mthembu",
-        school: "Grens High School",
-        region: "Nelson Mandela Bay",
-        Mathematics: 920,
-        "Physical Sciences": 940,
-        Accounting: 910
-    },
+CHANGED:
+- No dummy learners or scores.
+- Rankings are retrieved from the backend.
+- Only learners with points above zero appear.
+- Supports subject filtering.
+- Supports province filtering.
+- Displays the top three learners.
+- Displays the top learner per province.
+- Shows an empty state when nobody has points.
 
-    {
-        name: "Sihle Radebe",
-        school: "Alexander Road High",
-        region: "Nelson Mandela Bay",
-        Mathematics: 880,
-        "Physical Sciences": 910,
-        Accounting: 890
-    },
+Backend endpoints:
 
-    {
-        name: "Emelicia Peterson",
-        school: "Grey High School",
-        region: "Buffalo City",
-        Mathematics: 850,
-        "Physical Sciences": 890,
-        Accounting: 860
-    },
+GET /api/subjects
+GET /api/provinces
+GET /api/leaderboards/rankings
 
-    {
-        name: "Lindiwe Ngcobo",
-        school: "Graeme College",
-        region: "Sarah Baartman",
-        Mathematics: 810,
-        "Physical Sciences": 840,
-        Accounting: 830
-    },
+========================================================
+*/
 
-    {
-        name: "Zola Mahlangu",
-        school: "Union High School",
-        region: "Chris Hani",
-        Mathematics: 790,
-        "Physical Sciences": 820,
-        Accounting: 800
-    },
+(function () {
 
-    {
-        name: "Kagiso Moutang",
-        school: "Aliwal North High",
-        region: "Joe Gqabi",
-        Mathematics: 780,
-        "Physical Sciences": 805,
-        Accounting: 790
+    "use strict";
+
+    // ==============================================
+    // AUTHENTICATION
+    // ==============================================
+
+    const LOGIN_URL =
+        "../../EduQuest-with-js/EduQuest/login.html";
+
+    const user = EduQuestAPI.getCurrentUser();
+
+    if (
+        !EduQuestAPI.getToken() ||
+        !user ||
+        user.role !== "Admin"
+    ) {
+        window.location.href = LOGIN_URL;
+        return;
     }
 
-];
+    // ==============================================
+    // HTML ELEMENTS
+    // ==============================================
 
+    const topLearnersContainer =
+        document.getElementById("topLearners");
 
-/* =========================
-   ELEMENTS
-========================= */
+    const regionalLeadersContainer =
+        document.getElementById("regionalLeaders");
 
-const topLearnersContainer =
-    document.getElementById("topLearners");
+    const regionFilter =
+        document.getElementById("regionFilter");
 
-const regionalLeadersContainer =
-    document.getElementById("regionalLeaders");
+    const rankingTitle =
+        document.getElementById("rankingTitle");
 
-const regionFilter =
-    document.getElementById("regionFilter");
+    const rankingDescription =
+        document.getElementById("rankingDescription");
 
-const rankingTitle =
-    document.getElementById("rankingTitle");
+    const subjectTabsContainer =
+        document.getElementById("subjectTabs");
 
-const rankingDescription =
-    document.getElementById("rankingDescription");
+    const leaderboardStatus =
+        document.getElementById("leaderboardStatus");
 
-const subjectTabs =
-    document.querySelectorAll(".subject-tab");
+    // ==============================================
+    // DATA
+    // ==============================================
 
+    let provinces = [];
 
-/* =========================
-   CURRENT SUBJECT
-========================= */
+    let entries = [];
 
-let currentSubject = "Overall";
+    let currentSubjectId = null;
 
+    let currentSubjectName = "Overall";
 
-/* =========================
-   GET SCORE
-========================= */
+    // NEW:
+    // Prevent older API responses from replacing
+    // newer selections when tabs are clicked quickly.
+    let requestNumber = 0;
 
-function getScore(learner) {
+    // ==============================================
+    // CREATE HTML ELEMENT
+    // ==============================================
 
-    if (currentSubject === "Overall") {
+    function el(tag, className, text) {
 
-        const scores = [
-            learner.Mathematics,
-            learner["Physical Sciences"],
-            learner.Accounting
-        ];
+        const node = document.createElement(tag);
 
-        return Math.round(
-            scores.reduce((total, score) => total + score, 0)
-            / scores.length
-        );
-    }
-
-    return learner[currentSubject];
-}
-
-
-/* =========================
-   INITIALS
-========================= */
-
-function getInitials(name) {
-
-    const names = name.split(" ");
-
-    return names
-        .map(name => name[0])
-        .join("")
-        .substring(0, 2)
-        .toUpperCase();
-}
-
-
-/* =========================
-   DISPLAY TOP THREE
-========================= */
-
-function displayTopLearners() {
-
-    const selectedRegion = regionFilter.value;
-
-    let filteredLearners = [...learners];
-
-    if (selectedRegion !== "All regions") {
-
-        filteredLearners = filteredLearners.filter(
-            learner => learner.region === selectedRegion
-        );
-    }
-
-
-    filteredLearners.sort(
-        (a, b) => getScore(b) - getScore(a)
-    );
-
-
-    const topThree = filteredLearners.slice(0, 3);
-
-
-    topLearnersContainer.innerHTML = "";
-
-
-    topThree.forEach((learner, index) => {
-
-        const rank = index + 1;
-
-        let rankClass = "";
-
-        if (rank === 1) {
-            rankClass = "rank-one";
-        } else if (rank === 2) {
-            rankClass = "rank-two";
-        } else {
-            rankClass = "rank-three";
+        if (className) {
+            node.className = className;
         }
 
+        if (text !== undefined) {
+            node.textContent = text;
+        }
 
-        const card = document.createElement("div");
+        return node;
+    }
 
-        card.className =
-            `top-learner-card ${rank === 1 ? "first-place" : ""}`;
+    // ==============================================
+    // LEARNER INITIALS
+    // ==============================================
 
+    function initials(name) {
 
-        card.innerHTML = `
+        if (!name) {
+            return "L";
+        }
 
-            <div class="rank-circle ${rankClass}">
-                ${rank}
-            </div>
+        return name
+            .split(" ")
+            .filter(Boolean)
+            .map(function (part) {
+                return part.charAt(0);
+            })
+            .join("")
+            .substring(0, 2)
+            .toUpperCase();
+    }
 
-            <h3 class="learner-name">
-                ${learner.name}
-            </h3>
+    // ==============================================
+    // STATUS MESSAGE
+    // ==============================================
 
-            <p class="learner-school">
-                ${learner.school} · ${learner.region}
-            </p>
+    function showStatus(message) {
 
-            <p class="learner-score">
-                ${getScore(learner)} pts
-            </p>
+        leaderboardStatus.textContent = message;
 
-            <span class="qualifier-badge">
-                National qualifier
-            </span>
+        leaderboardStatus.style.display =
+            message ? "block" : "none";
+    }
 
-        `;
+    // ==============================================
+    // EMPTY STATE
+    // ==============================================
 
+    function emptyNote(container, message) {
 
-        topLearnersContainer.appendChild(card);
+        container.innerHTML = "";
 
-    });
-}
+        const note = el(
+            "p",
+            "leaderboard-empty",
+            message
+        );
 
+        container.appendChild(note);
+    }
 
-/* =========================
-   DISPLAY TOP LEARNER
-   FOR EACH REGION
-========================= */
+    // ==============================================
+    // NEW: QUALIFYING LEARNERS
+    // ==============================================
 
-function displayRegionalLeaders() {
+    function getQualifiedEntries() {
 
-    regionalLeadersContainer.innerHTML = "";
+        // Backend already excludes zero-point learners.
+        // This is an additional frontend safeguard.
 
+        return entries.filter(function (learner) {
 
-    const regions = [
-        "Nelson Mandela Bay",
-        "Buffalo City",
-        "Sarah Baartman",
-        "Chris Hani",
-        "Joe Gqabi"
-    ];
+            return Number(learner.points) > 0;
+        });
+    }
 
+    // ==============================================
+    // NATIONAL / PROVINCIAL TOP THREE
+    // ==============================================
 
-    regions.forEach(region => {
+    function displayTopLearners() {
 
-        const regionalLearners = learners
-            .filter(learner => learner.region === region)
-            .sort(
-                (a, b) => getScore(b) - getScore(a)
+        const provinceId = regionFilter.value;
+
+        const qualifiedEntries = getQualifiedEntries();
+
+        // Apply the selected province filter.
+        const rows = qualifiedEntries.filter(
+            function (learner) {
+
+                return (
+                    !provinceId ||
+                    String(learner.provinceID) ===
+                    provinceId
+                );
+            }
+        );
+
+        topLearnersContainer.innerHTML = "";
+
+        // ==========================================
+        // NEW: EMPTY STATE
+        // ==========================================
+
+        if (rows.length === 0) {
+
+            emptyNote(
+                topLearnersContainer,
+                "No learners have earned points " +
+                "for this selection yet."
             );
 
-
-        const topLearner = regionalLearners[0];
-
-
-        if (!topLearner) {
             return;
         }
 
+        // Backend already sorts learners by points.
+        // Take the first three qualifying learners.
 
-        const card = document.createElement("div");
+        rows.slice(0, 3).forEach(
+            function (learner, index) {
 
-        card.className = "regional-card";
+                // NEW:
+                // Ranking within the selected region.
+                const rank = index + 1;
 
+                let rankClass = "";
 
-        card.innerHTML = `
+                if (rank === 1) {
+                    rankClass = "rank-one";
+                }
+                else if (rank === 2) {
+                    rankClass = "rank-two";
+                }
+                else {
+                    rankClass = "rank-three";
+                }
 
-            <p class="region-name">
-                ${region}
-            </p>
+                const card = el(
+                    "div",
+                    "top-learner-card" +
+                    (rank === 1 ? " first-place" : "")
+                );
 
-            <div class="regional-learner">
+                // Rank number.
+                const rankCircle = el(
+                    "div",
+                    "rank-circle " + rankClass,
+                    String(rank)
+                );
 
-                <div class="learner-initials">
-                    ${getInitials(topLearner.name)}
-                </div>
+                // Learner name.
+                const learnerName = el(
+                    "h3",
+                    "learner-name",
+                    learner.displayName
+                );
 
-                <div class="regional-learner-info">
+                // School and province.
+                const school = el(
+                    "p",
+                    "learner-school",
+                    (learner.schoolName || "School unavailable") +
+                    " \u00B7 " +
+                    (learner.provinceName || "Province unavailable")
+                );
 
-                    <h3 class="regional-learner-name">
-                        ${topLearner.name}
-                    </h3>
+                // Points and quizzes completed.
+                const score = el(
+                    "p",
+                    "learner-score",
+                    learner.points +
+                    " pts \u00B7 " +
+                    learner.quizzesTaken +
+                    " quizzes"
+                );
 
-                    <p class="regional-school">
-                        ${topLearner.school}
-                    </p>
+                card.appendChild(rankCircle);
+                card.appendChild(learnerName);
+                card.appendChild(school);
+                card.appendChild(score);
 
-                </div>
-
-            </div>
-
-            <p class="regional-score">
-                ${getScore(topLearner)} pts
-            </p>
-
-        `;
-
-
-        regionalLeadersContainer.appendChild(card);
-
-    });
-}
-
-
-/* =========================
-   UPDATE LEADERBOARD
-========================= */
-
-function updateLeaderboard() {
-
-    displayTopLearners();
-
-    displayRegionalLeaders();
-
-
-    if (regionFilter.value === "All regions") {
-
-        rankingTitle.textContent = "national";
-
-        rankingDescription.textContent =
-            "Overall ranking, all regions";
-
-    } else {
-
-        rankingTitle.textContent =
-            regionFilter.value;
-
-        rankingDescription.textContent =
-            `Top learners in ${regionFilter.value}`;
-
+                topLearnersContainer.appendChild(card);
+            }
+        );
     }
 
-}
+    // ==============================================
+    // TOP LEARNER PER PROVINCE
+    // ==============================================
 
+    function displayRegionalLeaders() {
 
-/* =========================
-   SUBJECT BUTTONS
-========================= */
+        regionalLeadersContainer.innerHTML = "";
 
-subjectTabs.forEach(button => {
+        const qualifiedEntries = getQualifiedEntries();
 
-    button.addEventListener("click", function () {
+        let any = false;
 
-        subjectTabs.forEach(tab => {
-            tab.classList.remove("active");
+        provinces.forEach(function (province) {
+
+            // Backend results are already ordered.
+            // Find the first learner in this province.
+
+            const topLearner = qualifiedEntries.find(
+                function (learner) {
+
+                    return String(learner.provinceID) ===
+                        String(province.provinceID);
+                }
+            );
+
+            // No learner with points in this province.
+            if (!topLearner) {
+                return;
+            }
+
+            any = true;
+
+            const card = el(
+                "div",
+                "regional-card"
+            );
+
+            // Province name.
+            const regionName = el(
+                "p",
+                "region-name",
+                province.provinceName
+            );
+
+            card.appendChild(regionName);
+
+            const learner = el(
+                "div",
+                "regional-learner"
+            );
+
+            // Avatar.
+            const avatar = el(
+                "div",
+                "learner-initials",
+                initials(topLearner.displayName)
+            );
+
+            learner.appendChild(avatar);
+
+            // Learner details.
+            const info = el(
+                "div",
+                "regional-learner-info"
+            );
+
+            const name = el(
+                "h3",
+                "regional-learner-name",
+                topLearner.displayName
+            );
+
+            const school = el(
+                "p",
+                "regional-school",
+                topLearner.schoolName ||
+                "School unavailable"
+            );
+
+            info.appendChild(name);
+            info.appendChild(school);
+
+            learner.appendChild(info);
+
+            card.appendChild(learner);
+
+            // Total points.
+            const score = el(
+                "p",
+                "regional-score",
+                topLearner.points + " pts"
+            );
+
+            card.appendChild(score);
+
+            regionalLeadersContainer.appendChild(card);
         });
 
-        this.classList.add("active");
+        // ==========================================
+        // NEW: NO REGIONAL RANKINGS
+        // ==========================================
 
-        currentSubject =
-            this.dataset.subject;
+        if (!any) {
 
-        updateLeaderboard();
+            emptyNote(
+                regionalLeadersContainer,
+                "No learners have earned points " +
+                "in any province yet."
+            );
+        }
+    }
 
-    });
+    // ==============================================
+    // UPDATE PAGE HEADING
+    // ==============================================
 
-});
+    function updateHeading() {
 
+        const selected =
+            regionFilter.options[
+                regionFilter.selectedIndex
+            ];
 
-/* =========================
-   REGION FILTER
-========================= */
+        if (!regionFilter.value) {
 
-regionFilter.addEventListener(
-    "change",
-    updateLeaderboard
-);
+            rankingTitle.textContent = "nationally";
 
+            rankingDescription.textContent =
+                currentSubjectName +
+                " ranking, all provinces";
+        }
+        else {
 
-/*
-   LOAD PAGE */
+            rankingTitle.textContent =
+                "in " + selected.textContent;
 
-updateLeaderboard();
+            rankingDescription.textContent =
+                currentSubjectName +
+                " ranking in " +
+                selected.textContent;
+        }
+    }
 
+    // ==============================================
+    // RENDER LEADERBOARD
+    // ==============================================
+
+    function render() {
+
+        displayTopLearners();
+
+        displayRegionalLeaders();
+
+        updateHeading();
+    }
+
+    // ==============================================
+    // LOAD REAL BACKEND RANKINGS
+    // ==============================================
+
+    async function loadRankings() {
+
+        // Track the latest request.
+        const thisRequest = ++requestNumber;
+
+        // NEW:
+        // Clear previous rankings before fetching.
+        entries = [];
+
+        topLearnersContainer.innerHTML = "";
+
+        regionalLeadersContainer.innerHTML = "";
+
+        showStatus("Loading leaderboard...");
+
+        // Backend query.
+        let path =
+            "/leaderboards/rankings?period=all";
+
+        // Optional subject filter.
+        if (currentSubjectId !== null) {
+
+            path +=
+                "&subjectId=" +
+                encodeURIComponent(currentSubjectId);
+        }
+
+        try {
+
+            // GET actual quiz-based rankings.
+            const data = await EduQuestAPI.get(path);
+
+            // Ignore outdated responses.
+            if (thisRequest !== requestNumber) {
+                return;
+            }
+
+            if (!Array.isArray(data)) {
+
+                throw new Error(
+                    "Invalid leaderboard response."
+                );
+            }
+
+            // ======================================
+            // NEW: NO DUMMY DATA
+            // ======================================
+
+            // Only backend results are used.
+            entries = data;
+
+            render();
+
+            showStatus("");
+
+        } catch (error) {
+
+            if (thisRequest !== requestNumber) {
+                return;
+            }
+
+            entries = [];
+
+            topLearnersContainer.innerHTML = "";
+
+            regionalLeadersContainer.innerHTML = "";
+
+            // API failure is different from
+            // an empty leaderboard.
+            showStatus(
+                "Unable to load leaderboard: " +
+                error.message
+            );
+        }
+    }
+
+    // ==============================================
+    // BUILD SUBJECT TABS
+    // ==============================================
+
+    function buildSubjectTabs(subjects) {
+
+        subjectTabsContainer.innerHTML = "";
+
+        function addTab(label, subjectId, active) {
+
+            const button = el(
+                "button",
+                "subject-tab" +
+                (active ? " active" : ""),
+                label
+            );
+
+            button.type = "button";
+
+            button.addEventListener(
+                "click",
+                function () {
+
+                    // Remove active state.
+                    subjectTabsContainer
+                        .querySelectorAll(".subject-tab")
+                        .forEach(function (tab) {
+
+                            tab.classList.remove("active");
+                        });
+
+                    // Highlight selected subject.
+                    button.classList.add("active");
+
+                    currentSubjectId = subjectId;
+
+                    currentSubjectName = label;
+
+                    // Reload actual rankings.
+                    loadRankings();
+                }
+            );
+
+            subjectTabsContainer.appendChild(button);
+        }
+
+        // Overall leaderboard.
+        addTab("Overall", null, true);
+
+        // Actual subjects from the database.
+        subjects.forEach(function (subject) {
+
+            addTab(
+                subject.subjectName,
+                subject.subjectID,
+                false
+            );
+        });
+    }
+
+    // ==============================================
+    // BUILD PROVINCE FILTER
+    // ==============================================
+
+    function buildRegionFilter() {
+
+        regionFilter.innerHTML = "";
+
+        // Default option.
+        const all = el(
+            "option",
+            "",
+            "All provinces"
+        );
+
+        all.value = "";
+
+        regionFilter.appendChild(all);
+
+        // Actual provinces from the database.
+        provinces.forEach(function (province) {
+
+            const option = el(
+                "option",
+                "",
+                province.provinceName
+            );
+
+            option.value = province.provinceID;
+
+            regionFilter.appendChild(option);
+        });
+    }
+
+    // ==============================================
+    // REGION FILTER EVENT
+    // ==============================================
+
+    regionFilter.addEventListener(
+        "change",
+        function () {
+
+            // Filter existing backend rankings.
+            render();
+        }
+    );
+
+    // ==============================================
+    // INITIAL LOAD
+    // ==============================================
+
+    async function initializeLeaderboard() {
+
+        showStatus("Loading leaderboard...");
+
+        try {
+
+            // Load subjects and provinces.
+            const results = await Promise.all([
+                EduQuestAPI.get("/subjects"),
+                EduQuestAPI.get("/provinces")
+            ]);
+
+            if (
+                !Array.isArray(results[0]) ||
+                !Array.isArray(results[1])
+            ) {
+                throw new Error(
+                    "Invalid subjects or provinces response."
+                );
+            }
+
+            // Subject tabs.
+            buildSubjectTabs(results[0]);
+
+            // Province options.
+            provinces = results[1];
+
+            buildRegionFilter();
+
+            // Load actual rankings.
+            await loadRankings();
+
+        } catch (error) {
+
+            showStatus(
+                "Unable to initialize leaderboard: " +
+                error.message
+            );
+        }
+    }
+
+    initializeLeaderboard();
+
+})();

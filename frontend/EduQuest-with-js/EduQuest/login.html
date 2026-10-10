@@ -1,23 +1,80 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
     <title>EduQuest | Sign In</title>
+
     <link rel="stylesheet" href="css/style.css">
+
+    <!-- NEW: Login notification styling -->
+    <style>
+        .login-message {
+            display: none;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .login-message.error {
+            display: block;
+            background: #fff1f2;
+            color: #b42318;
+            border: 1px solid #fda4af;
+        }
+
+        .login-message.success {
+            display: block;
+            background: #ecfdf3;
+            color: #027a48;
+            border: 1px solid #86efac;
+        }
+
+        .password-container {
+            position: relative;
+        }
+
+        .password-container input {
+            width: 100%;
+            padding-right: 75px;
+            box-sizing: border-box;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .auth-submit:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 
 <body>
+
 <div class="app">
 
-    <!-- Same navigation structure as the landing page -->
+    <!-- EXISTING SIDEBAR -->
     <aside class="sidebar">
+
         <div>
             <div class="brand">
                 <img src="images/eduquest-logo.png"
                      alt="EduQuest logo"
                      class="brand-logo">
-                
             </div>
 
             <nav class="sidebar-nav">
@@ -27,7 +84,7 @@
                 <a href="#" class="nav-link">Resources</a>
                 <a href="#" class="nav-link">Leaderboard</a>
                 <a href="#" class="nav-link">Profile</a>
-                <a href="#" class="nav-link">Help & Support</a>
+                <a href="#" class="nav-link">Help &amp; Support</a>
             </nav>
         </div>
 
@@ -35,10 +92,12 @@
             <a href="#">Instagram</a>
             <a href="#">Facebook</a>
         </div>
+
     </aside>
 
-    <!-- Login -->
+    <!-- LOGIN -->
     <main class="main auth-main">
+
         <div class="auth-wrapper">
 
             <section class="auth-card">
@@ -53,44 +112,90 @@
                     Sign in to continue your EduQuest journey.
                 </p>
 
-                <div class="error-message" id="error"></div>
+                <!-- NEW: Login notification -->
+                <div id="loginMessage"
+                     class="login-message"
+                     role="status"
+                     aria-live="polite">
+                </div>
 
-                <form id="loginForm">
+                <form id="loginForm" novalidate>
 
+                    <!-- EMAIL -->
                     <div class="form-group">
-                        <label for="email">Email address</label>
+
+                        <label for="email">
+                            Email address
+                        </label>
+
                         <input
                             type="email"
                             id="email"
                             name="email"
                             placeholder="Enter your email"
+                            autocomplete="username"
                             required>
+
                     </div>
 
+                    <!-- PASSWORD -->
                     <div class="form-group">
-                        <label for="password">Password</label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            placeholder="Enter your password"
-                            required>
-                    </div>
 
-                    <div class="form-row">
-                        <label class="remember">
-                            <input type="checkbox" id="remember">
-                            Remember me
+                        <label for="password">
+                            Password
                         </label>
 
-                        <a href="reset-password.html" class="forgot">
-                            Forgot password?
-                        </a>
+                        <!-- NEW: Show/hide password -->
+                        <div class="password-container">
+
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Enter your password"
+                                autocomplete="current-password"
+                                required>
+
+                            <button
+                                type="button"
+                                id="togglePassword"
+                                class="toggle-password"
+                                aria-label="Show password">
+
+                                Show
+
+                            </button>
+
+                        </div>
+
                     </div>
 
+                    <!-- REMEMBER ME -->
+                    <div class="form-row">
+
+                        <label class="remember">
+
+                            <input type="checkbox"
+                                   id="remember">
+
+                            Remember me
+
+                        </label>
+
+                        <a href="reset-password.html"
+                           class="forgot">
+                            Forgot password?
+                        </a>
+
+                    </div>
+
+                    <!-- SIGN IN -->
                     <button type="submit"
+                            id="loginButton"
                             class="btn btn-primary auth-submit">
+
                         Sign In
+
                     </button>
 
                 </form>
@@ -105,12 +210,14 @@
             </section>
 
         </div>
+
     </main>
 
 </div>
 
+<!-- API helper must load before login.js -->
+<script src="js/api.js"></script>
+<script src="js/login.js" defer></script>
 
-    <script src="js/api.js"></script>
-    <script src="js/login.js" defer></script>
 </body>
 </html>

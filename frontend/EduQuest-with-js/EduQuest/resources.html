@@ -1,27 +1,55 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
     <title>EduQuest | Resources</title>
+
+    <!-- Existing learner stylesheet -->
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <div class="app">
+
+        <!-- =====================================
+             EXISTING LEARNER SIDEBAR
+             ===================================== -->
+
         <aside class="sidebar">
             <div>
                 <div class="brand">
-                    <img src="images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo">
+                    <img src="images/eduquest-logo.png"
+                         alt="EduQuest logo"
+                         class="brand-logo">
                 </div>
 
                 <nav class="sidebar-nav">
-                    <a href="dashboard.html" class="nav-link">Home</a>
-                    <a href="classes.html" class="nav-link">Classes</a>
-                    <a href="Quizzes.html" class="nav-link">Quizzes</a>
-                    <a href="resources.html" class="nav-link active">Resources</a>
-                    <a href="leaderboard.html" class="nav-link">Leaderboard</a>
-                    <a href="profile.html" class="nav-link">Profile</a>
-                    <a href="#" class="nav-link">Help & Support</a>
+                    <a href="dashboard.html"
+                       class="nav-link">Home</a>
+
+                    <a href="classes.html"
+                       class="nav-link">Classes</a>
+
+                    <a href="Quizzes.html"
+                       class="nav-link">Quizzes</a>
+
+                    <a href="resources.html"
+                       class="nav-link active">
+                        Resources
+                    </a>
+
+                    <a href="leaderboard.html"
+                       class="nav-link">Leaderboard</a>
+
+                    <a href="profile.html"
+                       class="nav-link">Profile</a>
+
+                    <a href="#"
+                       class="nav-link">Help & Support</a>
                 </nav>
             </div>
 
@@ -31,157 +59,111 @@
             </div>
         </aside>
 
+        <!-- =====================================
+             MAIN CONTENT
+             ===================================== -->
+
         <main class="main">
+
             <div class="resources-topbar">
+
                 <div class="resources-welcome">
                     <h1>Resources</h1>
-                    <p>Explore a variety of educational resources to enhance your learning experience.</p>
+
+                    <p>
+                        Explore study materials, notes,
+                        past papers and educational links.
+                    </p>
                 </div>
+
                 <div class="profile-mini">
                     <div class="profile-avatar">L</div>
                     <span>Learner</span>
                 </div>
             </div>
 
-            <div class="resources-filters">
-                <button class="leaderboard-tab active">All</button>
-                <button class="leaderboard-tab">Mathematics</button>
-                <button class="leaderboard-tab">Physics</button>
-                <button class="leaderboard-tab">Accounting</button>
-            </div>
+            <!-- =====================================
+                 NEW: SUBJECT FILTERS
 
-            <div class="resources-grid">
+                 JavaScript will create the subject
+                 buttons using database records.
 
-                <article class="resource-card">
-                    <span class="resource-type">📹 Video</span>
-                    <h3>Intro to Algebra</h3>
-                    <p>A step-by-step walkthrough of solving linear equations and simplifying expressions.</p>
-                    <div class="resource-meta">
-                        <span>Mathematics</span>
-                        <span>12 min</span>
-                    </div>
-                <div class="resource-actions">
-                    <a href="#" class="btn btn-primary" target="_blank" rel="noopener">View</a>
-                    <a href="#" class="btn btn-outline" download>Download</a>
-                </div>
-            </article>
+                 No hardcoded subject names.
+                 ===================================== -->
 
-                <article class="resource-card">
-                    <span class="resource-type">📄 Notes</span>
-                    <h3>Graphs & Functions Summary</h3>
-                    <p>Condensed revision notes covering linear, quadratic, and exponential graphs.</p>
-                    <div class="resource-meta">
-                        <span>Mathematics</span>
-                        <span>6 pages</span>
-                    </div>
-                <div class="resource-actions">
-                    <a href="#" class="btn btn-primary" target="_blank" rel="noopener">View</a>
-                    <a href="#" class="btn btn-outline" download>Download</a>
-                </div>
-            </article>
+            <div class="resources-filters"
+                 id="resourceFilters">
 
-                <article class="resource-card">
-                    <span class="resource-type">📝 Past Paper</span>
-                    <h3>2023 Math Exam Paper</h3>
-                    <p>Full past exam paper with memo, great for exam-style practice.</p>
-                    <div class="resource-meta">
-                        <span>Mathematics</span>
-                        <span>PDF</span>
-                    </div>
-                <div class="resource-actions">
-                    <a href="#" class="btn btn-primary" target="_blank" rel="noopener">View</a>
-                    <a href="#" class="btn btn-outline" download>Download</a>
-                </div>
-            </article>
-
-                <article class="resource-card">
-                    <span class="resource-type">📹 Video</span>
-                    <h3>Forces & Newton's Laws</h3>
-                    <p>Visual explanations of Newton's three laws of motion with real-world examples.</p>
-                    <div class="resource-meta">
-                        <span>Physics</span>
-                        <span>15 min</span>
-                    </div>
-                <div class="resource-actions">
-                    <a href="#" class="btn btn-primary" target="_blank" rel="noopener">View</a>
-                    <a href="#" class="btn btn-outline" download>Download</a>
-                </div>
-            </article>
-
-                <article class="resource-card">
-                    <span class="resource-type">📄 Notes</span>
-                    <h3>Electricity Basics Cheat Sheet</h3>
-                    <p>Key formulas and definitions for current, voltage, resistance, and circuits.</p>
-                    <div class="resource-meta">
-                        <span>Physics</span>
-                        <span>4 pages</span>
-                    </div>
-                <div class="resource-actions">
-                    <a href="#" class="btn btn-primary" target="_blank" rel="noopener">View</a>
-                    <a href="#" class="btn btn-outline" download>Download</a>
-                </div>
-            </article>
-
-                <article class="resource-card">
-                    <span class="resource-type">🧪 Notes</span>
-                    <h3>Chemical Reactions Overview</h3>
-                    <p>An introduction to reaction types, balancing equations, and everyday examples.</p>
-                    <div class="resource-meta">
-                        <span>Physics</span>
-                        <span>5 pages</span>
-                    </div>
-                <div class="resource-actions">
-                    <a href="#" class="btn btn-primary" target="_blank" rel="noopener">View</a>
-                    <a href="#" class="btn btn-outline" download>Download</a>
-                </div>
-            </article>
-
-                <article class="resource-card">
-                    <span class="resource-type">📹 Video</span>
-                    <h3>Recording Transactions 101</h3>
-                    <p>Learn the basics of journals, ledgers, and the accounting equation.</p>
-                    <div class="resource-meta">
-                        <span>Accounting</span>
-                        <span>10 min</span>
-                    </div>
-                <div class="resource-actions">
-                    <a href="#" class="btn btn-primary" target="_blank" rel="noopener">View</a>
-                    <a href="#" class="btn btn-outline" download>Download</a>
-                </div>
-            </article>
-
-                <article class="resource-card">
-                    <span class="resource-type">📄 Notes</span>
-                    <h3>Financial Statements Guide</h3>
-                    <p>How to read and prepare income statements and balance sheets.</p>
-                    <div class="resource-meta">
-                        <span>Accounting</span>
-                        <span>7 pages</span>
-                    </div>
-                <div class="resource-actions">
-                    <a href="#" class="btn btn-primary" target="_blank" rel="noopener">View</a>
-                    <a href="#" class="btn btn-outline" download>Download</a>
-                </div>
-            </article>
-
-                <article class="resource-card">
-                    <span class="resource-type">📝 Past Paper</span>
-                    <h3>2023 Accounting Exam Paper</h3>
-                    <p>Full past exam paper with memo for profitability and analysis questions.</p>
-                    <div class="resource-meta">
-                        <span>Accounting</span>
-                        <span>PDF</span>
-                    </div>
-                <div class="resource-actions">
-                    <a href="#" class="btn btn-primary" target="_blank" rel="noopener">View</a>
-                    <a href="#" class="btn btn-outline" download>Download</a>
-                </div>
-            </article>
+                <button type="button"
+                        class="leaderboard-tab active"
+                        data-subject="all">
+                    All
+                </button>
 
             </div>
+
+            <!-- =====================================
+                 NEW: STATUS MESSAGE
+
+                 Shows loading or API errors.
+                 ===================================== -->
+
+            <p id="resourcesStatus"
+               role="status"
+               aria-live="polite">
+                Loading study materials...
+            </p>
+
+            <!-- =====================================
+                 NEW: EMPTY RESOURCE MESSAGE
+
+                 Shown only when no materials exist.
+                 ===================================== -->
+
+            <div id="emptyResources"
+                 class="resource-card"
+                 style="display:none; text-align:center;
+                        padding:35px; margin-bottom:20px;">
+
+                <h2>No study materials available yet</h2>
+
+                <p>
+                    Study materials have not been uploaded
+                    yet. Once the administrator adds
+                    resources, they will appear here.
+                </p>
+
+            </div>
+
+            <!-- =====================================
+                 CHANGED: DYNAMIC RESOURCE GRID
+
+                 Previously this section contained
+                 hardcoded resources with href="#".
+
+                 Now JavaScript loads actual resources
+                 from the EduQuest database.
+                 ===================================== -->
+
+            <div class="resources-grid"
+                 id="resourcesGrid">
+            </div>
+
+            <!-- NOTE:
+                 No Add, Edit or Delete buttons.
+
+                 Learners can only view or download
+                 resources provided by the admin.
+            -->
+
         </main>
     </div>
+
+    <!-- Shared backend API helper -->
     <script src="js/api.js"></script>
+
+    <!-- Learner resource functionality -->
     <script src="js/resources.js" defer></script>
+
 </body>
 </html>

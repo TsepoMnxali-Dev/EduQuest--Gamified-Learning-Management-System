@@ -1,14 +1,16 @@
 
 /* =============================================================
-   EduQuest - Learner API Helper
+   EduQuest - Shared API Helper
+
+   Used by the Admin frontend.
 
    CHANGED:
-   1. Handles incorrect login credentials correctly.
-   2. Checks JWT expiration.
-   3. Reads the actual user role from the JWT.
-   4. Redirects learners to the learner login page.
+   1. Correctly handles incorrect login credentials.
+   2. Checks whether JWT tokens have expired.
+   3. Supports Admin and Learner role information.
+   4. Improves login and logout redirects.
    5. Preserves existing API methods.
-   6. Supports file uploads and protected downloads.
+   6. Keeps FormData uploads and protected downloads.
 ============================================================= */
 
 window.EduQuestAPI = (function () {
@@ -20,11 +22,12 @@ window.EduQuestAPI = (function () {
 
     const BASE_URL = "https://localhost:7021/api";
 
+    // Keep the existing token key.
     const TOKEN_KEY = "eduquest_token";
 
-    // NEW: Learner login page.
-    // Resolved relative to this frontend's HTML pages.
-    const LEARNER_LOGIN = "login.html";
+    // NEW: Admin login page.
+    // Paths are resolved from the frontend root.
+    const ADMIN_LOGIN = "/pages/admin/login.html";
 
     // ==========================================
     // TOKEN MANAGEMENT
@@ -38,7 +41,7 @@ window.EduQuestAPI = (function () {
         localStorage.removeItem(TOKEN_KEY);
     }
 
-    // NEW: Decode JWT payload.
+    // NEW: Decode the JWT payload.
     function decodeToken(token) {
 
         if (!token) {
@@ -46,7 +49,6 @@ window.EduQuestAPI = (function () {
         }
 
         try {
-
             const payload = token.split(".")[1];
 
             const base64 = payload
@@ -57,12 +59,10 @@ window.EduQuestAPI = (function () {
                 atob(base64)
                     .split("")
                     .map(function (character) {
-
                         return "%" +
-                            ("00" +
-                                character.charCodeAt(0)
-                                    .toString(16)
-                            ).slice(-2);
+                            ("00" + character
+                                .charCodeAt(0)
+                                .toString(16)).slice(-2);
                     })
                     .join("")
             );
@@ -70,12 +70,11 @@ window.EduQuestAPI = (function () {
             return JSON.parse(json);
 
         } catch (error) {
-
             return null;
         }
     }
 
-    // NEW: Check JWT expiration.
+    // NEW: Check whether a token has expired.
     function isTokenExpired(token) {
 
         const claims = decodeToken(token);
@@ -84,25 +83,24 @@ window.EduQuestAPI = (function () {
             return true;
         }
 
-        return claims.exp <= Math.floor(
+        const currentTime = Math.floor(
             Date.now() / 1000
         );
+
+        return claims.exp <= currentTime;
     }
 
-    // CHANGED: Reject expired tokens.
+    // CHANGED: Do not return expired tokens.
     function getToken() {
 
-        const token =
-            localStorage.getItem(TOKEN_KEY);
+        const token = localStorage.getItem(TOKEN_KEY);
 
         if (!token) {
             return null;
         }
 
         if (isTokenExpired(token)) {
-
             clearToken();
-
             return null;
         }
 
@@ -128,7 +126,8 @@ window.EduQuestAPI = (function () {
         }
 
         // CHANGED:
-        // Read the actual role from JWT claims.
+        // Read the real role from the JWT.
+        // Never automatically assume Learner.
 
         const role =
             claims[
@@ -138,7 +137,6 @@ window.EduQuestAPI = (function () {
             claims.roles;
 
         return {
-
             userId: Number(
                 claims[
                     "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
@@ -162,7 +160,7 @@ window.EduQuestAPI = (function () {
     // ==========================================
 
     // CHANGED:
-    // Require a valid token and role.
+    // Require a valid token and user role.
     function requireAuth() {
 
         const token = getToken();
@@ -170,7 +168,7 @@ window.EduQuestAPI = (function () {
 
         if (!token || !user || !user.role) {
 
-            window.location.href = LEARNER_LOGIN;
+            window.location.href = ADMIN_LOGIN;
 
             return false;
         }
@@ -179,8 +177,8 @@ window.EduQuestAPI = (function () {
     }
 
     // NEW:
-    // Only allow Learner accounts on learner pages.
-    function requireLearner() {
+    // Check whether the current user is an Admin.
+    function requireAdmin() {
 
         if (!requireAuth()) {
             return false;
@@ -190,11 +188,10 @@ window.EduQuestAPI = (function () {
 
         if (
             String(user.role).trim().toLowerCase()
-                !== "learner"
+                !== "admin"
         ) {
 
-            // An Admin should use the Admin portal.
-            window.location.href = LEARNER_LOGIN;
+            window.location.href = ADMIN_LOGIN;
 
             return false;
         }
@@ -202,12 +199,12 @@ window.EduQuestAPI = (function () {
         return true;
     }
 
-    // CHANGED: Learner logout.
+    // CHANGED: Logout goes to Admin login.
     function logout() {
 
         clearToken();
 
-        window.location.href = LEARNER_LOGIN;
+        window.location.href = ADMIN_LOGIN;
     }
 
     // ==========================================
@@ -240,6 +237,7 @@ window.EduQuestAPI = (function () {
 
     function readableError(data, status) {
 
+        // ASP.NET Core validation errors.
         if (data && data.errors) {
 
             const messages = [];
@@ -247,7 +245,9 @@ window.EduQuestAPI = (function () {
             Object.keys(data.errors).forEach(
                 function (key) {
 
-                    [].concat(data.errors[key]).forEach(
+                    const errors = data.errors[key];
+
+                    [].concat(errors).forEach(
                         function (message) {
 
                             messages.push(message);
@@ -262,7 +262,7 @@ window.EduQuestAPI = (function () {
         }
 
         // CHANGED:
-        // Prefer the message from AuthController.
+        // Prefer backend notification messages.
         if (data && data.message) {
             return data.message;
         }
@@ -282,7 +282,7 @@ window.EduQuestAPI = (function () {
 
         return new Error(
             "Could not reach the EduQuest server. " +
-            "Make sure the backend is running at " +
+            "Make sure the backend API is running at " +
             BASE_URL + "."
         );
     }
@@ -295,10 +295,11 @@ window.EduQuestAPI = (function () {
 
         options = options || {};
 
+        // NEW:
+        // A 401 during login means incorrect
+        // credentials, not an expired session.
         if (response.status === 401) {
 
-            // NEW:
-            // Invalid credentials during login.
             if (options.auth === false) {
 
                 throw new Error(
@@ -307,7 +308,8 @@ window.EduQuestAPI = (function () {
                 );
             }
 
-            // Expired or invalid session.
+            // Protected request:
+            // Existing token is invalid or expired.
             clearToken();
 
             throw new Error(
@@ -363,7 +365,7 @@ window.EduQuestAPI = (function () {
 
         let body;
 
-        // Preserve FormData uploads.
+        // Preserve multipart file uploads.
         const isFormData =
             typeof FormData !== "undefined" &&
             options.body instanceof FormData;
@@ -404,8 +406,8 @@ window.EduQuestAPI = (function () {
         }
 
         // CHANGED:
-        // Pass request options to distinguish
-        // login errors from expired sessions.
+        // Pass request options so login errors
+        // are handled differently.
         return await handleResponse(
             response,
             options
@@ -447,6 +449,7 @@ window.EduQuestAPI = (function () {
             );
         }
 
+        // NEW: Handle forbidden downloads.
         if (response.status === 403) {
 
             throw new Error(
@@ -461,7 +464,8 @@ window.EduQuestAPI = (function () {
 
             throw new Error(
                 text ||
-                "Unable to download document."
+                "Download failed (" +
+                response.status + ")."
             );
         }
 
@@ -536,8 +540,8 @@ window.EduQuestAPI = (function () {
 
         requireAuth: requireAuth,
 
-        // NEW: Learner-specific check.
-        requireLearner: requireLearner,
+        // NEW: Admin-specific access check.
+        requireAdmin: requireAdmin,
 
         logout: logout
     };

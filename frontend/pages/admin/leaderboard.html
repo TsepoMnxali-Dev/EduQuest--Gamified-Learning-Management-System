@@ -1,54 +1,59 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <title>Manage Leaderboard | EduQuest</title>
 
+    <!-- Existing admin stylesheet -->
     <link rel="stylesheet" href="../../css/style.css">
 </head>
 
 <body>
 
-    <!-- Topbar -->
+    <!-- ==========================================
+         TOP BAR
+         ========================================== -->
+
     <header class="topbar">
 
         <div class="topbar-search">
-            <input 
-                type="search" 
-                placeholder="Search EduQuest..."
-            >
+            <input type="search"
+                   placeholder="Search EduQuest...">
         </div>
 
         <div class="topbar-actions">
+            <button class="notification-btn"
+                    type="button">🔔</button>
 
-            <button class="notification-btn">
-                🔔
-            </button>
-
-            <button class="profile-btn">
-                👤 Admin
-            </button>
-
+            <button class="profile-btn"
+                    type="button">👤 Admin</button>
         </div>
 
     </header>
-    <!-- Dashboard layout -->
+
+    <!-- ==========================================
+         DASHBOARD LAYOUT
+         ========================================== -->
+
     <div class="app">
 
-        <!-- Sidebar -->
+        <!-- SIDEBAR -->
+
         <aside class="sidebar">
 
             <div>
 
                 <div class="brand">
 
-                    <img 
-                        src="../../images/EduQuestLogo.jpg"
-                        alt="EduQuest Logo"
-                        class="brand-logo"
-                    >
+                    <img src="../../images/EduQuestLogo.jpg"
+                         alt="EduQuest Logo"
+                         class="brand-logo">
 
                     <div class="brand-name">
                         EduQuest
@@ -56,137 +61,180 @@
 
                 </div>
 
-
-                <!-- Navigation -->
                 <nav class="sidebar-nav">
 
-                    <a href="dashboard.html" class="nav-link">
+                    <a href="dashboard.html"
+                       class="nav-link">
                         Home
                     </a>
 
-                    <a href="users.html" class="nav-link">
+                    <a href="users.html"
+                       class="nav-link">
                         Users
                     </a>
 
-                    <a href="quiz.html" class="nav-link">
+                    <a href="quiz.html"
+                       class="nav-link">
                         Quizzes
                     </a>
 
-                    <a href="resources.html" class="nav-link">
+                    <a href="resources.html"
+                       class="nav-link">
                         Resources
                     </a>
 
-                    <a href="competition.html" class="nav-link">
+                    <a href="competition.html"
+                       class="nav-link">
                         Competitions
                     </a>
 
-                    <a href="leaderboard.html" class="nav-link active">
+                    <a href="leaderboard.html"
+                       class="nav-link active">
                         Leaderboard
                     </a>
 
-                    <a href="reports.html" class="nav-link">
+                    <a href="reports.html"
+                       class="nav-link">
                         Reports
                     </a>
 
                 </nav>
 
             </div>
-             <!-- Sidebar footer -->
+
             <div class="sidebar-footer">
 
-                <p>
-                    Enhancing education through tech.
-                </p>
+                <p>Enhancing education through tech.</p>
 
-                <small>
-                    © 2026 EduQuest
-                </small>
+                <small>© 2026 EduQuest</small>
 
             </div>
 
         </aside>
-        <!-- Main content -->
+
+        <!-- ==========================================
+             MAIN CONTENT
+             ========================================== -->
+
         <main class="main">
 
             <section class="home-content">
 
                 <div class="page-header">
-                    <h1>
-                        Learner Leaderboard
-                    </h1>
+
+                    <h1>Learner Leaderboard</h1>
 
                     <p>
-                        National and Regional Rankings
+                        National and Provincial Rankings
                     </p>
 
                 </div>
+
                 <section class="leaderboard-page">
 
-    
-    <div class="leaderboard-filters">
+                    <!-- ==================================
+                         FILTERS
 
-        <div class="subject-tabs">
-            <button class="subject-tab active" data-subject="Overall">
-                Overall
-            </button>
+                         CHANGED:
+                         Subject tabs and province options
+                         come from the backend.
+                         ================================== -->
 
-            <button class="subject-tab" data-subject="Mathematics">
-                Mathematics
-            </button>
+                    <div class="leaderboard-filters">
 
-            <button class="subject-tab" data-subject="Physical Sciences">
-                Physical Sciences
-            </button>
+                        <div class="subject-tabs"
+                             id="subjectTabs">
+                        </div>
 
-            <button class="subject-tab" data-subject="Accounting">
-                Accounting
-            </button>
-        </div>
+                        <select id="regionFilter"
+                                class="region-filter">
 
-        <select id="regionFilter" class="region-filter">
-            <option value="All regions">All regions</option>
-            <option value="Nelson Mandela Bay">Nelson Mandela Bay</option>
-            <option value="Buffalo City">Buffalo City</option>
-            <option value="Sarah Baartman">Sarah Baartman</option>
-            <option value="Chris Hani">Chris Hani</option>
-            <option value="Joe Gqabi">Joe Gqabi</option>
-        </select>
+                            <option value="">
+                                All provinces
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- ==================================
+                         NEW: LOADING / ERROR STATUS
+                         ================================== -->
+
+                    <p id="leaderboardStatus"
+                       role="status"
+                       aria-live="polite">
+                        Loading leaderboard...
+                    </p>
+
+                    <!-- ==================================
+                         NATIONAL / PROVINCIAL TOP THREE
+                         ================================== -->
+
+                    <div class="section-heading">
+
+                        <h2>
+                            Top learners
+                            <span id="rankingTitle">
+                                nationally
+                            </span>
+                        </h2>
+
+                        <p id="rankingDescription">
+                            Overall ranking, all provinces
+                        </p>
+
+                    </div>
+
+                    <!-- CHANGED:
+                         No dummy learners.
+                         JavaScript adds real rankings. -->
+
+                    <div class="top-learners"
+                         id="topLearners">
+                    </div>
+
+                    <!-- ==================================
+                         REGIONAL LEADERS
+                         ================================== -->
+
+                    <div class="section-heading regional-heading">
+
+                        <h2>
+                            Top learner by province
+                        </h2>
+
+                        <p>
+                            Highest scorer in each province
+                        </p>
+
+                    </div>
+
+                    <!-- CHANGED:
+                         No hardcoded regional leaders. -->
+
+                    <div class="regional-leaders"
+                         id="regionalLeaders">
+                    </div>
+
+                </section>
+
+            </section>
+
+        </main>
 
     </div>
 
+    <!-- ==========================================
+         JAVASCRIPT
 
-    
-    <div class="section-heading">
-        <h2>Top learners <span id="rankingTitle">national</span></h2>
+         IMPORTANT:
+         These paths match your existing admin HTML.
+         ========================================== -->
 
-        <p id="rankingDescription">
-            Overall ranking, all regions
-        </p>
-    </div>
+    <script src="../../js/api.js"></script>
 
+    <script src="../../js/leaderboard.js"></script>
 
-    <div class="top-learners" id="topLearners">
-
-       
-
-    </div>
-
-
-    
-    <div class="section-heading regional-heading">
-
-        <h2>Top learner by region</h2>
-
-        <p>Highest scorer in each of the five regions</p>
-
-    </div>
-
-
-    <div class="regional-leaders" id="regionalLeaders">
-
-        
-
-    </div>
-
-</section>
-<script src="../../js/leaderboard.js"></script>
+</body>
+</html>
