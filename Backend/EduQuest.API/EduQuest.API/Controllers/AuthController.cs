@@ -41,13 +41,91 @@ namespace EduQuest.API.Controllers
                 Email = email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 RoleID = learnerRole.RoleID,
-                IsActive = true
+                IsActive = true,
+                DateCreated = DateTime.UtcNow
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
             return Ok(new { user.UserID, user.Email });
+        }
+
+        // POST: api/auth/register-learner
+        // Creates the user, the learner profile and the subject enrolments
+        // in ONE transaction, then returns a token so the learner is signed in.
+        [HttpPost("register-learner")]
+        public async Task<ActionResult> RegisterLearner(RegisterLearnerDto dto)
+        {
+            var email = dto.Email.Trim().ToLowerInvariant();
+            var subjectIds = dto.SubjectIDs.Distinct().ToList();
+
+            if (await _context.Users.AnyAsync(u => u.Email == email))
+                return Conflict("An account with this email already exists.");
+
+            var learnerRole = await _context.Roles
+                .FirstOrDefaultAsync(r => r.RoleName == "Learner");
+            if (learnerRole == null)
+                return StatusCode(500, "Learner role has not been configured.");
+
+            if (!await _context.Grades.AnyAsync(g => g.GradeID == dto.GradeID))
+                return NotFound("Grade not found.");
+
+            if (!await _context.Schools.AnyAsync(s => s.SchoolID == dto.SchoolID))
+                return NotFound("School not found.");
+
+            // Every chosen subject must be offered for the chosen grade.
+            var offeredCount = await _context.GradeSubjects
+                .CountAsync(gs => gs.GradeID == dto.GradeID &&
+                                  subjectIds.Contains(gs.SubjectID));
+            if (offeredCount != subjectIds.Count)
+                return BadRequest("One or more subjects are not offered for the selected grade.");
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var user = new User
+                {
+                    FirstName = dto.FirstName.Trim(),
+                    LastName = dto.LastName.Trim(),
+                    Email = email,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                    RoleID = learnerRole.RoleID,
+                    IsActive = true,
+                    DateCreated = DateTime.UtcNow
+                };
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                var learner = new Learner
+                {
+                    UserID = user.UserID,
+                    GradeID = dto.GradeID,
+                    SchoolID = dto.SchoolID
+                };
+                _context.Learners.Add(learner);
+                await _context.SaveChangesAsync();
+
+                foreach (var subjectId in subjectIds)
+                {
+                    _context.learnerSubjects.Add(new LearnerSubject
+                    {
+                        LearnerID = learner.LearnerID,
+                        SubjectID = subjectId
+                    });
+                }
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                user.Role = learnerRole;
+                return Ok(new { token = _tokenService.CreateToken(user) });
+            }
+            catch (DbUpdateException)
+            {
+                await transaction.RollbackAsync();
+                return Conflict("Could not create the account. If you already tried, the email may be taken.");
+            }
         }
 
         [HttpPost("login")]
