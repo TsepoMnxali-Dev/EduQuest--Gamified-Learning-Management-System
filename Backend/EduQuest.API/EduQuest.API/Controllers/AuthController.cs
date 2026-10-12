@@ -1,8 +1,11 @@
-﻿using EduQuest.API.Data;
+﻿using System.Security.Cryptography;
+using System.Text;
+using EduQuest.API.Data;
 using EduQuest.API.DTOs.Auth;
 using EduQuest.API.Models.Entities;
 using EduQuest.API.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 
 namespace EduQuest.API.Controllers
@@ -13,11 +16,22 @@ namespace EduQuest.API.Controllers
     {
         private readonly ApplicationDBContext _context;
         private readonly TokenService _tokenService;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _config;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(ApplicationDBContext context, TokenService tokenService)
+        public AuthController(
+            ApplicationDBContext context,
+            TokenService tokenService,
+            IEmailService emailService,
+            IConfiguration config,
+            ILogger<AuthController> logger)
         {
             _context = context;
             _tokenService = tokenService;
+            _emailService = emailService;
+            _config = config;
+            _logger = logger;
         }
 
         [HttpPost("register")]
@@ -143,6 +157,94 @@ namespace EduQuest.API.Controllers
             var token = _tokenService.CreateToken(user);
 
             return Ok(new { token });
+        }
+
+        // POST: api/auth/forgot-password
+        // Always answers the same way, so nobody can use this endpoint
+        // to find out which emails have accounts.
+        [HttpPost("forgot-password")]
+        public async Task<ActionResult> ForgotPassword(ForgotPasswordDto dto)
+        {
+            const string genericMessage =
+                "If an account exists for that email, a password reset link has been sent.";
+
+            var email = dto.Email.Trim().ToLowerInvariant();
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
+
+            if (user == null)
+                return Ok(new { message = genericMessage });
+
+            // Random one-time token; only its hash is stored in the database.
+            var token = WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32));
+            user.PasswordResetTokenHash = HashToken(token);
+            user.PasswordResetExpiresAt = DateTime.UtcNow.AddHours(1);
+            await _context.SaveChangesAsync();
+
+            var frontendBase = (_config["Frontend:BaseUrl"] ?? "http://127.0.0.1:5500").TrimEnd('/');
+            var link = $"{frontendBase}/reset-password.html" +
+                       $"?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(token)}";
+
+            var body =
+                $"<p>Hi {System.Net.WebUtility.HtmlEncode(user.FirstName)},</p>" +
+                "<p>We received a request to reset your EduQuest password. " +
+                "Click the link below to choose a new one. It expires in 1 hour.</p>" +
+                $"<p><a href=\"{link}\">Reset my password</a></p>" +
+                "<p>If you did not ask for this, you can ignore this email.</p>";
+
+            try
+            {
+                await _emailService.SendAsync(email, "Reset your EduQuest password", body);
+            }
+            catch (Exception ex)
+            {
+                // Don't reveal the failure to the caller; log it for the developer.
+                _logger.LogError(ex, "Failed to send password reset email to {Email}", email);
+            }
+
+            return Ok(new { message = genericMessage });
+        }
+
+        // POST: api/auth/reset-password
+        [HttpPost("reset-password")]
+        public async Task<ActionResult> ResetPassword(ResetPasswordDto dto)
+        {
+            const string invalidMessage =
+                "This reset link is invalid or has expired. Please request a new one.";
+
+            var email = dto.Email.Trim().ToLowerInvariant();
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
+
+            if (user == null ||
+                string.IsNullOrEmpty(user.PasswordResetTokenHash) ||
+                user.PasswordResetExpiresAt == null ||
+                user.PasswordResetExpiresAt < DateTime.UtcNow)
+            {
+                return BadRequest(invalidMessage);
+            }
+
+            var suppliedHash = Encoding.UTF8.GetBytes(HashToken(dto.Token));
+            var storedHash = Encoding.UTF8.GetBytes(user.PasswordResetTokenHash);
+
+            if (!CryptographicOperations.FixedTimeEquals(suppliedHash, storedHash))
+                return BadRequest(invalidMessage);
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+
+            // The token can only be used once.
+            user.PasswordResetTokenHash = null;
+            user.PasswordResetExpiresAt = null;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Your password has been reset. You can now sign in." });
+        }
+
+        private static string HashToken(string token)
+        {
+            return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
         }
     }
 }

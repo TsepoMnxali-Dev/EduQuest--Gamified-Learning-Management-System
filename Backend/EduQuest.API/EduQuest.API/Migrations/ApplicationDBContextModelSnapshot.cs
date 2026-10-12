@@ -1089,6 +1089,54 @@ namespace EduQuest.API.Migrations
                     b.ToTable("Subjects");
                 });
 
+            modelBuilder.Entity("EduQuest.API.Models.Entities.SupportRequest", b =>
+                {
+                    b.Property<int>("SupportRequestID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SupportRequestID"));
+
+                    b.Property<string>("AdminReply")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DateReplied")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Subject")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("UserID")
+                        .HasColumnType("int");
+
+                    b.HasKey("SupportRequestID");
+
+                    b.HasIndex("UserID");
+
+                    b.ToTable("SupportRequests");
+                });
+
             modelBuilder.Entity("EduQuest.API.Models.Entities.Topic", b =>
                 {
                     b.Property<int>("TopicID")
@@ -1144,6 +1192,12 @@ namespace EduQuest.API.Migrations
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("PasswordResetExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PasswordResetTokenHash")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("RoleID")
@@ -1456,6 +1510,17 @@ namespace EduQuest.API.Migrations
                     b.Navigation("GradeSubject");
 
                     b.Navigation("Topic");
+                });
+
+            modelBuilder.Entity("EduQuest.API.Models.Entities.SupportRequest", b =>
+                {
+                    b.HasOne("EduQuest.API.Models.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Topic", b =>

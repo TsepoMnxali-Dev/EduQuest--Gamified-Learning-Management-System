@@ -38,6 +38,8 @@ namespace EduQuest.API.Data
         public DbSet<QuizAttemptQuestion> QuizAttemptQuestions { get; set; }
         public DbSet<QuestionBankItem> QuestionBankItems { get; set; }
         public DbSet<QuestionBankOption> QuestionBankOptions { get; set; }
+        public DbSet<SupportRequest> SupportRequests { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

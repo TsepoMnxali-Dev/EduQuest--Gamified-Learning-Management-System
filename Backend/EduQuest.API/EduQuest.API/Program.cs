@@ -36,6 +36,7 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<TokenService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddHttpClient<GeminiQuizGeneratorService>();
 
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
@@ -62,7 +63,6 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
-//end
 //end
 
 // CORS - allows the frontend (served from a different origin, e.g. a
