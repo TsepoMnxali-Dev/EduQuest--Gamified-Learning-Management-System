@@ -7,9 +7,9 @@ namespace EduQuest.API.Data
     {
         public ApplicationDBContext(DbContextOptions<ApplicationDBContext> options) : base(options)
         {
-            
+
         }
-       
+
         public DbSet<Achievement> Achievements { get; set; }
         public DbSet<Competition> Competitions { get; set; }
         public DbSet<CompetitionLearner> CompetitionLearners { get; set; }
@@ -89,7 +89,7 @@ namespace EduQuest.API.Data
                 {
                     RoleID = 3,
                     RoleName = "Sponsor"
-    }
+                }
 );
 
             modelBuilder.Entity<School>()
@@ -143,6 +143,16 @@ namespace EduQuest.API.Data
                 .HasOne(qbo => qbo.QuestionBankItem)
                 .WithMany(qbi => qbi.QuestionBankOptions)
                 .HasForeignKey(qbo => qbo.QuestionBankItemID)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // An option belongs to a question through QuestionID. Without this, EF invents a second,
+            // nullable shadow column (QuizQuestionID) for the QuizQuestion navigation, so options copied
+            // from the question bank / AI were saved with QuestionID = 0 and the options endpoint (which
+            // filters on QuestionID) could not find them.
+            modelBuilder.Entity<QuizOption>()
+                .HasOne(o => o.QuizQuestion)
+                .WithMany(q => q.QuizOptions)
+                .HasForeignKey(o => o.QuestionID)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Grade>().HasData(

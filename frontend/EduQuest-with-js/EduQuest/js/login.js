@@ -20,9 +20,17 @@
         errorBox.style.display = "none";
     }
 
-    /* If someone is already signed in, skip straight to the dashboard. */
+    /* Admins go to the admin portal, everyone else to the learner dashboard. */
+    var LEARNER_HOME = "dashboard.html";
+    var ADMIN_HOME = "../../pages/admin/dashboard.html";
+
+    function homeFor(user) {
+        return user && user.role === "Admin" ? ADMIN_HOME : LEARNER_HOME;
+    }
+
+    /* If someone is already signed in, skip straight to their dashboard. */
     if (window.EduQuestAPI && EduQuestAPI.getToken()) {
-        window.location.href = "dashboard.html";
+        window.location.href = homeFor(EduQuestAPI.getCurrentUser());
         return;
     }
 
@@ -42,7 +50,7 @@
         EduQuestAPI.post("/auth/login", { email: email, password: password }, { auth: false })
             .then(function (result) {
                 EduQuestAPI.saveToken(result.token);
-                window.location.href = "dashboard.html";
+                window.location.href = homeFor(EduQuestAPI.getCurrentUser());
             })
             .catch(function (err) {
                 showError(err.message || "Could not sign in. Please try again.");
