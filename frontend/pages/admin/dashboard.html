@@ -132,40 +132,26 @@
     <h2>Overview</h2>
 
     <!-- Child Cards -->
-    <div class="child-cards">
+<div class="child-cards">
 
-        <div class="child-card">
+    <div class="child-card">
+        <h3>👥 Registered Users</h3>
+        <p><strong id="totalUsers">—</strong> Total registered users</p>
+        <p><strong id="usersThisYear">—</strong> Registered this year</p>
+        <p><strong id="usersThisMonth">—</strong> Registered this month</p>
+    </div>
 
-    <h3>👥 Registered Users</h3>
-    <p>1008 Users registered this year</p>
-    <p>400 users registered this month</p>
+    <div class="child-card">
+        <h3>📝 Quizzes</h3>
+        <p><strong id="totalQuizzes">—</strong> Total quizzes</p>
+        <p><strong id="completedQuizzes">—</strong> Completed quiz attempts</p>
+    </div>
 
-</div>
-
-
-<div class="child-card">
-
-    <h3>📝 Quizzes uploaded</h3>
-
-    <p>9000 Total Quizzes uploaded</p>
-
-    <p>500 Quizzes completed</p>
-
-</div>
-
-
-<div class="child-card">
-
-    <h3>📚 Resources</h3>
-
-    <p>200 Resources uploaded for each region</p>
-
-    <p>12 Textbooks accessed this month</p>
-
-    <p>45 Past Papers completed</p>
-
-</div>
-
+    <div class="child-card">
+        <h3>📚 Resources</h3>
+        <p><strong id="totalResources">—</strong> Total resources uploaded</p>
+        <p><strong id="textbooksAccessed">—</strong> Textbooks accessed this month</p>
+        <p><strong id="pastPapersCompleted">—</strong> Past papers completed</p>
     </div>
 
 </div>
@@ -199,11 +185,10 @@
             🎯
         </div>
 
-        <h3>No Active Competitions</h3>
+        <h3 id="competitionMessage">Loading competitions...</h3>
 
-        <p>
-            There are currently no competitions running.
-            Check back soon for new challenges!
+        <p id="competitionDescription">
+            Retrieving competition information.
         </p>
 
     </div>
@@ -213,19 +198,19 @@
 
         <div class="competition-stat">
             <span class="stat-icon">🏆</span>
-            <strong>0</strong>
+            <strong id="activeCompetitions">—</strong>
             <small>Active</small>
         </div>
 
         <div class="competition-stat">
             <span class="stat-icon">📅</span>
-            <strong>0</strong>
+            <strong id="upcomingCompetitions">—</strong>
             <small>Upcoming</small>
         </div>
 
         <div class="competition-stat">
             <span class="stat-icon">👥</span>
-            <strong>0</strong>
+            <strong id="competitionParticipants">—</strong>
             <small>Participants</small>
         </div>
 
@@ -255,11 +240,16 @@
 
 
 </div>
+
+</div><!-- /.parent-card -->
             </section>
 
         </main>
 
     </div>
 
+    <script src="../../EduQuest-with-js/EduQuest/js/api.js"></script>
+    <script src="../../js/admin-guard.js"></script>
+    <script src="../../js/dashboard.js"></script>
 </body>
 </html>

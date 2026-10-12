@@ -23,1557 +23,1556 @@ namespace EduQuest.API.Migrations
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Achievement", b =>
-                {
-                    b.Property<int>("AchievementID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("AchievementID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AchievementID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AchievementID"));
 
-                    b.Property<string>("BadgeImage")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("BadgeImage")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Description")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PointsRequired")
-                        .HasColumnType("int");
+                b.Property<int>("PointsRequired")
+                    .HasColumnType("int");
 
-                    b.HasKey("AchievementID");
+                b.HasKey("AchievementID");
 
-                    b.ToTable("Achievements");
-                });
+                b.ToTable("Achievements");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.ActivityLog", b =>
-                {
-                    b.Property<int>("ActivityLogID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("ActivityLogID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActivityLogID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ActivityLogID"));
 
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Action")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("DateTime")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("DateTime")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("IPAddress")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("IPAddress")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
+                b.Property<int>("UserID")
+                    .HasColumnType("int");
 
-                    b.HasKey("ActivityLogID");
+                b.HasKey("ActivityLogID");
 
-                    b.HasIndex("UserID");
+                b.HasIndex("UserID");
 
-                    b.ToTable("activityLogs");
-                });
+                b.ToTable("activityLogs");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Competition", b =>
-                {
-                    b.Property<int>("CompetitionID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("CompetitionID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CompetitionID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CompetitionID"));
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Description")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("EndDate")
+                    .HasColumnType("datetime2");
 
-                    b.Property<int>("SponsorID")
-                        .HasColumnType("int");
+                b.Property<int>("SponsorID")
+                    .HasColumnType("int");
 
-                    b.Property<string>("SponsorName")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("SponsorName")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("StartDate")
+                    .HasColumnType("datetime2");
 
-                    b.HasKey("CompetitionID");
+                b.HasKey("CompetitionID");
 
-                    b.HasIndex("SponsorID");
+                b.HasIndex("SponsorID");
 
-                    b.ToTable("Competitions");
-                });
+                b.ToTable("Competitions");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.CompetitionLearner", b =>
-                {
-                    b.Property<int>("CompetitionLearnerID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("CompetitionLearnerID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CompetitionLearnerID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CompetitionLearnerID"));
 
-                    b.Property<int>("CompetitionID")
-                        .HasColumnType("int");
+                b.Property<int>("CompetitionID")
+                    .HasColumnType("int");
 
-                    b.Property<int>("LearnerID")
-                        .HasColumnType("int");
+                b.Property<int>("LearnerID")
+                    .HasColumnType("int");
 
-                    b.Property<int>("Position")
-                        .HasColumnType("int");
+                b.Property<int>("Position")
+                    .HasColumnType("int");
 
-                    b.Property<int>("Score")
-                        .HasColumnType("int");
+                b.Property<int>("Score")
+                    .HasColumnType("int");
 
-                    b.HasKey("CompetitionLearnerID");
+                b.HasKey("CompetitionLearnerID");
 
-                    b.HasIndex("CompetitionID");
+                b.HasIndex("CompetitionID");
 
-                    b.HasIndex("LearnerID");
+                b.HasIndex("LearnerID");
 
-                    b.ToTable("CompetitionLearners");
-                });
+                b.ToTable("CompetitionLearners");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Grade", b =>
-                {
-                    b.Property<int>("GradeID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("GradeID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GradeID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GradeID"));
 
-                    b.Property<string>("GradeName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("GradeName")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("GradeID");
+                b.HasKey("GradeID");
 
-                    b.ToTable("Grades");
+                b.ToTable("Grades");
 
-                    b.HasData(
-                        new
-                        {
-                            GradeID = 10,
-                            GradeName = "Grade 10"
-                        },
-                        new
-                        {
-                            GradeID = 11,
-                            GradeName = "Grade 11"
-                        },
-                        new
-                        {
-                            GradeID = 12,
-                            GradeName = "Grade 12"
-                        });
-                });
+                b.HasData(
+                    new
+                    {
+                        GradeID = 10,
+                        GradeName = "Grade 10"
+                    },
+                    new
+                    {
+                        GradeID = 11,
+                        GradeName = "Grade 11"
+                    },
+                    new
+                    {
+                        GradeID = 12,
+                        GradeName = "Grade 12"
+                    });
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.GradeSubject", b =>
-                {
-                    b.Property<int>("GradeSubjectID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("GradeSubjectID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GradeSubjectID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GradeSubjectID"));
 
-                    b.Property<int>("GradeID")
-                        .HasColumnType("int");
+                b.Property<int>("GradeID")
+                    .HasColumnType("int");
 
-                    b.Property<int>("SubjectID")
-                        .HasColumnType("int");
+                b.Property<int>("SubjectID")
+                    .HasColumnType("int");
 
-                    b.HasKey("GradeSubjectID");
+                b.HasKey("GradeSubjectID");
 
-                    b.HasIndex("SubjectID");
+                b.HasIndex("SubjectID");
 
-                    b.HasIndex("GradeID", "SubjectID")
-                        .IsUnique();
+                b.HasIndex("GradeID", "SubjectID")
+                    .IsUnique();
 
-                    b.ToTable("GradeSubjects");
-                });
+                b.ToTable("GradeSubjects");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.LeaderBoard", b =>
-                {
-                    b.Property<int>("LeaderboardID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("LeaderboardID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LeaderboardID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LeaderboardID"));
 
-                    b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("LastUpdated")
+                    .HasColumnType("datetime2");
 
-                    b.Property<int>("LearnerID")
-                        .HasColumnType("int");
+                b.Property<int>("LearnerID")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Rank")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Rank")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("TotalPoints")
-                        .HasColumnType("int");
+                b.Property<int>("TotalPoints")
+                    .HasColumnType("int");
 
-                    b.HasKey("LeaderboardID");
+                b.HasKey("LeaderboardID");
 
-                    b.HasIndex("LearnerID");
+                b.HasIndex("LearnerID");
 
-                    b.ToTable("LeaderBoards");
-                });
+                b.ToTable("LeaderBoards");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Learner", b =>
-                {
-                    b.Property<int>("LearnerID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("LearnerID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LearnerID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LearnerID"));
 
-                    b.Property<int>("GradeID")
-                        .HasColumnType("int");
+                b.Property<int>("GradeID")
+                    .HasColumnType("int");
 
-                    b.Property<int>("SchoolID")
-                        .HasColumnType("int");
+                b.Property<int>("SchoolID")
+                    .HasColumnType("int");
 
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
+                b.Property<int>("UserID")
+                    .HasColumnType("int");
 
-                    b.HasKey("LearnerID");
+                b.HasKey("LearnerID");
 
-                    b.HasIndex("GradeID");
+                b.HasIndex("GradeID");
 
-                    b.HasIndex("SchoolID");
+                b.HasIndex("SchoolID");
 
-                    b.HasIndex("UserID")
-                        .IsUnique();
+                b.HasIndex("UserID")
+                    .IsUnique();
 
-                    b.ToTable("Learners");
-                });
+                b.ToTable("Learners");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.LearnerAchievement", b =>
-                {
-                    b.Property<int>("LearnerAchievementID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("LearnerAchievementID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LearnerAchievementID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LearnerAchievementID"));
 
-                    b.Property<int>("AchievementID")
-                        .HasColumnType("int");
+                b.Property<int>("AchievementID")
+                    .HasColumnType("int");
 
-                    b.Property<int>("LearnerID")
-                        .HasColumnType("int");
+                b.Property<int>("LearnerID")
+                    .HasColumnType("int");
 
-                    b.HasKey("LearnerAchievementID");
+                b.HasKey("LearnerAchievementID");
 
-                    b.HasIndex("AchievementID");
+                b.HasIndex("AchievementID");
 
-                    b.HasIndex("LearnerID");
+                b.HasIndex("LearnerID");
 
-                    b.ToTable("LearnerAchievements");
-                });
+                b.ToTable("LearnerAchievements");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.LearnerSubject", b =>
-                {
-                    b.Property<int>("LearnerSubjectID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("LearnerSubjectID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LearnerSubjectID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LearnerSubjectID"));
 
-                    b.Property<int>("LearnerID")
-                        .HasColumnType("int");
+                b.Property<int>("LearnerID")
+                    .HasColumnType("int");
 
-                    b.Property<int>("SubjectID")
-                        .HasColumnType("int");
+                b.Property<int>("SubjectID")
+                    .HasColumnType("int");
 
-                    b.HasKey("LearnerSubjectID");
+                b.HasKey("LearnerSubjectID");
 
-                    b.HasIndex("SubjectID");
+                b.HasIndex("SubjectID");
 
-                    b.HasIndex("LearnerID", "SubjectID")
-                        .IsUnique();
+                b.HasIndex("LearnerID", "SubjectID")
+                    .IsUnique();
 
-                    b.ToTable("learnerSubjects");
-                });
+                b.ToTable("learnerSubjects");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Notification", b =>
-                {
-                    b.Property<int>("NotificationID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("NotificationID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NotificationID"));
 
-                    b.Property<DateTime>("DateSent")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("DateSent")
+                    .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsRead")
+                    .HasColumnType("bit");
 
-                    b.Property<int>("LeanerID")
-                        .HasColumnType("int");
+                b.Property<int>("LeanerID")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("LearnerID")
-                        .HasColumnType("int");
+                b.Property<int?>("LearnerID")
+                    .HasColumnType("int");
 
-                    b.Property<string>("Message")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Message")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Title")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("NotificationID");
+                b.HasKey("NotificationID");
 
-                    b.HasIndex("LearnerID");
+                b.HasIndex("LearnerID");
 
-                    b.ToTable("Notifications");
-                });
+                b.ToTable("Notifications");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Prize", b =>
-                {
-                    b.Property<int>("PrizeID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("PrizeID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrizeID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrizeID"));
 
-                    b.Property<int>("CompetitionID")
-                        .HasColumnType("int");
+                b.Property<int>("CompetitionID")
+                    .HasColumnType("int");
 
-                    b.Property<string>("PrizeDescription")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("PrizeDescription")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PrizeName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("PrizeName")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<double>("Value")
-                        .HasColumnType("float");
+                b.Property<double>("Value")
+                    .HasColumnType("float");
 
-                    b.HasKey("PrizeID");
+                b.HasKey("PrizeID");
 
-                    b.HasIndex("CompetitionID");
+                b.HasIndex("CompetitionID");
 
-                    b.ToTable("Prizes");
-                });
+                b.ToTable("Prizes");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Province", b =>
-                {
-                    b.Property<int>("ProvinceID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("ProvinceID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProvinceID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProvinceID"));
 
-                    b.Property<string>("ProvinceName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ProvinceName")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("ProvinceID");
+                b.HasKey("ProvinceID");
 
-                    b.ToTable("Provinces");
+                b.ToTable("Provinces");
 
-                    b.HasData(
-                        new
-                        {
-                            ProvinceID = 1,
-                            ProvinceName = "Eastern Cape"
-                        },
-                        new
-                        {
-                            ProvinceID = 2,
-                            ProvinceName = "Free State"
-                        },
-                        new
-                        {
-                            ProvinceID = 3,
-                            ProvinceName = "Gauteng"
-                        },
-                        new
-                        {
-                            ProvinceID = 4,
-                            ProvinceName = "KwaZulu-Natal"
-                        },
-                        new
-                        {
-                            ProvinceID = 5,
-                            ProvinceName = "Limpopo"
-                        },
-                        new
-                        {
-                            ProvinceID = 6,
-                            ProvinceName = "Mpumalanga"
-                        },
-                        new
-                        {
-                            ProvinceID = 7,
-                            ProvinceName = "Northern Cape"
-                        },
-                        new
-                        {
-                            ProvinceID = 8,
-                            ProvinceName = "North West"
-                        },
-                        new
-                        {
-                            ProvinceID = 9,
-                            ProvinceName = "Western Cape"
-                        });
-                });
+                b.HasData(
+                    new
+                    {
+                        ProvinceID = 1,
+                        ProvinceName = "Eastern Cape"
+                    },
+                    new
+                    {
+                        ProvinceID = 2,
+                        ProvinceName = "Free State"
+                    },
+                    new
+                    {
+                        ProvinceID = 3,
+                        ProvinceName = "Gauteng"
+                    },
+                    new
+                    {
+                        ProvinceID = 4,
+                        ProvinceName = "KwaZulu-Natal"
+                    },
+                    new
+                    {
+                        ProvinceID = 5,
+                        ProvinceName = "Limpopo"
+                    },
+                    new
+                    {
+                        ProvinceID = 6,
+                        ProvinceName = "Mpumalanga"
+                    },
+                    new
+                    {
+                        ProvinceID = 7,
+                        ProvinceName = "Northern Cape"
+                    },
+                    new
+                    {
+                        ProvinceID = 8,
+                        ProvinceName = "North West"
+                    },
+                    new
+                    {
+                        ProvinceID = 9,
+                        ProvinceName = "Western Cape"
+                    });
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuestionBankItem", b =>
-                {
-                    b.Property<int>("QuestionBankItemID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("QuestionBankItemID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuestionBankItemID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuestionBankItemID"));
 
-                    b.Property<string>("Difficulty")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Difficulty")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Explanation")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Explanation")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("QuestionText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("QuestionText")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Source")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Source")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("SourceExtract")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("SourceExtract")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("TopicID")
-                        .HasColumnType("int");
+                b.Property<int>("TopicID")
+                    .HasColumnType("int");
 
-                    b.HasKey("QuestionBankItemID");
+                b.HasKey("QuestionBankItemID");
 
-                    b.HasIndex("TopicID");
+                b.HasIndex("TopicID");
 
-                    b.ToTable("QuestionBankItems");
-                });
+                b.ToTable("QuestionBankItems");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuestionBankOption", b =>
-                {
-                    b.Property<int>("QuestionBankOptionID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("QuestionBankOptionID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuestionBankOptionID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuestionBankOptionID"));
 
-                    b.Property<bool>("IsCorrect")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsCorrect")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("OptionText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("OptionText")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("QuestionBankItemID")
-                        .HasColumnType("int");
+                b.Property<int>("QuestionBankItemID")
+                    .HasColumnType("int");
 
-                    b.HasKey("QuestionBankOptionID");
+                b.HasKey("QuestionBankOptionID");
 
-                    b.HasIndex("QuestionBankItemID");
+                b.HasIndex("QuestionBankItemID");
 
-                    b.ToTable("QuestionBankOptions");
-                });
+                b.ToTable("QuestionBankOptions");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Quiz", b =>
-                {
-                    b.Property<int>("QuizID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("QuizID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuizID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuizID"));
 
-                    b.Property<string>("Difficulty")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Difficulty")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsPublished")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsPublished")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("QuizTitle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("QuizTitle")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeSpan>("TimeLimit")
-                        .HasColumnType("time");
+                b.Property<TimeSpan>("TimeLimit")
+                    .HasColumnType("time");
 
-                    b.Property<int>("TopicID")
-                        .HasColumnType("int");
+                b.Property<int>("TopicID")
+                    .HasColumnType("int");
 
-                    b.HasKey("QuizID");
+                b.HasKey("QuizID");
 
-                    b.HasIndex("TopicID");
+                b.HasIndex("TopicID");
 
-                    b.ToTable("Quizzes");
-                });
+                b.ToTable("Quizzes");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuizAttempt", b =>
-                {
-                    b.Property<int>("QuizAttemptID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("QuizAttemptID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuizAttemptID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuizAttemptID"));
 
-                    b.Property<DateTime>("DateTaken")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("DateTaken")
+                    .HasColumnType("datetime2");
 
-                    b.Property<int>("LearnerID")
-                        .HasColumnType("int");
+                b.Property<int>("LearnerID")
+                    .HasColumnType("int");
 
-                    b.Property<int>("QuizID")
-                        .HasColumnType("int");
+                b.Property<int>("QuizID")
+                    .HasColumnType("int");
 
-                    b.Property<int>("Score")
-                        .HasColumnType("int");
+                b.Property<int>("Score")
+                    .HasColumnType("int");
 
-                    b.Property<TimeSpan>("TimeTaken")
-                        .HasColumnType("time");
+                b.Property<TimeSpan>("TimeTaken")
+                    .HasColumnType("time");
 
-                    b.HasKey("QuizAttemptID");
+                b.HasKey("QuizAttemptID");
 
-                    b.HasIndex("LearnerID");
+                b.HasIndex("LearnerID");
 
-                    b.HasIndex("QuizID");
+                b.HasIndex("QuizID");
 
-                    b.ToTable("QuizAttempts");
-                });
+                b.ToTable("QuizAttempts");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuizAttemptAnswer", b =>
-                {
-                    b.Property<int>("QuizAttemptAnswerID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("QuizAttemptAnswerID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuizAttemptAnswerID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuizAttemptAnswerID"));
 
-                    b.Property<int>("AttemptID")
-                        .HasColumnType("int");
+                b.Property<int>("AttemptID")
+                    .HasColumnType("int");
 
-                    b.Property<int>("QuestionID")
-                        .HasColumnType("int");
+                b.Property<int>("QuestionID")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("QuizAttemptID")
-                        .HasColumnType("int");
+                b.Property<int?>("QuizAttemptID")
+                    .HasColumnType("int");
 
-                    b.Property<int>("QuizOptionID")
-                        .HasColumnType("int");
+                b.Property<int>("QuizOptionID")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("QuizQuestionID")
-                        .HasColumnType("int");
+                b.Property<int?>("QuizQuestionID")
+                    .HasColumnType("int");
 
-                    b.HasKey("QuizAttemptAnswerID");
+                b.HasKey("QuizAttemptAnswerID");
 
-                    b.HasIndex("QuizAttemptID");
+                b.HasIndex("QuizAttemptID");
 
-                    b.HasIndex("QuizOptionID");
+                b.HasIndex("QuizOptionID");
 
-                    b.HasIndex("QuizQuestionID");
+                b.HasIndex("QuizQuestionID");
 
-                    b.ToTable("QuizAttemptAnswers");
-                });
+                b.ToTable("QuizAttemptAnswers");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuizAttemptQuestion", b =>
-                {
-                    b.Property<int>("QuizAttemptQuestionID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("QuizAttemptQuestionID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuizAttemptQuestionID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuizAttemptQuestionID"));
 
-                    b.Property<int>("QuestionOrder")
-                        .HasColumnType("int");
+                b.Property<int>("QuestionOrder")
+                    .HasColumnType("int");
 
-                    b.Property<int>("QuizAttemptID")
-                        .HasColumnType("int");
+                b.Property<int>("QuizAttemptID")
+                    .HasColumnType("int");
 
-                    b.Property<int>("QuizQuestionID")
-                        .HasColumnType("int");
+                b.Property<int>("QuizQuestionID")
+                    .HasColumnType("int");
 
-                    b.HasKey("QuizAttemptQuestionID");
+                b.HasKey("QuizAttemptQuestionID");
 
-                    b.HasIndex("QuizAttemptID");
+                b.HasIndex("QuizAttemptID");
 
-                    b.HasIndex("QuizQuestionID");
+                b.HasIndex("QuizQuestionID");
 
-                    b.ToTable("QuizAttemptQuestions");
-                });
+                b.ToTable("QuizAttemptQuestions");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuizOption", b =>
-                {
-                    b.Property<int>("QuizOptionID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("QuizOptionID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuizOptionID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuizOptionID"));
 
-                    b.Property<bool>("IsCorrect")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsCorrect")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("OptionText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("OptionText")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("QuestionID")
-                        .HasColumnType("int");
+                b.Property<int>("QuestionID")
+                    .HasColumnType("int");
 
-                    b.Property<int?>("QuizQuestionID")
-                        .HasColumnType("int");
+                b.HasKey("QuizOptionID");
 
-                    b.HasKey("QuizOptionID");
+                b.HasIndex("QuestionID");
 
-                    b.HasIndex("QuizQuestionID");
-
-                    b.ToTable("QuizOptions");
-                });
+                b.ToTable("QuizOptions");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuizQuestion", b =>
-                {
-                    b.Property<int>("QuizQuestionID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("QuizQuestionID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuizQuestionID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuizQuestionID"));
 
-                    b.Property<bool>("ApprovedByAdmin")
-                        .HasColumnType("bit");
+                b.Property<bool>("ApprovedByAdmin")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("Explanation")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Explanation")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("GeneratedByAI")
-                        .HasColumnType("bit");
+                b.Property<bool>("GeneratedByAI")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("QuestionText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("QuestionText")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("QuizID")
-                        .HasColumnType("int");
+                b.Property<int>("QuizID")
+                    .HasColumnType("int");
 
-                    b.Property<string>("SourceExtract")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("SourceExtract")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("QuizQuestionID");
+                b.HasKey("QuizQuestionID");
 
-                    b.HasIndex("QuizID");
+                b.HasIndex("QuizID");
 
-                    b.ToTable("QuizQuestions");
-                });
+                b.ToTable("QuizQuestions");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Role", b =>
-                {
-                    b.Property<int>("RoleID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("RoleID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoleID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoleID"));
 
-                    b.Property<string>("RoleName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("RoleName")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("RoleID");
+                b.HasKey("RoleID");
 
-                    b.ToTable("Roles");
+                b.ToTable("Roles");
 
-                    b.HasData(
-                        new
-                        {
-                            RoleID = 1,
-                            RoleName = "Learner"
-                        },
-                        new
-                        {
-                            RoleID = 2,
-                            RoleName = "Admin"
-                        },
-                        new
-                        {
-                            RoleID = 3,
-                            RoleName = "Sponsor"
-                        });
-                });
+                b.HasData(
+                    new
+                    {
+                        RoleID = 1,
+                        RoleName = "Learner"
+                    },
+                    new
+                    {
+                        RoleID = 2,
+                        RoleName = "Admin"
+                    },
+                    new
+                    {
+                        RoleID = 3,
+                        RoleName = "Sponsor"
+                    });
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.School", b =>
-                {
-                    b.Property<int>("SchoolID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("SchoolID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SchoolID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SchoolID"));
 
-                    b.Property<int>("ProvinceID")
-                        .HasColumnType("int");
+                b.Property<int>("ProvinceID")
+                    .HasColumnType("int");
 
-                    b.Property<string>("SchoolName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("SchoolName")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("SchoolID");
+                b.HasKey("SchoolID");
 
-                    b.HasIndex("ProvinceID");
+                b.HasIndex("ProvinceID");
 
-                    b.ToTable("Schools");
+                b.ToTable("Schools");
 
-                    b.HasData(
-                        new
-                        {
-                            SchoolID = 1,
-                            ProvinceID = 1,
-                            SchoolName = "AM Zantsi Senior Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 2,
-                            ProvinceID = 1,
-                            SchoolName = "Amabele Senior Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 3,
-                            ProvinceID = 1,
-                            SchoolName = "Emdemi Senior Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 4,
-                            ProvinceID = 1,
-                            SchoolName = "St Margaret Senior Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 5,
-                            ProvinceID = 1,
-                            SchoolName = "St Matthews High School"
-                        },
-                        new
-                        {
-                            SchoolID = 6,
-                            ProvinceID = 2,
-                            SchoolName = "Sehlabeng Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 7,
-                            ProvinceID = 2,
-                            SchoolName = "Sehunelo Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 8,
-                            ProvinceID = 2,
-                            SchoolName = "Selelekelela Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 9,
-                            ProvinceID = 2,
-                            SchoolName = "Seotlong A Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 10,
-                            ProvinceID = 2,
-                            SchoolName = "Teto Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 11,
-                            ProvinceID = 3,
-                            SchoolName = "Adam Masebe Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 12,
-                            ProvinceID = 3,
-                            SchoolName = "Altmont Technical High School"
-                        },
-                        new
-                        {
-                            SchoolID = 13,
-                            ProvinceID = 3,
-                            SchoolName = "Asser Maloka Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 14,
-                            ProvinceID = 3,
-                            SchoolName = "Bona Lesedi Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 15,
-                            ProvinceID = 3,
-                            SchoolName = "Cosmo City Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 16,
-                            ProvinceID = 4,
-                            SchoolName = "A.M. Moolla Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 17,
-                            ProvinceID = 4,
-                            SchoolName = "Abaqulusi High School"
-                        },
-                        new
-                        {
-                            SchoolID = 18,
-                            ProvinceID = 4,
-                            SchoolName = "Amazondi Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 19,
-                            ProvinceID = 4,
-                            SchoolName = "Bonga Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 20,
-                            ProvinceID = 4,
-                            SchoolName = "Bukelakithi High School"
-                        },
-                        new
-                        {
-                            SchoolID = 21,
-                            ProvinceID = 5,
-                            SchoolName = "Abel Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 22,
-                            ProvinceID = 5,
-                            SchoolName = "Abraham Serote Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 23,
-                            ProvinceID = 5,
-                            SchoolName = "Adolf Mhinga Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 24,
-                            ProvinceID = 5,
-                            SchoolName = "Alfred Ngwedzeni Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 25,
-                            ProvinceID = 5,
-                            SchoolName = "Bambeni Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 26,
-                            ProvinceID = 6,
-                            SchoolName = "Acorn-Oaks Comprehensive High School"
-                        },
-                        new
-                        {
-                            SchoolID = 27,
-                            ProvinceID = 6,
-                            SchoolName = "Alfred Matshine Commercial School"
-                        },
-                        new
-                        {
-                            SchoolID = 28,
-                            ProvinceID = 6,
-                            SchoolName = "Amadlelo Aluhlaza Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 29,
-                            ProvinceID = 6,
-                            SchoolName = "Bee Maseko Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 30,
-                            ProvinceID = 6,
-                            SchoolName = "Ben Matloshe High School"
-                        },
-                        new
-                        {
-                            SchoolID = 31,
-                            ProvinceID = 7,
-                            SchoolName = "!Xunkhwesa Combined School"
-                        },
-                        new
-                        {
-                            SchoolID = 32,
-                            ProvinceID = 7,
-                            SchoolName = "Ba Ga Lotlhare Intermediate School"
-                        },
-                        new
-                        {
-                            SchoolID = 33,
-                            ProvinceID = 7,
-                            SchoolName = "Bankhara Bodulong High School"
-                        },
-                        new
-                        {
-                            SchoolID = 34,
-                            ProvinceID = 7,
-                            SchoolName = "Banksdrif Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 35,
-                            ProvinceID = 7,
-                            SchoolName = "Kimberley Boys' High School"
-                        },
-                        new
-                        {
-                            SchoolID = 36,
-                            ProvinceID = 8,
-                            SchoolName = "Areganeng Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 37,
-                            ProvinceID = 8,
-                            SchoolName = "Badumedi Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 38,
-                            ProvinceID = 8,
-                            SchoolName = "Nqunde Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 39,
-                            ProvinceID = 8,
-                            SchoolName = "Ntshidi Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 40,
-                            ProvinceID = 8,
-                            SchoolName = "Potchefstroom High School for Boys"
-                        },
-                        new
-                        {
-                            SchoolID = 41,
-                            ProvinceID = 9,
-                            SchoolName = "Dysselsdorp Sekondêr"
-                        },
-                        new
-                        {
-                            SchoolID = 42,
-                            ProvinceID = 9,
-                            SchoolName = "Fezekile Secondary School"
-                        },
-                        new
-                        {
-                            SchoolID = 43,
-                            ProvinceID = 9,
-                            SchoolName = "Fisantekraal High School"
-                        },
-                        new
-                        {
-                            SchoolID = 44,
-                            ProvinceID = 9,
-                            SchoolName = "Garden Route High School"
-                        },
-                        new
-                        {
-                            SchoolID = 45,
-                            ProvinceID = 9,
-                            SchoolName = "Woodlands Secondary School"
-                        });
-                });
+                b.HasData(
+                    new
+                    {
+                        SchoolID = 1,
+                        ProvinceID = 1,
+                        SchoolName = "AM Zantsi Senior Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 2,
+                        ProvinceID = 1,
+                        SchoolName = "Amabele Senior Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 3,
+                        ProvinceID = 1,
+                        SchoolName = "Emdemi Senior Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 4,
+                        ProvinceID = 1,
+                        SchoolName = "St Margaret Senior Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 5,
+                        ProvinceID = 1,
+                        SchoolName = "St Matthews High School"
+                    },
+                    new
+                    {
+                        SchoolID = 6,
+                        ProvinceID = 2,
+                        SchoolName = "Sehlabeng Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 7,
+                        ProvinceID = 2,
+                        SchoolName = "Sehunelo Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 8,
+                        ProvinceID = 2,
+                        SchoolName = "Selelekelela Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 9,
+                        ProvinceID = 2,
+                        SchoolName = "Seotlong A Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 10,
+                        ProvinceID = 2,
+                        SchoolName = "Teto Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 11,
+                        ProvinceID = 3,
+                        SchoolName = "Adam Masebe Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 12,
+                        ProvinceID = 3,
+                        SchoolName = "Altmont Technical High School"
+                    },
+                    new
+                    {
+                        SchoolID = 13,
+                        ProvinceID = 3,
+                        SchoolName = "Asser Maloka Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 14,
+                        ProvinceID = 3,
+                        SchoolName = "Bona Lesedi Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 15,
+                        ProvinceID = 3,
+                        SchoolName = "Cosmo City Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 16,
+                        ProvinceID = 4,
+                        SchoolName = "A.M. Moolla Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 17,
+                        ProvinceID = 4,
+                        SchoolName = "Abaqulusi High School"
+                    },
+                    new
+                    {
+                        SchoolID = 18,
+                        ProvinceID = 4,
+                        SchoolName = "Amazondi Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 19,
+                        ProvinceID = 4,
+                        SchoolName = "Bonga Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 20,
+                        ProvinceID = 4,
+                        SchoolName = "Bukelakithi High School"
+                    },
+                    new
+                    {
+                        SchoolID = 21,
+                        ProvinceID = 5,
+                        SchoolName = "Abel Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 22,
+                        ProvinceID = 5,
+                        SchoolName = "Abraham Serote Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 23,
+                        ProvinceID = 5,
+                        SchoolName = "Adolf Mhinga Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 24,
+                        ProvinceID = 5,
+                        SchoolName = "Alfred Ngwedzeni Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 25,
+                        ProvinceID = 5,
+                        SchoolName = "Bambeni Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 26,
+                        ProvinceID = 6,
+                        SchoolName = "Acorn-Oaks Comprehensive High School"
+                    },
+                    new
+                    {
+                        SchoolID = 27,
+                        ProvinceID = 6,
+                        SchoolName = "Alfred Matshine Commercial School"
+                    },
+                    new
+                    {
+                        SchoolID = 28,
+                        ProvinceID = 6,
+                        SchoolName = "Amadlelo Aluhlaza Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 29,
+                        ProvinceID = 6,
+                        SchoolName = "Bee Maseko Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 30,
+                        ProvinceID = 6,
+                        SchoolName = "Ben Matloshe High School"
+                    },
+                    new
+                    {
+                        SchoolID = 31,
+                        ProvinceID = 7,
+                        SchoolName = "!Xunkhwesa Combined School"
+                    },
+                    new
+                    {
+                        SchoolID = 32,
+                        ProvinceID = 7,
+                        SchoolName = "Ba Ga Lotlhare Intermediate School"
+                    },
+                    new
+                    {
+                        SchoolID = 33,
+                        ProvinceID = 7,
+                        SchoolName = "Bankhara Bodulong High School"
+                    },
+                    new
+                    {
+                        SchoolID = 34,
+                        ProvinceID = 7,
+                        SchoolName = "Banksdrif Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 35,
+                        ProvinceID = 7,
+                        SchoolName = "Kimberley Boys' High School"
+                    },
+                    new
+                    {
+                        SchoolID = 36,
+                        ProvinceID = 8,
+                        SchoolName = "Areganeng Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 37,
+                        ProvinceID = 8,
+                        SchoolName = "Badumedi Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 38,
+                        ProvinceID = 8,
+                        SchoolName = "Nqunde Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 39,
+                        ProvinceID = 8,
+                        SchoolName = "Ntshidi Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 40,
+                        ProvinceID = 8,
+                        SchoolName = "Potchefstroom High School for Boys"
+                    },
+                    new
+                    {
+                        SchoolID = 41,
+                        ProvinceID = 9,
+                        SchoolName = "Dysselsdorp Sekondêr"
+                    },
+                    new
+                    {
+                        SchoolID = 42,
+                        ProvinceID = 9,
+                        SchoolName = "Fezekile Secondary School"
+                    },
+                    new
+                    {
+                        SchoolID = 43,
+                        ProvinceID = 9,
+                        SchoolName = "Fisantekraal High School"
+                    },
+                    new
+                    {
+                        SchoolID = 44,
+                        ProvinceID = 9,
+                        SchoolName = "Garden Route High School"
+                    },
+                    new
+                    {
+                        SchoolID = 45,
+                        ProvinceID = 9,
+                        SchoolName = "Woodlands Secondary School"
+                    });
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Sponsor", b =>
-                {
-                    b.Property<int>("SponsorID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("SponsorID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SponsorID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SponsorID"));
 
-                    b.Property<string>("CompanyName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("CompanyName")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ContactEmail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ContactEmail")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("SponsorID");
+                b.HasKey("SponsorID");
 
-                    b.ToTable("Sponsors");
-                });
+                b.ToTable("Sponsors");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.StudyMaterial", b =>
-                {
-                    b.Property<int>("StudyMaterialID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("StudyMaterialID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StudyMaterialID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StudyMaterialID"));
 
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Description")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FileContentType")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("FileContentType")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<byte[]>("FileData")
-                        .HasColumnType("varbinary(max)");
+                b.Property<byte[]>("FileData")
+                    .HasColumnType("varbinary(max)");
 
-                    b.Property<string>("FileName")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("FileName")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FileURL")
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("FileURL")
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("GradeSubjectID")
-                        .HasColumnType("int");
+                b.Property<int>("GradeSubjectID")
+                    .HasColumnType("int");
 
-                    b.Property<string>("ResourceType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("ResourceType")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("Title")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("TopicID")
-                        .HasColumnType("int");
+                b.Property<int?>("TopicID")
+                    .HasColumnType("int");
 
-                    b.HasKey("StudyMaterialID");
+                b.HasKey("StudyMaterialID");
 
-                    b.HasIndex("GradeSubjectID");
+                b.HasIndex("GradeSubjectID");
 
-                    b.HasIndex("TopicID");
+                b.HasIndex("TopicID");
 
-                    b.ToTable("StudyMaterials");
-                });
+                b.ToTable("StudyMaterials");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Subject", b =>
-                {
-                    b.Property<int>("SubjectID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("SubjectID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubjectID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubjectID"));
 
-                    b.Property<string>("SubjectName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("SubjectName")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("SubjectID");
+                b.HasKey("SubjectID");
 
-                    b.ToTable("Subjects");
-                });
+                b.ToTable("Subjects");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Topic", b =>
-                {
-                    b.Property<int>("TopicID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("TopicID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TopicID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TopicID"));
 
-                    b.Property<string>("GradeLevel")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("GradeLevel")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("SubjectID")
-                        .HasColumnType("int");
+                b.Property<int>("SubjectID")
+                    .HasColumnType("int");
 
-                    b.Property<string>("TopicName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("TopicName")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.HasKey("TopicID");
+                b.HasKey("TopicID");
 
-                    b.HasIndex("SubjectID", "GradeLevel", "TopicName")
-                        .IsUnique();
+                b.HasIndex("SubjectID", "GradeLevel", "TopicName")
+                    .IsUnique();
 
-                    b.ToTable("Topics");
-                });
+                b.ToTable("Topics");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.User", b =>
-                {
-                    b.Property<int>("UserID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+            {
+                b.Property<int>("UserID")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"));
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"));
 
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("datetime2");
+                b.Property<DateTime>("DateCreated")
+                    .HasColumnType("datetime2");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                b.Property<string>("Email")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("FirstName")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                b.Property<bool>("IsActive")
+                    .HasColumnType("bit");
 
-                    b.Property<string>("LastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("LastName")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                b.Property<string>("PasswordHash")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("RoleID")
-                        .HasColumnType("int");
+                b.Property<int>("RoleID")
+                    .HasColumnType("int");
 
-                    b.HasKey("UserID");
+                b.HasKey("UserID");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
+                b.HasIndex("Email")
+                    .IsUnique();
 
-                    b.HasIndex("RoleID");
+                b.HasIndex("RoleID");
 
-                    b.ToTable("Users");
-                });
+                b.ToTable("Users");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.ActivityLog", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.User", "User")
+                    .WithMany()
+                    .HasForeignKey("UserID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("User");
-                });
+                b.Navigation("User");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Competition", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Sponsor", "Sponsor")
-                        .WithMany("Collections")
-                        .HasForeignKey("SponsorID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Sponsor", "Sponsor")
+                    .WithMany("Collections")
+                    .HasForeignKey("SponsorID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Sponsor");
-                });
+                b.Navigation("Sponsor");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.CompetitionLearner", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Competition", "Competition")
-                        .WithMany("CompetitionLearners")
-                        .HasForeignKey("CompetitionID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Competition", "Competition")
+                    .WithMany("CompetitionLearners")
+                    .HasForeignKey("CompetitionID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("EduQuest.API.Models.Entities.Learner", "Learner")
-                        .WithMany("CompetitionLearners")
-                        .HasForeignKey("LearnerID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("EduQuest.API.Models.Entities.Learner", "Learner")
+                    .WithMany("CompetitionLearners")
+                    .HasForeignKey("LearnerID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Competition");
+                b.Navigation("Competition");
 
-                    b.Navigation("Learner");
-                });
+                b.Navigation("Learner");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.GradeSubject", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Grade", "Grade")
-                        .WithMany("GradeSubjects")
-                        .HasForeignKey("GradeID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Grade", "Grade")
+                    .WithMany("GradeSubjects")
+                    .HasForeignKey("GradeID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("EduQuest.API.Models.Entities.Subject", "Subject")
-                        .WithMany("GradeSubjects")
-                        .HasForeignKey("SubjectID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("EduQuest.API.Models.Entities.Subject", "Subject")
+                    .WithMany("GradeSubjects")
+                    .HasForeignKey("SubjectID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Grade");
+                b.Navigation("Grade");
 
-                    b.Navigation("Subject");
-                });
+                b.Navigation("Subject");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.LeaderBoard", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Learner", "Learner")
-                        .WithMany("LeaderBoard")
-                        .HasForeignKey("LearnerID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Learner", "Learner")
+                    .WithMany("LeaderBoard")
+                    .HasForeignKey("LearnerID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Learner");
-                });
+                b.Navigation("Learner");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Learner", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Grade", "Grade")
-                        .WithMany()
-                        .HasForeignKey("GradeID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Grade", "Grade")
+                    .WithMany()
+                    .HasForeignKey("GradeID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("EduQuest.API.Models.Entities.School", "School")
-                        .WithMany("Learners")
-                        .HasForeignKey("SchoolID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("EduQuest.API.Models.Entities.School", "School")
+                    .WithMany("Learners")
+                    .HasForeignKey("SchoolID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("EduQuest.API.Models.Entities.User", "User")
-                        .WithOne()
-                        .HasForeignKey("EduQuest.API.Models.Entities.Learner", "UserID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                b.HasOne("EduQuest.API.Models.Entities.User", "User")
+                    .WithOne()
+                    .HasForeignKey("EduQuest.API.Models.Entities.Learner", "UserID")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.Navigation("Grade");
+                b.Navigation("Grade");
 
-                    b.Navigation("School");
+                b.Navigation("School");
 
-                    b.Navigation("User");
-                });
+                b.Navigation("User");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.LearnerAchievement", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Achievement", "Achievement")
-                        .WithMany("LearnerAchievements")
-                        .HasForeignKey("AchievementID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Achievement", "Achievement")
+                    .WithMany("LearnerAchievements")
+                    .HasForeignKey("AchievementID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("EduQuest.API.Models.Entities.Learner", "Learner")
-                        .WithMany("LearnerAchievement")
-                        .HasForeignKey("LearnerID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("EduQuest.API.Models.Entities.Learner", "Learner")
+                    .WithMany("LearnerAchievement")
+                    .HasForeignKey("LearnerID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Achievement");
+                b.Navigation("Achievement");
 
-                    b.Navigation("Learner");
-                });
+                b.Navigation("Learner");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.LearnerSubject", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Learner", "Learner")
-                        .WithMany("LearnerSubjects")
-                        .HasForeignKey("LearnerID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Learner", "Learner")
+                    .WithMany("LearnerSubjects")
+                    .HasForeignKey("LearnerID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("EduQuest.API.Models.Entities.Subject", "Subject")
-                        .WithMany()
-                        .HasForeignKey("SubjectID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("EduQuest.API.Models.Entities.Subject", "Subject")
+                    .WithMany()
+                    .HasForeignKey("SubjectID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Learner");
+                b.Navigation("Learner");
 
-                    b.Navigation("Subject");
-                });
+                b.Navigation("Subject");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Notification", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Learner", "Learner")
-                        .WithMany("Notification")
-                        .HasForeignKey("LearnerID");
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Learner", "Learner")
+                    .WithMany("Notification")
+                    .HasForeignKey("LearnerID");
 
-                    b.Navigation("Learner");
-                });
+                b.Navigation("Learner");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Prize", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Competition", "Competition")
-                        .WithMany("Prizes")
-                        .HasForeignKey("CompetitionID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Competition", "Competition")
+                    .WithMany("Prizes")
+                    .HasForeignKey("CompetitionID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Competition");
-                });
+                b.Navigation("Competition");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuestionBankItem", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Topic", "Topic")
-                        .WithMany()
-                        .HasForeignKey("TopicID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Topic", "Topic")
+                    .WithMany()
+                    .HasForeignKey("TopicID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Topic");
-                });
+                b.Navigation("Topic");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuestionBankOption", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.QuestionBankItem", "QuestionBankItem")
-                        .WithMany("QuestionBankOptions")
-                        .HasForeignKey("QuestionBankItemID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.QuestionBankItem", "QuestionBankItem")
+                    .WithMany("QuestionBankOptions")
+                    .HasForeignKey("QuestionBankItemID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("QuestionBankItem");
-                });
+                b.Navigation("QuestionBankItem");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Quiz", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Topic", "Topic")
-                        .WithMany("Quiz")
-                        .HasForeignKey("TopicID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Topic", "Topic")
+                    .WithMany("Quiz")
+                    .HasForeignKey("TopicID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Topic");
-                });
+                b.Navigation("Topic");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuizAttempt", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Learner", "Learner")
-                        .WithMany("QuizAttempt")
-                        .HasForeignKey("LearnerID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Learner", "Learner")
+                    .WithMany("QuizAttempt")
+                    .HasForeignKey("LearnerID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("EduQuest.API.Models.Entities.Quiz", "Quiz")
-                        .WithMany("QuizAttempts")
-                        .HasForeignKey("QuizID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("EduQuest.API.Models.Entities.Quiz", "Quiz")
+                    .WithMany("QuizAttempts")
+                    .HasForeignKey("QuizID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Learner");
+                b.Navigation("Learner");
 
-                    b.Navigation("Quiz");
-                });
+                b.Navigation("Quiz");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuizAttemptAnswer", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.QuizAttempt", "QuizAttempt")
-                        .WithMany("QuizAttemptAnswers")
-                        .HasForeignKey("QuizAttemptID");
+            {
+                b.HasOne("EduQuest.API.Models.Entities.QuizAttempt", "QuizAttempt")
+                    .WithMany("QuizAttemptAnswers")
+                    .HasForeignKey("QuizAttemptID");
 
-                    b.HasOne("EduQuest.API.Models.Entities.QuizOption", "QuizOption")
-                        .WithMany("QuizAttemptAnswers")
-                        .HasForeignKey("QuizOptionID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                b.HasOne("EduQuest.API.Models.Entities.QuizOption", "QuizOption")
+                    .WithMany("QuizAttemptAnswers")
+                    .HasForeignKey("QuizOptionID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("EduQuest.API.Models.Entities.QuizQuestion", "QuizQuestion")
-                        .WithMany("QuizAttemptAnswers")
-                        .HasForeignKey("QuizQuestionID");
+                b.HasOne("EduQuest.API.Models.Entities.QuizQuestion", "QuizQuestion")
+                    .WithMany("QuizAttemptAnswers")
+                    .HasForeignKey("QuizQuestionID");
 
-                    b.Navigation("QuizAttempt");
+                b.Navigation("QuizAttempt");
 
-                    b.Navigation("QuizOption");
+                b.Navigation("QuizOption");
 
-                    b.Navigation("QuizQuestion");
-                });
+                b.Navigation("QuizQuestion");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuizAttemptQuestion", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.QuizAttempt", "QuizAttempt")
-                        .WithMany("QuizAttemptQuestions")
-                        .HasForeignKey("QuizAttemptID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.QuizAttempt", "QuizAttempt")
+                    .WithMany("QuizAttemptQuestions")
+                    .HasForeignKey("QuizAttemptID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.HasOne("EduQuest.API.Models.Entities.QuizQuestion", "QuizQuestion")
-                        .WithMany("QuizAttemptQuestions")
-                        .HasForeignKey("QuizQuestionID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                b.HasOne("EduQuest.API.Models.Entities.QuizQuestion", "QuizQuestion")
+                    .WithMany("QuizAttemptQuestions")
+                    .HasForeignKey("QuizQuestionID")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.Navigation("QuizAttempt");
+                b.Navigation("QuizAttempt");
 
-                    b.Navigation("QuizQuestion");
-                });
+                b.Navigation("QuizQuestion");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuizOption", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.QuizQuestion", "QuizQuestion")
-                        .WithMany("QuizOptions")
-                        .HasForeignKey("QuizQuestionID");
+            {
+                b.HasOne("EduQuest.API.Models.Entities.QuizQuestion", "QuizQuestion")
+                    .WithMany("QuizOptions")
+                    .HasForeignKey("QuestionID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("QuizQuestion");
-                });
+                b.Navigation("QuizQuestion");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuizQuestion", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Quiz", "Quiz")
-                        .WithMany("QuizQuestions")
-                        .HasForeignKey("QuizID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Quiz", "Quiz")
+                    .WithMany("QuizQuestions")
+                    .HasForeignKey("QuizID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Quiz");
-                });
+                b.Navigation("Quiz");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.School", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Province", "Province")
-                        .WithMany("Schools")
-                        .HasForeignKey("ProvinceID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Province", "Province")
+                    .WithMany("Schools")
+                    .HasForeignKey("ProvinceID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Province");
-                });
+                b.Navigation("Province");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.StudyMaterial", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.GradeSubject", "GradeSubject")
-                        .WithMany()
-                        .HasForeignKey("GradeSubjectID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.GradeSubject", "GradeSubject")
+                    .WithMany()
+                    .HasForeignKey("GradeSubjectID")
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .IsRequired();
 
-                    b.HasOne("EduQuest.API.Models.Entities.Topic", "Topic")
-                        .WithMany()
-                        .HasForeignKey("TopicID")
-                        .OnDelete(DeleteBehavior.SetNull);
+                b.HasOne("EduQuest.API.Models.Entities.Topic", "Topic")
+                    .WithMany()
+                    .HasForeignKey("TopicID")
+                    .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Navigation("GradeSubject");
+                b.Navigation("GradeSubject");
 
-                    b.Navigation("Topic");
-                });
+                b.Navigation("Topic");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Topic", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Subject", "Subject")
-                        .WithMany()
-                        .HasForeignKey("SubjectID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Subject", "Subject")
+                    .WithMany()
+                    .HasForeignKey("SubjectID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Subject");
-                });
+                b.Navigation("Subject");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.User", b =>
-                {
-                    b.HasOne("EduQuest.API.Models.Entities.Role", "Role")
-                        .WithMany("Users")
-                        .HasForeignKey("RoleID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            {
+                b.HasOne("EduQuest.API.Models.Entities.Role", "Role")
+                    .WithMany("Users")
+                    .HasForeignKey("RoleID")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
 
-                    b.Navigation("Role");
-                });
+                b.Navigation("Role");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Achievement", b =>
-                {
-                    b.Navigation("LearnerAchievements");
-                });
+            {
+                b.Navigation("LearnerAchievements");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Competition", b =>
-                {
-                    b.Navigation("CompetitionLearners");
+            {
+                b.Navigation("CompetitionLearners");
 
-                    b.Navigation("Prizes");
-                });
+                b.Navigation("Prizes");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Grade", b =>
-                {
-                    b.Navigation("GradeSubjects");
-                });
+            {
+                b.Navigation("GradeSubjects");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Learner", b =>
-                {
-                    b.Navigation("CompetitionLearners");
+            {
+                b.Navigation("CompetitionLearners");
 
-                    b.Navigation("LeaderBoard");
+                b.Navigation("LeaderBoard");
 
-                    b.Navigation("LearnerAchievement");
+                b.Navigation("LearnerAchievement");
 
-                    b.Navigation("LearnerSubjects");
+                b.Navigation("LearnerSubjects");
 
-                    b.Navigation("Notification");
+                b.Navigation("Notification");
 
-                    b.Navigation("QuizAttempt");
-                });
+                b.Navigation("QuizAttempt");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Province", b =>
-                {
-                    b.Navigation("Schools");
-                });
+            {
+                b.Navigation("Schools");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuestionBankItem", b =>
-                {
-                    b.Navigation("QuestionBankOptions");
-                });
+            {
+                b.Navigation("QuestionBankOptions");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Quiz", b =>
-                {
-                    b.Navigation("QuizAttempts");
+            {
+                b.Navigation("QuizAttempts");
 
-                    b.Navigation("QuizQuestions");
-                });
+                b.Navigation("QuizQuestions");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuizAttempt", b =>
-                {
-                    b.Navigation("QuizAttemptAnswers");
+            {
+                b.Navigation("QuizAttemptAnswers");
 
-                    b.Navigation("QuizAttemptQuestions");
-                });
+                b.Navigation("QuizAttemptQuestions");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuizOption", b =>
-                {
-                    b.Navigation("QuizAttemptAnswers");
-                });
+            {
+                b.Navigation("QuizAttemptAnswers");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.QuizQuestion", b =>
-                {
-                    b.Navigation("QuizAttemptAnswers");
+            {
+                b.Navigation("QuizAttemptAnswers");
 
-                    b.Navigation("QuizAttemptQuestions");
+                b.Navigation("QuizAttemptQuestions");
 
-                    b.Navigation("QuizOptions");
-                });
+                b.Navigation("QuizOptions");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Role", b =>
-                {
-                    b.Navigation("Users");
-                });
+            {
+                b.Navigation("Users");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.School", b =>
-                {
-                    b.Navigation("Learners");
-                });
+            {
+                b.Navigation("Learners");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Sponsor", b =>
-                {
-                    b.Navigation("Collections");
-                });
+            {
+                b.Navigation("Collections");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Subject", b =>
-                {
-                    b.Navigation("GradeSubjects");
-                });
+            {
+                b.Navigation("GradeSubjects");
+            });
 
             modelBuilder.Entity("EduQuest.API.Models.Entities.Topic", b =>
-                {
-                    b.Navigation("Quiz");
-                });
+            {
+                b.Navigation("Quiz");
+            });
 #pragma warning restore 612, 618
         }
     }

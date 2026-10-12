@@ -2,7 +2,9 @@
 using EduQuest.API.DTOs.Auth;
 using EduQuest.API.Models.Entities;
 using EduQuest.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 
 namespace EduQuest.API.Controllers
@@ -49,6 +51,33 @@ namespace EduQuest.API.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { user.UserID, user.Email });
+        }
+
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<ActionResult> ChangePassword(ChangePasswordDto dto)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null || !user.IsActive)
+                return Unauthorized();
+
+            if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
+                return BadRequest("Your current password is incorrect.");
+
+            if (dto.NewPassword.Length < 8)
+                return BadRequest("The new password must be at least 8 characters.");
+
+            if (dto.NewPassword == dto.CurrentPassword)
+                return BadRequest("The new password must be different from your current password.");
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
         // POST: api/auth/register-learner

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,26 +16,26 @@
     <header class="topbar">
 
         <div class="topbar-search">
-            <input 
-                type="search" 
+            <input
+                type="search"
                 placeholder="Search EduQuest..."
-            >
+                aria-label="Search EduQuest">
         </div>
 
         <div class="topbar-actions">
-
-            <button class="notification-btn">
+            <button type="button" class="notification-btn"
+                    aria-label="Notifications">
                 🔔
             </button>
 
-            <button class="profile-btn">
+            <button type="button" class="profile-btn">
                 👤 Admin
             </button>
-
         </div>
 
     </header>
-    <!-- Dashboard layout -->
+
+    <!-- Dashboard Layout -->
     <div class="app">
 
         <!-- Sidebar -->
@@ -43,19 +44,15 @@
             <div>
 
                 <div class="brand">
-
-                    <img 
+                    <img
                         src="../../images/EduQuestLogo.jpg"
                         alt="EduQuest Logo"
-                        class="brand-logo"
-                    >
+                        class="brand-logo">
 
                     <div class="brand-name">
                         EduQuest
                     </div>
-
                 </div>
-
 
                 <!-- Navigation -->
                 <nav class="sidebar-nav">
@@ -91,226 +88,341 @@
                 </nav>
 
             </div>
-             <!-- Sidebar footer -->
+
+            <!-- Sidebar Footer -->
             <div class="sidebar-footer">
-
-                <p>
-                    Enhancing education through tech.
-                </p>
-
-                <small>
-                    © 2026 EduQuest
-                </small>
-
+                <p>Enhancing education through tech.</p>
+                <small>© 2026 EduQuest</small>
             </div>
 
         </aside>
-         <!-- Main content -->
+
+        <!-- Main Content -->
         <main class="main">
 
             <section class="home-content">
 
+                <!-- Page Header -->
                 <div class="page-header">
-                    <h1>
-                        Users
-                    </h1>
-
+                    <h1>Users</h1>
                     <p>
-                        Manage Learner and admin accounts accross EduQuest!
+                        Manage learner and administrator accounts
+                        across EduQuest.
                     </p>
+                </div>
+
+                <!-- Overview -->
+                <div class="parent-card">
+
+                    <h2>Overview</h2>
+
+                    <div class="child-cards">
+
+                        <!-- Total Registered Users -->
+                        <div class="child-card">
+                            <h3>👥 Registered Users</h3>
+                            <h3 id="statTotal">0</h3>
+                            <p id="statTotalSub">Loading users...</p>
+                        </div>
+
+                        <!-- Active Users -->
+                        <div class="child-card">
+                            <h3>🟢 Active Accounts</h3>
+                            <h3 id="statActive">0</h3>
+                            <p id="statActiveSub">
+                                Loading account status...
+                            </p>
+                        </div>
+
+                        <!-- New Users This Month -->
+                        <div class="child-card">
+                            <h3>🆕 New This Month</h3>
+                            <h3 id="statNew">0</h3>
+                            <p id="statNewSub">
+                                Loading new accounts...
+                            </p>
+                        </div>
+
+                    </div>
 
                 </div>
-               <!-- Parent Card -->
-<div class="parent-card">
 
-    <h2>Overview</h2>
+                <!-- Registered Users Table -->
+                <section class="users-table-card">
 
-    <!-- Child Cards -->
-    <div class="child-cards">
+                    <div class="users-table-header">
+                        <h2>Registered Users</h2>
+                        <p>
+                            View and manage registered learners,
+                            administrators and sponsors.
+                        </p>
+                    </div>
 
-        <div class="child-card">
+                    <!-- Search, Filters and Add User -->
+                    <div class="users-toolbar">
 
-    <h3>👥 Registered Users</h3>
-      <h3> 18</h3>
-    <p>13 Learners. 5 Admins.</p>
+                        <div class="user-search-box">
+                            <input
+                                type="text"
+                                id="userSearch"
+                                placeholder="Search by name or email"
+                                aria-label="Search registered users">
+                        </div>
 
-</div>
+                        <!-- Role Filter -->
+                        <select
+                            id="roleFilter"
+                            class="user-filter"
+                            aria-label="Filter by role">
 
+                            <option value="all">All roles</option>
+                            <option value="learner">Learners</option>
+                            <option value="admin">Admins</option>
+                            <option value="sponsor">Sponsors</option>
 
-<div class="child-card">
+                        </select>
 
-    <h3>🟢 Active Accounts</h3>
-     <h3> 15</h3>
-    <p>3 suspended accounts</p>
+                        <!-- Grade Filter -->
+                        <select
+                            id="gradeFilter"
+                            class="user-filter"
+                            aria-label="Filter by grade">
 
-</div>
+                            <option value="all">All grades</option>
 
+                        </select>
 
-<div class="child-card">
-    <h3>🆕 New This Month</h3>
-       <h3>0</h3>
-    <p>No new accounts this month</p>
-</div>
+                        <!-- Status Filter -->
+                        <select
+                            id="statusFilter"
+                            class="user-filter"
+                            aria-label="Filter by status">
+
+                            <option value="all">All statuses</option>
+                            <option value="active">Active</option>
+                            <option value="suspended">Suspended</option>
+
+                        </select>
+
+                        <!-- Add User -->
+                        <button
+                            type="button"
+                            class="add-user-btn"
+                            id="openAddUser">
+
+                            <span>+</span>
+                            Add User
+
+                        </button>
+
+                    </div>
+
+                    <!-- Users Table -->
+                    <div class="table-container">
+
+                        <table class="users-table">
+
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Grade</th>
+                                    <th>School</th>
+                                    <th>Region</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="usersTableBody">
+                                <tr>
+                                    <td colspan="8">Loading users...</td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </section>
+
+            </section>
+
+        </main>
 
     </div>
 
-</div>
-<!-- Users Table -->
-<section class="users-table-card">
+    <!-- Add / Edit User Modal -->
+    <div
+        id="addUserModal"
+        class="modal"
+        style="display: none;">
 
-    <div class="users-table-header">
-        <h2>Registered Users</h2>
-        <p>View registered learners and administrators.</p>
-    </div>
-      <div class="users-toolbar">
+        <div class="modal-content">
 
-        <!-- Search -->
+            <h2 id="userModalTitle">Add User</h2>
 
-        <div class="user-search-box">
+            <!-- Form Errors -->
+            <div
+                id="userFormError"
+                role="alert"
+                style="display: none;">
+            </div>
 
-            <input
-                type="text"
-                id="userSearch"
-                placeholder="Search by name or email"
-            >
+            <form id="userForm">
+
+                <!-- First Name -->
+                <label for="firstName">First Name</label>
+                <input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    placeholder="Enter first name"
+                    autocomplete="given-name"
+                    required>
+
+                <!-- Surname -->
+                <label for="surname">Surname</label>
+                <input
+                    id="surname"
+                    name="surname"
+                    type="text"
+                    placeholder="Enter surname"
+                    autocomplete="family-name"
+                    required>
+
+                <!-- Email -->
+                <label for="email">Email Address</label>
+                <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter email address"
+                    autocomplete="email"
+                    required>
+
+                <!-- Role -->
+                <label for="role">Role</label>
+                <select id="role" name="role" required>
+                    <option value="learner">Learner</option>
+                    <option value="admin">Admin</option>
+                    <option value="sponsor">Sponsor</option>
+                </select>
+
+                <!-- Learner-Specific Fields -->
+                <div id="learnerFields" style="display: none;">
+
+                    <!-- Grade -->
+                    <label for="grade">Grade</label>
+                    <select id="grade" name="grade">
+                        <option value="">Select grade</option>
+                    </select>
+
+                    <!-- Province -->
+                    <label for="province">Province</label>
+                    <select id="province" name="province">
+                        <option value="">All provinces</option>
+                    </select>
+
+                    <!-- Searchable School Picker -->
+                    <label for="schoolSearch">School</label>
+
+                    <div class="school-picker">
+
+                        <input
+                            type="text"
+                            id="schoolSearch"
+                            placeholder="Search for a school..."
+                            autocomplete="off"
+                            role="combobox"
+                            aria-autocomplete="list"
+                            aria-controls="schoolList"
+                            aria-expanded="false">
+
+                        <!-- Actual School ID is stored here -->
+                        <input
+                            type="hidden"
+                            id="school"
+                            name="school">
+
+                        <ul
+                            id="schoolList"
+                            role="listbox"
+                            hidden>
+                        </ul>
+
+                        <small id="schoolHint">
+                            Loading available schools...
+                        </small>
+
+                    </div>
+
+                </div>
+
+                <!-- Account Status -->
+                <label for="status">Account Status</label>
+                <select id="status" name="status" required>
+                    <option value="active">Active</option>
+                    <option value="suspended">Suspended</option>
+                </select>
+
+                <!-- Password Fields: Used When Creating -->
+                <div id="passwordFields">
+
+                    <label for="password">Password</label>
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        placeholder="Enter password"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required>
+
+                    <label for="confirmPassword">
+                        Confirm Password
+                    </label>
+                    <input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type="password"
+                        placeholder="Confirm password"
+                        autocomplete="new-password"
+                        minlength="8"
+                        required>
+
+                </div>
+
+                <!-- Form Actions -->
+                <div class="modal-actions">
+
+                    <button
+                        type="submit"
+                        id="saveUserBtn"
+                        class="add-user-btn">
+                        Save User
+                    </button>
+
+                    <button
+                        type="button"
+                        id="closeAddUser">
+                        Cancel
+                    </button>
+
+                </div>
+
+            </form>
+        
 
         </div>
 
-
-        <!-- Role Filter -->
-
-        <select id="roleFilter" class="user-filter">
-            <option value="all">All roles</option>
-            <option value="learner">Learners </option>
-            <option value="admin"> Admins</option>
-        </select>
-      <!-- Grade Filter -->
-      
-        <select id="gradeFilter" class="user-filter">
-
-            <option value="all">
-                All grades
-            </option>
-
-            <option value="8">
-                Grade 8
-            </option>
-
-            <option value="9">
-                Grade 9
-            </option>
-
-            <option value="10">
-                Grade 10
-            </option>
-
-            <option value="11">
-                Grade 11
-            </option>
-
-            <option value="12">
-                Grade 12
-            </option>
-
-        </select>
-
-
-        <!-- Status Filter -->
-
-        <select id="statusFilter" class="user-filter">
-
-            <option value="all">
-                All statuses
-            </option>
-
-            <option value="active">
-                Active
-            </option>
-
-            <option value="pending">
-                Pending
-            </option>
-
-            <option value="suspended">
-                Suspended
-            </option>
-
-        </select>
-         <!-- Add User -->
-    <button
-        type="button"
-        class="add-user-btn"
-        id="openAddUser">
-
-        <span>+</span>
-        Add User
-
-       </button>
-      </div>
-      <div class="table-container">
-        <table class="users-table">
-
-      <thead>
-        <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Grade</th>
-            <th>School</th>
-            <th>Region</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-      </thead>
-
-      <tbody id="usersTableBody">
-        <!-- The users are in the JS file which later will be the from the API -->
-      </tbody>
-
-      </table>
-
-       </div>
-
-      </section>
-      <!-- Add User Modal -->
-<div id="addUserModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <h2>Add User</h2>
-
-        <form>
-            <input id="firstName" type="text" placeholder="First name" required>
-            <input id="surname" type="text" placeholder="Surname" required>
-            <input id="email" type="email" placeholder="Email" required>
-
-            <select id="role" required>
-                <option value="learner">Learner</option>
-                <option value="admin">Admin</option>
-            </select>
-
-            <input id="grade" type="number" placeholder="Grade">
-            <input id="school" type="text" placeholder="School">
-
-            <input id="region" type="text" placeholder="Region">
-
-            <select id="status">
-                <option value="active">Active</option>
-                <option value="pending">Pending</option>
-                <option value="suspended">Suspended</option>
-            </select>
-
-            <input id="password" type="password" placeholder="Password" required>
-            <input id="confirmPassword" type="password" placeholder="Confirm password" required>
-
-            <button type="submit">Save User</button>
-            <button type="button" id="closeAddUser">Cancel</button>
-        </form>
     </div>
-</div>
 
+    <!-- Load API Helper Before Page Logic -->
+    <script src="../../EduQuest-with-js/EduQuest/js/api.js"></script>
+    <script src="../../js/admin-guard.js"></script>
+    <script src="../../js/Users.js"></script>
 
-       <script src="../../js/main.js"></script>
-   </main>
-
-  </div>
 </body>
 </html>

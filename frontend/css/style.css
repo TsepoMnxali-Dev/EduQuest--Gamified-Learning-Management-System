@@ -3020,3 +3020,320 @@ input {
         width: 100%;
     }
 }
+
+/* =========================================================
+   EDUQUEST - ADD / EDIT USER MODAL
+   ========================================================= */
+
+/* Dark background behind the form */
+#addUserModal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
+    overflow-y: auto;
+}
+
+/* Main form panel */
+#addUserModal .modal-content {
+    width: 100%;
+    max-width: 600px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+
+    padding: 32px;
+    background: #ffffff;
+    color: #1e293b;
+
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+
+    animation: userModalAppear 0.2s ease-out;
+}
+
+/* Modal heading */
+#addUserModal .modal-content h2 {
+    margin: 0 0 24px;
+    padding-bottom: 16px;
+
+    font-size: 25px;
+    font-weight: 700;
+    color: #172554;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Form layout */
+#addUserModal #userForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Field labels */
+#addUserModal #userForm > label,
+#addUserModal #learnerFields > label,
+#addUserModal #passwordFields > label {
+    display: block;
+    margin-top: 8px;
+
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+}
+
+/* Text fields, dropdowns and password fields */
+#addUserModal #userForm input:not([type="hidden"]),
+#addUserModal #userForm select {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+
+    padding: 11px 13px;
+
+    font-family: inherit;
+    font-size: 14px;
+    color: #1e293b;
+
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Placeholder text */
+#addUserModal #userForm input::placeholder {
+    color: #94a3b8;
+}
+
+/* Focus state */
+#addUserModal #userForm input:focus,
+#addUserModal #userForm select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.13);
+}
+
+/* Learner fields */
+#addUserModal #learnerFields {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    margin-top: 12px;
+    padding: 18px;
+
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+/* Password section */
+#addUserModal #passwordFields {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    margin-top: 8px;
+}
+
+/* Searchable school picker */
+#addUserModal .school-picker {
+    position: relative;
+    width: 100%;
+}
+
+#addUserModal #schoolSearch {
+    width: 100%;
+}
+
+#addUserModal #schoolHint {
+    display: block;
+    margin-top: 7px;
+
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* School search results */
+#addUserModal #schoolList {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 1010;
+
+    max-height: 220px;
+    overflow-y: auto;
+
+    margin: 0;
+    padding: 5px;
+
+    list-style: none;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+#addUserModal #schoolList[hidden] {
+    display: none;
+}
+
+#addUserModal #schoolList li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 11px 10px;
+    border-radius: 6px;
+
+    font-size: 13px;
+    cursor: pointer;
+}
+
+#addUserModal #schoolList li:hover,
+#addUserModal #schoolList li.active {
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+#addUserModal #schoolList li small {
+    color: #64748b;
+    text-align: right;
+}
+
+#addUserModal #schoolList li.empty {
+    color: #64748b;
+    cursor: default;
+}
+
+/* Error message */
+#addUserModal #userFormError {
+    margin-bottom: 16px;
+    padding: 12px 14px;
+
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Save and Cancel buttons */
+#addUserModal .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+
+    margin-top: 20px;
+    padding-top: 18px;
+
+    border-top: 1px solid #e2e8f0;
+}
+
+#addUserModal .modal-actions button {
+    min-height: 42px;
+    padding: 10px 20px;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+
+    transition: background 0.2s, transform 0.2s;
+}
+
+/* Save button */
+#addUserModal #saveUserBtn {
+    color: #ffffff;
+    background: #2563eb;
+}
+
+#addUserModal #saveUserBtn:hover {
+    background: #1d4ed8;
+}
+
+#addUserModal #saveUserBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Cancel button */
+#addUserModal #closeAddUser {
+    color: #334155;
+    background: #e2e8f0;
+}
+
+#addUserModal #closeAddUser:hover {
+    background: #cbd5e1;
+}
+
+/* Disabled fields */
+#addUserModal #userForm input:disabled,
+#addUserModal #userForm select:disabled {
+    color: #64748b;
+    background: #f1f5f9;
+    cursor: not-allowed;
+}
+
+/* Modal entrance animation */
+@keyframes userModalAppear {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Smaller screens */
+@media (max-width: 600px) {
+    #addUserModal {
+        padding: 12px;
+        align-items: center;
+    }
+
+    #addUserModal .modal-content {
+        max-height: calc(100vh - 24px);
+        padding: 22px 18px;
+        border-radius: 12px;
+    }
+
+    #addUserModal .modal-content h2 {
+        font-size: 22px;
+    }
+
+    #addUserModal .modal-actions {
+        flex-direction: column-reverse;
+    }
+
+    #addUserModal .modal-actions button {
+        width: 100%;
+    }
+}
+
+#usersTable .action-buttons {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
