@@ -16,7 +16,7 @@ namespace EduQuest.API.Controllers
         private readonly ApplicationDBContext _context;
         private readonly GeminiQuizGeneratorService _quizGenerator;
 
-        
+
         public QuizQuestionsController(
             ApplicationDBContext context,
             GeminiQuizGeneratorService quizGenerator)
@@ -334,9 +334,11 @@ namespace EduQuest.API.Controllers
             {
                 var questionEntity = new QuizQuestion
                 {
-                    QuestionText = q.QuestionText.Trim(),
-                    Explanation = q.Explanation.Trim(),
-                    SourceExtract = q.SourceExtract?.Trim(),
+                    // MathText.Normalize trims and repairs LaTeX that was damaged on its
+                    // way through JSON (e.g. "\\frac" arriving as a form feed + "rac").
+                    QuestionText = MathText.Normalize(q.QuestionText),
+                    Explanation = MathText.Normalize(q.Explanation),
+                    SourceExtract = MathText.NormalizeOrNull(q.SourceExtract),
 
                     // Mark the question as AI-generated.
                     // It must remain unapproved until an admin reviews it.
@@ -344,11 +346,11 @@ namespace EduQuest.API.Controllers
                     ApprovedByAdmin = true,
                     QuizID = quizId,
 
-                    
+
                     QuizOptions = q.Options
                         .Select(o => new QuizOption
                         {
-                            OptionText = o.OptionText.Trim(),
+                            OptionText = MathText.Normalize(o.OptionText),
                             IsCorrect = o.IsCorrect
                         })
                         .ToList()
