@@ -19,7 +19,6 @@ namespace EduQuest.API.Controllers
         private static readonly HashSet<string> AllowedGrades =
             new(StringComparer.OrdinalIgnoreCase)
             {
-          
                 "Grade 10",
                 "Grade 11",
                 "Grade 12"
@@ -31,10 +30,13 @@ namespace EduQuest.API.Controllers
         }
 
         // GET: api/grades
+        // Public: the sign-up page needs this before the learner has an account.
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<GradeDto>>> GetGrades()
         {
             var grades = await _context.Grades
+                .OrderBy(grade => grade.GradeID)
                 .Select(grade => new GradeDto
                 {
                     GradeID = grade.GradeID,
@@ -46,6 +48,7 @@ namespace EduQuest.API.Controllers
         }
 
         // GET: api/grades/{id}
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<GradeDto>> GetGrade(int id)
         {
@@ -75,7 +78,7 @@ namespace EduQuest.API.Controllers
             // Normalize the input
             var gradeName = dto.GradeName.Trim();
 
-            // Layer 2: Check that the grade is Grade 8–12
+            // Layer 2: Check that the grade is Grade 10–12
             var validGrade = AllowedGrades.FirstOrDefault(
                 grade => string.Equals(
                     grade,
@@ -89,7 +92,7 @@ namespace EduQuest.API.Controllers
             }
 
             // Store the canonical version
-            // e.g. "grade 8" becomes "Grade 8"
+            // e.g. "grade 10" becomes "Grade 10"
             gradeName = validGrade;
 
             // Layer 2: Prevent duplicate grades
@@ -140,7 +143,7 @@ namespace EduQuest.API.Controllers
             // Normalize the input
             var gradeName = dto.GradeName.Trim();
 
-            // Layer 2: Check that the grade is Grade 8–12
+            // Layer 2: Check that the grade is Grade 10–12
             var validGrade = AllowedGrades.FirstOrDefault(
                 grade => string.Equals(
                     grade,

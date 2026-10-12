@@ -18,6 +18,7 @@ namespace EduQuest.API.Controllers
         }
 
         // GET: api/provinces
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> GetProvinces()
         {
@@ -33,6 +34,7 @@ namespace EduQuest.API.Controllers
         }
 
         // GET: api/provinces/{id}
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProvince(int id)
         {

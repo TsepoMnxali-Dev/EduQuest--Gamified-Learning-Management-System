@@ -21,6 +21,7 @@ namespace EduQuest.API.Controllers
 
         // GET: api/schools
         // Optional filter: api/schools?provinceId=1
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<SchoolDto>>> GetSchools(
             int? provinceId = null)
@@ -50,6 +51,7 @@ namespace EduQuest.API.Controllers
         }
 
         // GET: api/schools/{id}
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<SchoolDto>> GetSchool(int id)
         {
