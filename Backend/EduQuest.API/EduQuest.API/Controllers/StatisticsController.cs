@@ -129,6 +129,7 @@ namespace EduQuest.API.Controllers
         {
             var result = await _statisticsService.GetIndividualLearnerStatisticsAsync(learnerId);
 
+
             if (result == null)
             {
                 return NotFound($"Learner with ID {learnerId} was not found.");

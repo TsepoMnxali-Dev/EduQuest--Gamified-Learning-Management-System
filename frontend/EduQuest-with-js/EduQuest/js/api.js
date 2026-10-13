@@ -1,301 +1,613 @@
+
 /* =============================================================
-   EduQuest - api.js  (shared by every page)
+   EduQuest - Shared API Helper
 
-   Small helper for talking to the EduQuest backend API and for
-   keeping track of the signed-in user's session (JWT token) in
-   the browser. Load this script BEFORE a page's own script, e.g.:
-
-       <script src="js/api.js" defer></script>
-       <script src="js/login.js" defer></script>
-
-   Everything is exposed on window.EduQuestAPI.
+   CHANGED:
+   1. Saves JWT and authenticated user information.
+   2. Returns the learner's first and last names.
+   3. Preserves JWT expiration checks.
+   4. Preserves Admin and Learner role protection.
+   5. Preserves API requests and file downloads.
+   6. Clears user information on logout.
 ============================================================= */
+
 window.EduQuestAPI = (function () {
     "use strict";
 
-    /* Change this if your backend runs on a different host/port.
-       This matches the "https" launch profile in launchSettings.json. */
-    var BASE_URL = "https://localhost:7021/api";
+    // ==========================================
+    // CONFIGURATION
+    // ==========================================
 
-    var TOKEN_KEY = "eduquest_token";
+    const BASE_URL = "https://localhost:7021/api";
 
-    function saveToken(token) {
+    const TOKEN_KEY = "eduquest_token";
+
+    // NEW: Storage key for authenticated user details.
+    const USER_KEY = "eduquest_user";
+
+    // Capture script location.
+    const scriptUrl = document.currentScript.src;
+
+    const HOME_PAGE = new URL(
+        "../index.html",
+        scriptUrl
+    ).href;
+
+    const LOGIN_PAGE = new URL(
+        "../login.html",
+        scriptUrl
+    ).href;
+
+    const LEARNER_DASHBOARD = new URL(
+        "../dashboard.html",
+        scriptUrl
+    ).href;
+
+    const ADMIN_DASHBOARD = new URL(
+        "../../../pages/admin/dashboard.html",
+        scriptUrl
+    ).href;
+
+    // ==========================================
+    // TOKEN MANAGEMENT
+    // ==========================================
+
+    // CHANGED:
+    // Saves the token and optional user details
+    // returned by the backend.
+    function saveToken(token, user) {
+        if (!token || typeof token !== "string") {
+            throw new Error("Invalid authentication token.");
+        }
+
         localStorage.setItem(TOKEN_KEY, token);
+
+        if (user) {
+            const claims = decodeToken(token);
+
+            const tokenUserId = claims
+                ? getUserIdFromClaims(claims)
+                : null;
+
+            // NEW: Only associate profile details
+            // with the user identified by the JWT.
+            if (
+                tokenUserId !== null &&
+                Number(user.userId) === tokenUserId
+            ) {
+                const profile = {
+                    userId: tokenUserId,
+                    firstName: user.firstName || "",
+                    lastName: user.lastName || "",
+                    email: user.email || ""
+                };
+
+                localStorage.setItem(
+                    USER_KEY,
+                    JSON.stringify(profile)
+                );
+            } else {
+                localStorage.removeItem(USER_KEY);
+            }
+        } else {
+            localStorage.removeItem(USER_KEY);
+        }
     }
 
-    function getToken() {
-        return localStorage.getItem(TOKEN_KEY);
-    }
-
+    // CHANGED:
+    // Clear both token and saved profile.
     function clearToken() {
         localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
     }
 
-    /* Decodes the JWT payload on the client so pages can show the
-       signed-in user's id/email/role without another server call.
-       This does NOT verify the token - the server still does that
-       on every request - it just reads the claims already inside it. */
-    function getCurrentUser() {
-        var token = getToken();
-        if (!token) return null;
+    // ==========================================
+    // JWT DECODING
+    // ==========================================
+
+    function decodeToken(token) {
+        if (!token) {
+            return null;
+        }
 
         try {
-            var payload = token.split(".")[1];
-            var json = decodeURIComponent(
-                atob(payload.replace(/-/g, "+").replace(/_/g, "/"))
-                    .split("")
-                    .map(function (c) {
-                        return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-                    })
-                    .join("")
-            );
-            var claims = JSON.parse(json);
+            const parts = token.split(".");
 
-            var rawId =
-                claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] ||
-                claims.nameid ||
-                claims.sub ||
-                claims.uid ||
-                claims.userId;
-            var userId = Number(rawId);
-
-            /* If the id claim is missing or not numeric, treat the
-               session as unreadable instead of returning NaN. */
-            if (!rawId || Number.isNaN(userId)) {
-                console.warn("EduQuestAPI: could not find a numeric user id in the token. Claims:", claims);
+            if (parts.length !== 3) {
                 return null;
             }
 
-            return {
-                userId: userId,
-                email:
-                    claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"] ||
-                    claims.email,
-                role:
-                    claims["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ||
-                    claims.role
-            };
-        } catch (err) {
+            const base64 = parts[1]
+                .replace(/-/g, "+")
+                .replace(/_/g, "/");
+
+            const json = decodeURIComponent(
+                atob(base64)
+                    .split("")
+                    .map(function (character) {
+                        return "%" +
+                            (
+                                "00" +
+                                character.charCodeAt(0)
+                                    .toString(16)
+                            ).slice(-2);
+                    })
+                    .join("")
+            );
+
+            return JSON.parse(json);
+        } catch (error) {
             return null;
         }
     }
 
-    /* Call this at the top of any page that requires sign-in.
-       Sends visitors without a session back to login.html. */
-    function requireAuth() {
-        if (!getToken()) {
-            window.location.href = "login.html";
+    // ==========================================
+    // USER ID FROM JWT
+    // ==========================================
+
+    // NEW: Reusable helper for reading
+    // the user identifier from JWT claims.
+    function getUserIdFromClaims(claims) {
+        if (!claims) {
+            return null;
         }
+
+        const rawId =
+            claims[
+                "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+            ] ||
+            claims.nameid ||
+            claims.sub ||
+            claims.userId;
+
+        const userId = Number(rawId);
+
+        if (
+            rawId === undefined ||
+            rawId === null ||
+            rawId === "" ||
+            !Number.isInteger(userId) ||
+            userId <= 0
+        ) {
+            return null;
+        }
+
+        return userId;
     }
 
+    // ==========================================
+    // GET VALID TOKEN
+    // ==========================================
+
+    function getToken() {
+        const token = localStorage.getItem(TOKEN_KEY);
+
+        if (!token) {
+            return null;
+        }
+
+        const claims = decodeToken(token);
+
+        if (
+            !claims ||
+            !claims.exp ||
+            claims.exp <= Math.floor(Date.now() / 1000)
+        ) {
+            clearToken();
+            return null;
+        }
+
+        return token;
+    }
+
+    // ==========================================
+    // CURRENT AUTHENTICATED USER
+    // ==========================================
+
+    // CHANGED:
+    // Identity and role come from JWT claims.
+    // Names come from the saved backend response.
+    function getCurrentUser() {
+        const token = getToken();
+
+        if (!token) {
+            return null;
+        }
+
+        const claims = decodeToken(token);
+
+        if (!claims) {
+            return null;
+        }
+
+        const userId = getUserIdFromClaims(claims);
+
+        if (userId === null) {
+            return null;
+        }
+
+        // NEW: Retrieve saved profile details.
+        let savedUser = {};
+
+        try {
+            savedUser = JSON.parse(
+                localStorage.getItem(USER_KEY) || "{}"
+            ) || {};
+        } catch (error) {
+            savedUser = {};
+        }
+
+        // NEW: Do not use profile information
+        // belonging to a different user.
+        const matchingProfile =
+            Number(savedUser.userId) === userId
+                ? savedUser
+                : {};
+
+        const email =
+            claims[
+                "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+            ] ||
+            claims.email ||
+            "";
+
+        const role =
+            claims[
+                "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+            ] ||
+            claims.role ||
+            "";
+
+        return {
+            userId: userId,
+
+            // NEW: Real learner/admin names.
+            firstName: matchingProfile.firstName || "",
+            lastName: matchingProfile.lastName || "",
+
+            email: email,
+            role: role
+        };
+    }
+
+    // ==========================================
+    // AUTHENTICATION
+    // ==========================================
+
+    function requireAuth() {
+        if (!getCurrentUser()) {
+            window.location.replace(LOGIN_PAGE);
+            return false;
+        }
+
+        return true;
+    }
+
+    function requireLearner() {
+        if (!requireAuth()) {
+            return false;
+        }
+
+        const user = getCurrentUser();
+
+        if (
+            String(user.role).trim().toLowerCase() !==
+            "learner"
+        ) {
+            window.location.replace(ADMIN_DASHBOARD);
+            return false;
+        }
+
+        return true;
+    }
+
+    function requireAdmin() {
+        if (!requireAuth()) {
+            return false;
+        }
+
+        const user = getCurrentUser();
+
+        if (
+            String(user.role).trim().toLowerCase() !==
+            "admin"
+        ) {
+            window.location.replace(LEARNER_DASHBOARD);
+            return false;
+        }
+
+        return true;
+    }
+
+    // ==========================================
+    // LOGOUT
+    // ==========================================
+
+    // CHANGED:
+    // Remove token and profile information.
     function logout() {
         clearToken();
-        window.location.href = "login.html";
+        window.location.replace(HOME_PAGE);
     }
 
-    /* Pulls the most useful message out of an error response.
-       ASP.NET validation failures put the real messages in data.errors. */
-    function extractErrorMessage(data, status, sentToken) {
-        if (data && typeof data === "object") {
-            if (data.errors && typeof data.errors === "object") {
-                var all = Object.keys(data.errors).reduce(function (acc, key) {
-                    return acc.concat(data.errors[key]);
-                }, []);
-                if (all.length > 0) return all[0];
-            }
-            if (data.message) return data.message;
-            if (data.title) return data.title;
-        }
-        if (typeof data === "string" && data) return data;
+    // ==========================================
+    // REQUEST HEADERS
+    // ==========================================
 
-        if (status === 401 && !sentToken) return "Incorrect email or password.";
-        return "Request failed (" + status + ").";
-    }
-
-    /* Core request helper.
-       - Adds the JSON content-type header ONLY when there is a body
-         (avoids needless CORS preflights on GET requests).
-       - Adds "Authorization: Bearer <token>" automatically when signed in
-         (pass { auth: false } to skip this, e.g. for login/register).
-       - Throws a plain Error with a readable message on any failure,
-         so callers can just try/catch and show err.message. */
-    async function request(path, options) {
+    function authHeaders(options) {
         options = options || {};
-        var headers = {};
-        var hasBody = options.body !== undefined && options.body !== null;
-        var sentToken = false;
 
-        if (hasBody) headers["Content-Type"] = "application/json";
+        const headers = {};
 
         if (options.auth !== false) {
-            var token = getToken();
+            const token = getToken();
+
             if (token) {
-                headers.Authorization = "Bearer " + token;
-                sentToken = true;
+                headers.Authorization =
+                    "Bearer " + token;
             }
         }
 
-        /* Browsers block API calls from pages opened by double-clicking
-           the HTML file (file://). It must be served over http(s). */
-        if (window.location.protocol === "file:") {
-            throw new Error(
-                "This page was opened as a file. Open it through a local web server " +
-                "(e.g. VS Code Live Server) instead of double-clicking it."
+        return headers;
+    }
+
+    // ==========================================
+    // ERROR HANDLING
+    // ==========================================
+
+    function readableError(data, status) {
+        if (data && data.errors) {
+            const messages = [];
+
+            Object.keys(data.errors).forEach(
+                function (key) {
+                    [].concat(data.errors[key]).forEach(
+                        function (message) {
+                            messages.push(message);
+                        }
+                    );
+                }
             );
+
+            if (messages.length) {
+                return messages.join(" ");
+            }
         }
 
-        /* Give up after 15 seconds so the page never hangs forever. */
-        var controller = new AbortController();
-        var timeoutId = setTimeout(function () { controller.abort(); }, 15000);
+        return (
+            (data && (data.message || data.title)) ||
+            (typeof data === "string" && data) ||
+            "Request failed (" + status + ")."
+        );
+    }
 
-        var response;
+    function networkError() {
+        return new Error(
+            "Could not reach the EduQuest server. " +
+            "Make sure the backend API is running at " +
+            BASE_URL + "."
+        );
+    }
+
+    // ==========================================
+    // API REQUESTS
+    // ==========================================
+
+    async function request(path, options) {
+        options = options || {};
+
+        const headers = authHeaders(options);
+
+        const isForm =
+            typeof FormData !== "undefined" &&
+            options.body instanceof FormData;
+
+        let body;
+
+        if (isForm) {
+            body = options.body;
+        } else {
+            headers["Content-Type"] =
+                "application/json";
+
+            body = options.body !== undefined
+                ? JSON.stringify(options.body)
+                : undefined;
+        }
+
+        let response;
+
         try {
             response = await fetch(BASE_URL + path, {
                 method: options.method || "GET",
                 headers: headers,
-                body: hasBody ? JSON.stringify(options.body) : undefined,
-                signal: controller.signal
+                body: body
             });
-        } catch (networkErr) {
-            if (networkErr && networkErr.name === "AbortError") {
-                throw new Error("The server took too long to respond. Please try again.");
-            }
-            console.error(
-                "EduQuestAPI: request to " + BASE_URL + path + " failed.\n" +
-                "Page origin: " + window.location.origin + "\n" +
-                "Check: (1) the API is running, (2) the https dev certificate is trusted " +
-                "(open " + BASE_URL + " in the browser once), (3) this origin is in the " +
-                "backend CORS list.",
-                networkErr
-            );
-            throw new Error(
-                "Could not reach the EduQuest server at " + BASE_URL +
-                ". Make sure the API is running (see the browser console for details)."
-            );
-        } finally {
-            clearTimeout(timeoutId);
+        } catch (error) {
+            throw networkError();
         }
 
-        /* Only an expired/invalid SESSION if we actually sent a token.
-           A 401 from login (no token sent) means wrong credentials. */
-        if (response.status === 401 && sentToken) {
+        // ======================================
+        // UNAUTHORIZED
+        // ======================================
+
+        if (response.status === 401) {
+            if (options.auth === false) {
+                throw new Error(
+                    "Incorrect email or password. Please try again."
+                );
+            }
+
             clearToken();
-            throw new Error("Your session has expired. Please sign in again.");
+
+            throw new Error(
+                "Your session has expired. Please sign in again."
+            );
         }
+
+        // ======================================
+        // FORBIDDEN
+        // ======================================
+
+        if (response.status === 403) {
+            throw new Error(
+                "You do not have permission to perform this action."
+            );
+        }
+
+        // ======================================
+        // NO CONTENT
+        // ======================================
 
         if (response.status === 204) {
             return null;
         }
 
-        var data = null;
-        var text = await response.text();
-        if (text) {
+        // ======================================
+        // READ RESPONSE
+        // ======================================
+
+        const responseText = await response.text();
+
+        let data = null;
+
+        if (responseText) {
             try {
-                data = JSON.parse(text);
-            } catch (parseErr) {
-                data = text;
+                data = JSON.parse(responseText);
+            } catch (error) {
+                data = responseText;
             }
         }
 
         if (!response.ok) {
-            throw new Error(extractErrorMessage(data, response.status, sentToken));
+            throw new Error(
+                readableError(data, response.status)
+            );
         }
 
         return data;
     }
 
-    /* ---------------------------------------------------------
-       Ready-made calls for every backend endpoint, so any page can
-       load real data instead of hard-coded sample content, e.g.
+    // ==========================================
+    // PROTECTED FILE DOWNLOADS
+    // ==========================================
 
-           EduQuestAPI.grades.list().then(function (grades) { ... });
-    --------------------------------------------------------- */
-    var provinces = {
-        list: function () { return request("/provinces", { auth: false }); },
-        get: function (id) { return request("/provinces/" + id, { auth: false }); }
-    };
+    async function getBlob(path, options) {
+        options = options || {};
 
-    var grades = {
-        list: function () { return request("/grades", { auth: false }); },
-        get: function (id) { return request("/grades/" + id, { auth: false }); }
-    };
+        let response;
 
-    var subjects = {
-        list: function () { return request("/subjects", { auth: false }); },
-        get: function (id) { return request("/subjects/" + id, { auth: false }); }
-    };
-
-    var schools = {
-        list: function (provinceId) {
-            var query = provinceId ? "?provinceId=" + encodeURIComponent(provinceId) : "";
-            return request("/schools" + query, { auth: false });
-        },
-        get: function (id) { return request("/schools/" + id, { auth: false }); }
-    };
-
-    var learners = {
-        get: function (id) { return request("/learners/" + id); },
-        update: function (id, body) {
-            return request("/learners/" + id, { method: "PUT", body: body });
-        }
-    };
-
-    var auth = {
-        login: function (email, password) {
-            return request("/auth/login", {
-                method: "POST", body: { email: email, password: password }, auth: false
-            }).then(function (result) {
-                saveToken(result.token);
-                return result;
+        try {
+            response = await fetch(BASE_URL + path, {
+                headers: authHeaders(options)
             });
-        },
-        registerLearner: function (body) {
-            return request("/auth/register-learner", {
-                method: "POST", body: body, auth: false
-            }).then(function (result) {
-                saveToken(result.token);
-                return result;
-            });
+        } catch (error) {
+            throw networkError();
         }
-    };
 
-    /* Use when putting server text into innerHTML. (textContent is safer
-       and preferred; this is for template strings.) */
-    function escapeHtml(value) {
-        return String(value === null || value === undefined ? "" : value)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;");
+        if (response.status === 401) {
+            clearToken();
+
+            throw new Error(
+                "Your session has expired. Please sign in again."
+            );
+        }
+
+        if (response.status === 403) {
+            throw new Error(
+                "You do not have permission to download this file."
+            );
+        }
+
+        if (!response.ok) {
+            const responseText = await response.text();
+
+            let data = responseText;
+
+            try {
+                data = JSON.parse(responseText);
+            } catch (error) {
+                // Keep original response text.
+            }
+
+            throw new Error(
+                readableError(data, response.status)
+            );
+        }
+
+        return response.blob();
     }
+
+    // ==========================================
+    // PUBLIC API
+    // ==========================================
 
     return {
         BASE_URL: BASE_URL,
-        provinces: provinces,
-        grades: grades,
-        subjects: subjects,
-        schools: schools,
-        learners: learners,
-        auth: auth,
-        escapeHtml: escapeHtml,
+
         get: function (path, options) {
-            return request(path, Object.assign({ method: "GET" }, options));
+            return request(
+                path,
+                Object.assign(
+                    { method: "GET" },
+                    options
+                )
+            );
         },
+
         post: function (path, body, options) {
-            return request(path, Object.assign({ method: "POST", body: body }, options));
+            return request(
+                path,
+                Object.assign(
+                    {
+                        method: "POST",
+                        body: body
+                    },
+                    options
+                )
+            );
         },
+
         put: function (path, body, options) {
-            return request(path, Object.assign({ method: "PUT", body: body }, options));
+            return request(
+                path,
+                Object.assign(
+                    {
+                        method: "PUT",
+                        body: body
+                    },
+                    options
+                )
+            );
         },
+
         del: function (path, options) {
-            return request(path, Object.assign({ method: "DELETE" }, options));
+            return request(
+                path,
+                Object.assign(
+                    { method: "DELETE" },
+                    options
+                )
+            );
         },
+
+        getBlob: getBlob,
+
+        // TOKEN MANAGEMENT
         saveToken: saveToken,
         getToken: getToken,
         clearToken: clearToken,
+
+        // CURRENT USER
         getCurrentUser: getCurrentUser,
+
+        // AUTHENTICATION
         requireAuth: requireAuth,
+        requireAdmin: requireAdmin,
+        requireLearner: requireLearner,
+
+        // LOGOUT
         logout: logout
     };
+
 })();

@@ -1,125 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduQuest | Learner Dashboard</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>EduQuest | Leaderboard</title>
+
+    <!-- Existing EduQuest stylesheet -->
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        .dash-status{color:#666f78;font-size:13px;margin:0}
-        .dash-status.error{color:#b42318}
-        .dash-note{color:#666f78;font-size:12px;text-align:center;margin:10px 0 0}
-        .dashboard-list-item.you{background:#e9f7f6;border-radius:10px}
-        .dashboard-list-item.gap{justify-content:center;color:#9aa3ab}
-    </style>
+    <link rel="stylesheet" href="css/theme-unified.css">
 </head>
 
 <body>
-<div class="app">
 
-    <aside class="sidebar">
-        <div>
-            <div class="brand">
-                <img src="images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo">
+    <div class="app">
 
-            </div>
+        <!-- ======================================
+             LEARNER SIDEBAR
+             ====================================== -->
 
-            <nav class="sidebar-nav">
-                <a href="dashboard.html" class="nav-link active">Home</a>
-                <a href="classes.html" class="nav-link">Classes</a>
-                <a href="Quizzes.html" class="nav-link">Quizzes</a>
-                <a href="resources.html" class="nav-link">Resources</a>
-                <a href="leaderboard.html" class="nav-link">Leaderboard</a>
-                <a href="profile.html" class="nav-link">Profile</a>
-                <a href="help.html" class="nav-link">Help &amp; Support</a>
-                <a href="help.html" class="nav-link" id="logoutLink">Log Out</a>
-            </nav>
-        </div>
-
-        <div class="sidebar-social">
-            <a href="#">Instagram</a>
-            <a href="#">Facebook</a>
-        </div>
-    </aside>
-
-    <main class="main">
-
-        <div class="dashboard-topbar">
-            <div class="dashboard-welcome">
-                <h1 id="welcomeHeading">Welcome back!</h1>
-                <p>Keep learning, improving, and reach your goals.</p>
-            </div>
-
-            <div class="profile-mini">
-                <div class="profile-avatar" id="profileAvatar"></div>
-                <span id="profileLabel"></span>
-            </div>
-        </div>
-
-        <div class="dashboard-grid">
+        <aside class="sidebar">
 
             <div>
 
-                <section class="dashboard-section">
-                    <h2 class="dashboard-section-title">Recent Activity</h2>
+                <div class="brand">
+                    <img src="images/eduquest-logo.png"
+                         alt="EduQuest Logo"
+                         class="brand-logo">
+                </div>
 
-                    <div class="activity-card" id="activityList">
-                        <p class="dash-status">Loading&hellip;</p>
-                    </div>
-                </section>
+                <nav class="sidebar-nav">
 
-                <section class="dashboard-section">
-                    <h2 class="dashboard-section-title">Classes</h2>
+                    <a href="dashboard.html"
+                       class="nav-link">
+                        Home
+                    </a>
 
-                    <div class="subject-grid" id="subjectGrid">
-                        <p class="dash-status">Loading&hellip;</p>
-                    </div>
-                </section>
-            </div>
+                    <a href="classes.html"
+                       class="nav-link">
+                        Classes
+                    </a>
 
-            <div>
-                <section class="dashboard-section">
-                    <div class="score-card">
-                        <p>My Total Score</p>
-                        <div class="score-number" id="scoreNumber">&ndash;</div>
-                        <p id="scoreMessage"></p>
-                    </div>
-                </section>
+                    <a href="Quizzes.html"
+                       class="nav-link">
+                        Quizzes
+                    </a>
 
-                <section class="dashboard-section">
-                    <h2 class="dashboard-section-title">My Ranking</h2>
+                    <a href="resources.html"
+                       class="nav-link">
+                        Resources
+                    </a>
 
-                    <div class="dashboard-list" id="rankingList">
-                        <p class="dash-status">Loading&hellip;</p>
-                    </div>
-                    <p class="dash-note" id="rankingNote"></p>
-                </section>
+                    <a href="leaderboard.html"
+                       class="nav-link active">
+                        Leaderboard
+                    </a>
 
-                <section class="dashboard-section">
-                    <div class="card">
-                        <h3>Learning Goal</h3>
-                        <p style="color:#666f78; margin:8px 0 14px;" id="goalText">
-                            Complete 5 quizzes this week.
-                        </p>
+                    <a href="profile.html"
+                       class="nav-link">
+                        Profile
+                    </a>
 
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="goalFill" style="width:0%"></div>
-                        </div>
+                    <a href="#"
+                       class="nav-link">
+                        Help &amp; Support
+                    </a>
 
-                        <div class="progress-label">
-                            <span id="goalCount">&ndash;</span>
-                            <span id="goalPercent"></span>
-                        </div>
-                    </div>
-                </section>
+                </nav>
 
             </div>
 
-        </div>
+            <div class="sidebar-social">
+                <a href="#">Instagram</a>
+                <a href="#">Facebook</a>
+            </div>
 
-    </main>
-</div>
-    <script src="js/api.js" defer></script>
-    <script src="js/dashboard.js" defer></script>
-</body>
-</html>
+        </aside>
+
+        <!-- ======================================
+             MAIN LEADERBOARD CONTENT
+             ================

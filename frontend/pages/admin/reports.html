@@ -1,367 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Manage Reports | EduQuest</title>
+    <title>Reports &amp; Analytics | EduQuest</title>
 
     <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/admin-theme.css">
+    <link rel="stylesheet" href="../../css/admin-reports.css">
 </head>
 
 <body>
 
-    <!-- Topbar -->
-    <header class="topbar">
-
-        <div class="topbar-search">
-            <input 
-                type="search" 
-                placeholder="Search EduQuest..."
-            >
-        </div>
-
-        <div class="topbar-actions">
-
-            <button class="notification-btn">
-                🔔
-            </button>
-
-            <button class="profile-btn">
-                👤 Admin
-            </button>
-
-        </div>
-
-    </header>
-    <!-- Dashboard layout -->
     <div class="app">
 
         <!-- Sidebar -->
         <aside class="sidebar">
-
             <div>
-
                 <div class="brand">
-
-                    <img 
-                        src="../../images/EduQuestLogo.jpg"
-                        alt="EduQuest Logo"
-                        class="brand-logo"
-                    >
-
-                    <div class="brand-name">
-                        EduQuest
-                    </div>
-
+                    <img src="../../images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo">
                 </div>
 
-
-                <!-- Navigation -->
-                <nav class="sidebar-nav">
-
-                    <a href="dashboard.html" class="nav-link">
-                        Home
-                    </a>
-
-                    <a href="users.html" class="nav-link">
-                        Users
-                    </a>
-
-                    <a href="quiz.html" class="nav-link">
-                        Quizzes
-                    </a>
-
-                    <a href="resources.html" class="nav-link">
-                        Resources
-                    </a>
-
-                    <a href="competition.html" class="nav-link">
-                        Competitions
-                    </a>
-
-                    <a href="leaderboard.html" class="nav-link">
-                        Leaderboard
-                    </a>
-
-                    <a href="reports.html" class="nav-link active">
-                        Reports
-                    </a>
-
+                <nav class="sidebar-nav" aria-label="Admin navigation">
+                    <a class="nav-link" href="dashboard.html">Home</a>
+                    <a class="nav-link" href="users.html">Users</a>
+                    <a class="nav-link" href="quiz.html">Quizzes</a>
+                    <a class="nav-link" href="resources.html">Resources</a>
+                    <a class="nav-link" href="competition.html">Competitions</a>
+                    <a class="nav-link" href="leaderboard.html">Leaderboard</a>
+                    <a class="nav-link active" href="reports.html" aria-current="page">Reports</a>
+                    <button class="nav-link" type="button" id="adminLogout" style="width:100%; text-align:center;">Log Out</button>
                 </nav>
-
-            </div>
-             <!-- Sidebar footer -->
-            <div class="sidebar-footer">
-
-                <p>
-                    Enhancing education through tech.
-                </p>
-
-                <small>
-                    © 2026 EduQuest
-                </small>
-
             </div>
 
+            <div class="sidebar-social">
+                <a href="#">Instagram</a>
+                <a href="#">Facebook</a>
+            </div>
         </aside>
-          <!-- Main content -->
-        <main class="main">
 
-            <section class="home-content">
+        <!-- Main content -->
+        <main class="main report-main">
 
-                <div class="page-header">
-                    <h1>
-                        Reports
-                    </h1>
-
-                    <p>
-                        How EduQuest is being used and Learner performance summaries.
-                    </p>
-
+            <header class="report-heading">
+                <div>
+                    <h1>Reports &amp; Analytics</h1>
+                    <p>Live EduQuest statistics, learner performance and system activity.</p>
                 </div>
-             <!-- FILTERS -->
-            <section class="filter-bar">
-
-                <div class="filter-field">
-                    <label for="fDate">Date range</label>
-
-                    <select id="fDate">
-                        <option value="All time">All time</option>
-                        <option value="Last 7 days">Last 7 days</option>
-                        <option value="Last 30 days">Last 30 days</option>
-                        <option value="This term">This term</option>
-                        <option value="This year">This year</option>
-                    </select>
+                <div class="report-actions">
+                    <button class="rbtn secondary" id="refreshBtn" type="button">Refresh data</button>
+                    <button class="rbtn primary" id="exportBtn" type="button">Export CSV</button>
                 </div>
+            </header>
 
+            <div id="reportMessage" class="report-message" role="status" aria-live="polite">Loading reports&hellip;</div>
 
-                <div class="filter-field">
-                    <label for="fProvince">Regions</label>
-
-                    <select id="fProvince">
-                        <option value="all">All regions</option>
-                        <option>Nelson Mandela Bay</option>
-                        <option>Buffallo City</option>
-                        <option>Sarah Baartman</option>
-                        <option>Chris Hani</option>
-                        <option>Joe Gqabi</option>
-                    </select>
+            <section aria-label="Platform overview">
+                <div class="section-title">
+                    <h2>Platform overview</h2>
+                    <span>All-time database totals</span>
                 </div>
-
-
-                <div class="filter-field">
-                    <label for="fGrade">Grade</label>
-
-                    <select id="fGrade">
-                        <option value="all">All grades</option>
-                        <option>Grade 10</option>
-                        <option>Grade 11</option>
-                        <option>Grade 12</option>
-                    </select>
+                <div id="summaryCards" class="summary-grid">
+                    <p>Loading&hellip;</p>
                 </div>
-
-
-                <div class="filter-field">
-                    <label for="fSubject">Subject</label>
-
-                    <select id="fSubject">
-                        <option value="all">All subjects</option>
-                        <option>Mathematics</option>
-                        <option>Physical Sciences</option>
-                        <option>Accounting</option>
-                    </select>
-                </div>
-
-
-                <button class="report-btn report-btn-primary" id="applyBtn">
-                    Apply filters
-                </button>
-
-                <button class="report-btn report-btn-ghost" id="resetBtn">
-                    Reset
-                </button>
-
-                <button class="report-btn report-btn-ghost" id="exportBtn">
-                    Export report
-                </button>
-
-                <p class="filter-status" id="filterStatus">
-                    Showing all-time data, all provinces
-                </p>
-
             </section>
 
+            <section class="report-grid" aria-label="Learner distribution">
+                <article class="report-panel">
+                    <h2>Learners by province</h2>
+                    <div id="provinceChart" class="bar-chart">Loading&hellip;</div>
+                </article>
+                <article class="report-panel">
+                    <h2>Learners by grade</h2>
+                    <div id="gradeChart" class="bar-chart">Loading&hellip;</div>
+                </article>
+                <article class="report-panel">
+                    <h2>Learners by school</h2>
+                    <div id="schoolChart" class="bar-chart">Loading&hellip;</div>
+                </article>
+                <article class="report-panel">
+                    <h2>Quiz pass / fail</h2>
+                    <div id="passFail">Loading&hellip;</div>
+                </article>
+            </section>
 
-            <!-- SUMMARY CARDS -->
-            <section class="report-summary">
-
-                <div class="summary-card">
-                    <div class="summary-label">Total learners</div>
-                    <div class="summary-value">512</div>
+            <section aria-label="Academic performance">
+                <div class="section-title">
+                    <h2>Academic performance</h2>
+                    <span>Average quiz attempt scores</span>
                 </div>
+                <div class="report-grid">
+                    <article class="report-panel">
+                        <h3>By subject</h3>
+                        <div id="subjectPerformance" class="bar-chart">Loading&hellip;</div>
+                    </article>
+                    <article class="report-panel">
+                        <h3>By grade</h3>
+                        <div id="gradePerformance" class="bar-chart">Loading&hellip;</div>
+                    </article>
+                    <article class="report-panel">
+                        <h3>By province</h3>
+                        <div id="provincePerformance" class="bar-chart">Loading&hellip;</div>
+                    </article>
+                    <article class="report-panel">
+                        <h3>By topic</h3>
+                        <div id="topicPerformance" class="bar-chart">Loading&hellip;</div>
+                    </article>
+                    <article class="report-panel">
+                        <h3>By school</h3>
+                        <div id="schoolPerformance" class="bar-chart">Loading&hellip;</div>
+                    </article>
+                    <article class="report-panel">
+                        <h3>Quiz engagement</h3>
+                        <div id="quizEngagement">Loading&hellip;</div>
+                    </article>
+                </div>
+            </section>
 
-                <div class="summary-card">
-                    <div class="summary-label">Active learners</div>
-                    <div class="summary-value">
-                        398 <span>78%</span>
+            <section aria-label="Gamification">
+                <div class="section-title">
+                    <h2>Engagement &amp; gamification</h2>
+                </div>
+                <div class="report-grid">
+                    <article class="report-panel">
+                        <h3>Competitions</h3>
+                        <div id="competitionEngagement">Loading&hellip;</div>
+                    </article>
+                    <article class="report-panel">
+                        <h3>Achievements</h3>
+                        <div id="achievementEngagement">Loading&hellip;</div>
+                    </article>
+                </div>
+            </section>
+
+            <section aria-label="System activity" class="report-panel activity-panel">
+                <div class="section-title">
+                    <div>
+                        <h2>System activity logs</h2>
+                        <p>Audit records from the Activity Logs API</p>
                     </div>
                 </div>
-
-                <div class="summary-card">
-                    <div class="summary-label">Quizzes completed</div>
-                    <div class="summary-value">1,842</div>
+                <div class="activity-filters">
+                    <label>From <input type="date" id="fromDate"></label>
+                    <label>To <input type="date" id="toDate"></label>
+                    <label>Action <select id="actionFilter"><option value="">All actions</option></select></label>
+                    <label>Search <input id="activitySearch" type="search" placeholder="User, action or IP"></label>
+                    <button class="rbtn secondary" type="button" id="resetFilters">Reset filters</button>
                 </div>
-
-                <div class="summary-card">
-                    <div class="summary-label">Achievements earned</div>
-                    <div class="summary-value">623</div>
-                </div>
-
-                <div class="summary-card">
-                    <div class="summary-label">Competitions held</div>
-                    <div class="summary-value">8</div>
-                </div>
-
-            </section>
-
-
-            <!-- PROVINCE AND GRADE CHARTS -->
-            <section class="report-charts">
-
-                <div class="chart-card">
-
-                    <h3>Learners by region</h3>
-
-                    <p class="chart-subtitle">
-                        Registered learners in each region
-                    </p>
-
-                    <div id="provinceChart"></div>
-
-                </div>
-
-
-                <div class="chart-card">
-
-                    <h3>Learners by grade</h3>
-
-                    <p class="chart-subtitle">
-                        Registered learners in each grade
-                    </p>
-
-                    <div id="gradeChart"></div>
-
-                </div>
-
-            </section>
-
-
-           <!-- LEARNER PROGRESS -->
-<div class="section-heading">
-    <h2>Learner progress overview</h2>
-
-    <span>
-        Academic and gamification progress, system-wide
-    </span>
-</div>
-
-<section class="progress-grid">
-
-    <!-- PROGRESS STATS GENERATED BY JAVASCRIPT -->
-    <div class="chart-card">
-        <div class="mini-stats" id="progressStats">
-        </div>
-    </div>
-
-    <!-- PERFORMANCE BY GRADE -->
-    <div class="chart-card">
-
-        <h3>Average quiz performance by grade</h3>
-
-        <p class="chart-subtitle">
-            Average score across all subjects
-        </p>
-
-        <div id="perfChart"></div>
-
-    </div>
-
-</section>
-                
-
-
-            <!-- QUIZ PERFORMANCE TABLE -->
-            <section class="table-card">
-
-                <h3>Quiz performance by subject</h3>
-
-                <p class="table-subtitle">
-                    Where learners are doing well, and where they're struggling
-                </p>
-
-                <div class="table-responsive">
-
+                <p class="filter-note">Date and search filters apply to activity logs. Academic statistics are all-time totals from the current backend endpoints.</p>
+                <div id="activitySummary" class="activity-summary"></div>
+                <div class="table-wrap">
                     <table>
-
                         <thead>
                             <tr>
-                                <th>Subject</th>
-                                <th>Attempts</th>
-                                <th>Average score</th>
-                                <th>Pass rate</th>
+                                <th>Date / time</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>IP address</th>
                             </tr>
                         </thead>
-
-                        <tbody id="quizPerfBody"></tbody>
-
-                    </table>
-
-                </div>
-
-            </section>
-
-
-            <!-- RESOURCE USAGE TABLE -->
-            <section class="table-card">
-
-                <h3>Most accessed resources</h3>
-
-                <p class="table-subtitle">
-                    Resource views, most popular first
-                </p>
-
-                <div class="table-responsive">
-
-                    <table>
-
-                        <thead>
+                        <tbody id="activityBody">
                             <tr>
-                                <th>Resource</th>
-                                <th>Subject</th>
-                                <th>Grade</th>
-                                <th>Views</th>
+                                <td colspan="4">Loading&hellip;</td>
                             </tr>
-                        </thead>
-
-                        <tbody id="resourceBody"></tbody>
-
+                        </tbody>
                     </table>
-
                 </div>
-
+                <div class="pager">
+                    <span id="activityCount"></span>
+                    <div>
+                        <button type="button" class="rbtn secondary" id="prevPage">Previous</button>
+                        <span id="pageInfo"></span>
+                        <button type="button" class="rbtn secondary" id="nextPage">Next</button>
+                    </div>
+                </div>
             </section>
+
+            <footer class="report-footer">
+                Figures reflect recorded database information. Missing features are never replaced with sample data.
+            </footer>
 
         </main>
 
     </div>
 
-</div>
-
-
-
-<script src="../../EduQuest-with-js/EduQuest/js/api.js"></script>
-    <script src="../../js/admin-guard.js"></script>
+    <!-- Scripts -->
+    <script src="../../js/api.js"></script>
+    <script src="../../js/admin-shell.js"></script>
     <script src="../../js/reports.js"></script>
 
 </body>

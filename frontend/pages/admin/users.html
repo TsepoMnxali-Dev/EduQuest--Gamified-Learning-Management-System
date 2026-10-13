@@ -4,425 +4,652 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduQuest | Manage Users</title>
 
-    <title>Manage Users | EduQuest</title>
+    <link rel="stylesheet"
+          href="../../EduQuest-with-js/EduQuest/css/style.css">
+    <link rel="stylesheet"
+          href="../../css/admin-theme.css">
 
-    <link rel="stylesheet" href="../../css/style.css">
+    <style>
+        .users-page-description {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .users-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .users-count {
+            background: var(--teal-light);
+            color: var(--navy);
+            border-radius: 999px;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .users-filters {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .users-filters input,
+        .users-filters select,
+        .user-form-grid input,
+        .user-form-grid select,
+        .modal input,
+        .modal select {
+            width: 100%;
+            min-width: 0;
+            padding: 12px 14px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--navy);
+            font: inherit;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+
+        .users-filters input:focus,
+        .users-filters select:focus,
+        .modal input:focus,
+        .modal select:focus {
+            outline: none;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(44, 169, 165, .12);
+        }
+
+        .users-table-card {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            border: 1px solid #edf1f4;
+        }
+
+        .users-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .users-table thead {
+            background: var(--teal-light);
+        }
+
+        .users-table th {
+            padding: 15px 14px;
+            color: var(--navy);
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .users-table td {
+            padding: 16px 14px;
+            border-bottom: 1px solid #edf0f2;
+            color: var(--navy);
+            vertical-align: middle;
+        }
+
+        .users-table tbody tr:hover {
+            background: #f8fbfc;
+        }
+
+        .user-list-name {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+        }
+
+        .user-list-avatar {
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: var(--teal-light);
+            color: var(--navy);
+            font-weight: 800;
+        }
+
+        .user-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .user-status-active {
+            background: var(--teal-light);
+            color: #167a76;
+        }
+
+        .user-status-inactive {
+            background: #fcebea;
+            color: #a73535;
+        }
+
+        .user-row-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .user-row-actions .btn {
+            padding: 8px 12px;
+            font-size: 12px;
+            min-width: auto;
+        }
+
+        .btn-danger {
+            background: white;
+            color: #b42318;
+            border: 1px solid #efc9c5;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            background: rgba(18, 53, 83, .55);
+            padding: 20px;
+        }
+
+        .modal-content {
+            width: min(650px, 100%);
+            max-height: 90vh;
+            overflow-y: auto;
+            background: var(--white);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 18px 50px rgba(18, 53, 83, .2);
+            box-sizing: border-box;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 22px;
+        }
+
+        .modal-header h2 {
+            color: var(--navy);
+            font-size: 22px;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--navy);
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .user-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .user-form-field label {
+            display: block;
+            color: var(--navy);
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .user-form-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .user-form-note {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 18px;
+        }
+
+        .user-form-error {
+            color: #a73535;
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+
+        .school-picker {
+            position: relative;
+        }
+
+        #schoolList {
+            list-style: none;
+            padding: 0;
+            margin: 4px 0 0;
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--white);
+        }
+
+        #schoolList li {
+            padding: 10px 12px;
+            cursor: pointer;
+            color: var(--navy);
+            font-size: 13px;
+        }
+
+        #schoolList li:hover {
+            background: var(--teal-light);
+        }
+
+        #schoolHint {
+            display: block;
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        @media (max-width: 1000px) {
+            .users-filters {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 650px) {
+            .users-filters,
+            .user-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .user-form-field.full-width {
+                grid-column: auto;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-    <!-- Topbar -->
-    <header class="topbar">
+<div class="app">
 
-        <div class="topbar-search">
-            <input
-                type="search"
-                placeholder="Search EduQuest..."
-                aria-label="Search EduQuest">
+    <!-- ADMIN SIDEBAR -->
+    <aside class="sidebar">
+        <div>
+            <div class="brand">
+                <img
+                    src="../../EduQuest-with-js/EduQuest/images/eduquest-logo.png"
+                    alt="EduQuest logo"
+                    class="brand-logo">
+
+                <div class="brand-name">EduQuest</div>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Admin navigation">
+                <a href="dashboard.html" class="nav-link">Home</a>
+                <a href="users.html" class="nav-link active">Users</a>
+                <a href="quiz.html" class="nav-link">Quizzes</a>
+                <a href="resources.html" class="nav-link">Resources</a>
+                <a href="competition.html" class="nav-link">Competitions</a>
+                <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+                <a href="reports.html" class="nav-link">Reports</a>
+
+                <button type="button"
+                        class="nav-link"
+                        id="adminLogout">
+                    Log Out
+                </button>
+            </nav>
         </div>
 
-        <div class="topbar-actions">
-            <button type="button" class="notification-btn"
-                    aria-label="Notifications">
-                🔔
-            </button>
+        <div class="sidebar-footer">
+            <p>Enhancing education through tech.</p>
+            <small>© 2026 EduQuest</small>
+        </div>
+    </aside>
 
-            <button type="button" class="profile-btn">
-                👤 Admin
-            </button>
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <div class="dashboard-topbar">
+            <div class="dashboard-welcome">
+                <h1>Manage Users</h1>
+                <p class="users-page-description">
+                    Manage learner, administrator and sponsor accounts.
+                </p>
+            </div>
+
+            <div class="profile-mini">
+                <div class="profile-avatar" id="adminAvatar">A</div>
+                <span id="adminProfileName">Administrator</span>
+            </div>
         </div>
 
-    </header>
+        <section class="dashboard-section">
 
-    <!-- Dashboard Layout -->
-    <div class="app">
+            <!-- OVERVIEW -->
+            <div class="parent-card">
+                <h2>Overview</h2>
 
-        <!-- Sidebar -->
-        <aside class="sidebar">
+                <div class="child-cards">
+                    <div class="child-card">
+                        <h3>Registered Users</h3>
+                        <h3 id="statTotal">0</h3>
+                        <p id="statTotalSub">Loading users...</p>
+                    </div>
 
-            <div>
+                    <div class="child-card">
+                        <h3>Active Accounts</h3>
+                        <h3 id="statActive">0</h3>
+                        <p id="statActiveSub">Loading account status...</p>
+                    </div>
 
-                <div class="brand">
-                    <img
-                        src="../../images/EduQuestLogo.jpg"
-                        alt="EduQuest Logo"
-                        class="brand-logo">
-
-                    <div class="brand-name">
-                        EduQuest
+                    <div class="child-card">
+                        <h3>New This Month</h3>
+                        <h3 id="statNew">0</h3>
+                        <p id="statNewSub">Loading new accounts...</p>
                     </div>
                 </div>
-
-                <!-- Navigation -->
-                <nav class="sidebar-nav">
-
-                    <a href="dashboard.html" class="nav-link">
-                        Home
-                    </a>
-
-                    <a href="users.html" class="nav-link active">
-                        Users
-                    </a>
-
-                    <a href="quiz.html" class="nav-link">
-                        Quizzes
-                    </a>
-
-                    <a href="resources.html" class="nav-link">
-                        Resources
-                    </a>
-
-                    <a href="competition.html" class="nav-link">
-                        Competitions
-                    </a>
-
-                    <a href="leaderboard.html" class="nav-link">
-                        Leaderboard
-                    </a>
-
-                    <a href="reports.html" class="nav-link">
-                        Reports
-                    </a>
-
-                </nav>
-
             </div>
 
-            <!-- Sidebar Footer -->
-            <div class="sidebar-footer">
-                <p>Enhancing education through tech.</p>
-                <small>© 2026 EduQuest</small>
+            <!-- USER TABLE HEADER -->
+            <div class="users-toolbar">
+                <h2 class="dashboard-section-title">Registered Users</h2>
+
+                <span class="users-count" id="usersCount">
+                    Loading users...
+                </span>
+
+                <button type="button"
+                        class="btn btn-primary"
+                        id="openAddUser">
+                    + Add User
+                </button>
             </div>
 
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main">
-
-            <section class="home-content">
-
-                <!-- Page Header -->
-                <div class="page-header">
-                    <h1>Users</h1>
-                    <p>
-                        Manage learner and administrator accounts
-                        across EduQuest.
-                    </p>
-                </div>
-
-                <!-- Overview -->
-                <div class="parent-card">
-
-                    <h2>Overview</h2>
-
-                    <div class="child-cards">
-
-                        <!-- Total Registered Users -->
-                        <div class="child-card">
-                            <h3>👥 Registered Users</h3>
-                            <h3 id="statTotal">0</h3>
-                            <p id="statTotalSub">Loading users...</p>
-                        </div>
-
-                        <!-- Active Users -->
-                        <div class="child-card">
-                            <h3>🟢 Active Accounts</h3>
-                            <h3 id="statActive">0</h3>
-                            <p id="statActiveSub">
-                                Loading account status...
-                            </p>
-                        </div>
-
-                        <!-- New Users This Month -->
-                        <div class="child-card">
-                            <h3>🆕 New This Month</h3>
-                            <h3 id="statNew">0</h3>
-                            <p id="statNewSub">
-                                Loading new accounts...
-                            </p>
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- Registered Users Table -->
-                <section class="users-table-card">
-
-                    <div class="users-table-header">
-                        <h2>Registered Users</h2>
-                        <p>
-                            View and manage registered learners,
-                            administrators and sponsors.
-                        </p>
-                    </div>
-
-                    <!-- Search, Filters and Add User -->
-                    <div class="users-toolbar">
-
-                        <div class="user-search-box">
-                            <input
-                                type="text"
-                                id="userSearch"
-                                placeholder="Search by name or email"
-                                aria-label="Search registered users">
-                        </div>
-
-                        <!-- Role Filter -->
-                        <select
-                            id="roleFilter"
-                            class="user-filter"
-                            aria-label="Filter by role">
-
-                            <option value="all">All roles</option>
-                            <option value="learner">Learners</option>
-                            <option value="admin">Admins</option>
-                            <option value="sponsor">Sponsors</option>
-
-                        </select>
-
-                        <!-- Grade Filter -->
-                        <select
-                            id="gradeFilter"
-                            class="user-filter"
-                            aria-label="Filter by grade">
-
-                            <option value="all">All grades</option>
-
-                        </select>
-
-                        <!-- Status Filter -->
-                        <select
-                            id="statusFilter"
-                            class="user-filter"
-                            aria-label="Filter by status">
-
-                            <option value="all">All statuses</option>
-                            <option value="active">Active</option>
-                            <option value="suspended">Suspended</option>
-
-                        </select>
-
-                        <!-- Add User -->
-                        <button
-                            type="button"
-                            class="add-user-btn"
-                            id="openAddUser">
-
-                            <span>+</span>
-                            Add User
-
-                        </button>
-
-                    </div>
-
-                    <!-- Users Table -->
-                    <div class="table-container">
-
-                        <table class="users-table">
-
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Grade</th>
-                                    <th>School</th>
-                                    <th>Region</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-
-                            <tbody id="usersTableBody">
-                                <tr>
-                                    <td colspan="8">Loading users...</td>
-                                </tr>
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </section>
-
-            </section>
-
-        </main>
-
-    </div>
-
-    <!-- Add / Edit User Modal -->
-    <div
-        id="addUserModal"
-        class="modal"
-        style="display: none;">
-
-        <div class="modal-content">
-
-            <h2 id="userModalTitle">Add User</h2>
-
-            <!-- Form Errors -->
-            <div
-                id="userFormError"
-                role="alert"
-                style="display: none;">
-            </div>
-
-            <form id="userForm">
-
-                <!-- First Name -->
-                <label for="firstName">First Name</label>
+            <!-- SEARCH AND FILTERS -->
+            <div class="users-filters">
                 <input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    placeholder="Enter first name"
-                    autocomplete="given-name"
-                    required>
+                    type="search"
+                    id="userSearch"
+                    placeholder="Search by name or email..."
+                    aria-label="Search users">
 
-                <!-- Surname -->
-                <label for="surname">Surname</label>
-                <input
-                    id="surname"
-                    name="surname"
-                    type="text"
-                    placeholder="Enter surname"
-                    autocomplete="family-name"
-                    required>
-
-                <!-- Email -->
-                <label for="email">Email Address</label>
-                <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="Enter email address"
-                    autocomplete="email"
-                    required>
-
-                <!-- Role -->
-                <label for="role">Role</label>
-                <select id="role" name="role" required>
-                    <option value="learner">Learner</option>
-                    <option value="admin">Admin</option>
-                    <option value="sponsor">Sponsor</option>
+                <select id="roleFilter" aria-label="Filter by role">
+                    <option value="all">All roles</option>
+                    <option value="learner">Learners</option>
+                    <option value="admin">Admins</option>
+                    <option value="sponsor">Sponsors</option>
                 </select>
 
-                <!-- Learner-Specific Fields -->
-                <div id="learnerFields" style="display: none;">
+                <select id="gradeFilter" aria-label="Filter by grade">
+                    <option value="all">All grades</option>
+                </select>
 
-                    <!-- Grade -->
-                    <label for="grade">Grade</label>
-                    <select id="grade" name="grade">
-                        <option value="">Select grade</option>
-                    </select>
-
-                    <!-- Province -->
-                    <label for="province">Province</label>
-                    <select id="province" name="province">
-                        <option value="">All provinces</option>
-                    </select>
-
-                    <!-- Searchable School Picker -->
-                    <label for="schoolSearch">School</label>
-
-                    <div class="school-picker">
-
-                        <input
-                            type="text"
-                            id="schoolSearch"
-                            placeholder="Search for a school..."
-                            autocomplete="off"
-                            role="combobox"
-                            aria-autocomplete="list"
-                            aria-controls="schoolList"
-                            aria-expanded="false">
-
-                        <!-- Actual School ID is stored here -->
-                        <input
-                            type="hidden"
-                            id="school"
-                            name="school">
-
-                        <ul
-                            id="schoolList"
-                            role="listbox"
-                            hidden>
-                        </ul>
-
-                        <small id="schoolHint">
-                            Loading available schools...
-                        </small>
-
-                    </div>
-
-                </div>
-
-                <!-- Account Status -->
-                <label for="status">Account Status</label>
-                <select id="status" name="status" required>
+                <select id="statusFilter" aria-label="Filter by status">
+                    <option value="all">All statuses</option>
                     <option value="active">Active</option>
                     <option value="suspended">Suspended</option>
                 </select>
+            </div>
 
-                <!-- Password Fields: Used When Creating -->
-                <div id="passwordFields">
+            <!-- USERS TABLE -->
+            <div class="users-table-card">
+                <div class="users-table-wrapper">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Grade</th>
+                                <th>School</th>
+                                <th>Province</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
 
-                    <label for="password">Password</label>
-                    <input
-                        id="password"
-                        name="password"
-                        type="password"
-                        placeholder="Enter password"
-                        autocomplete="new-password"
-                        minlength="8"
-                        required>
-
-                    <label for="confirmPassword">
-                        Confirm Password
-                    </label>
-                    <input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type="password"
-                        placeholder="Confirm password"
-                        autocomplete="new-password"
-                        minlength="8"
-                        required>
-
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="8">Loading users...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
+            </div>
 
-                <!-- Form Actions -->
-                <div class="modal-actions">
+        </section>
+    </main>
+</div>
 
-                    <button
-                        type="submit"
-                        id="saveUserBtn"
-                        class="add-user-btn">
-                        Save User
-                    </button>
+<!-- ADD / EDIT USER MODAL -->
+<div id="addUserModal"
+     class="modal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="userModalTitle">
 
-                    <button
-                        type="button"
-                        id="closeAddUser">
-                        Cancel
-                    </button>
+    <div class="modal-content">
 
-                </div>
+        <div class="modal-header">
+            <h2 id="userModalTitle">Add User</h2>
 
-            </form>
-        
-
+            <button type="button"
+                    class="modal-close"
+                    id="closeAddUser"
+                    aria-label="Close user form">
+                &times;
+            </button>
         </div>
 
-    </div>
+        <p id="userFormError"
+           class="user-form-error"
+           role="alert"
+           hidden></p>
 
-    <!-- Load API Helper Before Page Logic -->
-    <script src="../../EduQuest-with-js/EduQuest/js/api.js"></script>
-    <script src="../../js/admin-guard.js"></script>
-    <script src="../../js/Users.js"></script>
+        <form id="userForm">
+
+            <div class="user-form-grid">
+
+                <div class="user-form-field">
+                    <label for="firstName">First Name</label>
+                    <input
+                        id="firstName"
+                        name="firstName"
+                        type="text"
+                        autocomplete="given-name"
+                        maxlength="50"
+                        required>
+                </div>
+
+                <div class="user-form-field">
+                    <label for="surname">Surname</label>
+                    <input
+                        id="surname"
+                        name="surname"
+                        type="text"
+                        autocomplete="family-name"
+                        maxlength="50"
+                        required>
+                </div>
+
+                <div class="user-form-field full-width">
+                    <label for="email">Email Address</label>
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autocomplete="email"
+                        maxlength="100"
+                        required>
+                </div>
+
+                <div class="user-form-field">
+                    <label for="role">Role</label>
+                    <select id="role" name="role" required>
+                        <option value="learner">Learner</option>
+                        <option value="admin">Admin</option>
+                        <option value="sponsor">Sponsor</option>
+                    </select>
+                </div>
+
+                <div class="user-form-field">
+                    <label for="status">Account Status</label>
+                    <select id="status" name="status" required>
+                        <option value="active">Active</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <!-- LEARNER-SPECIFIC FIELDS -->
+            <div id="learnerFields">
+
+                <div class="user-form-grid">
+
+                    <div class="user-form-field">
+                        <label for="grade">Grade</label>
+                        <select id="grade" name="grade">
+                            <option value="">Select grade</option>
+                        </select>
+                    </div>
+
+                    <div class="user-form-field">
+                        <label for="province">Province</label>
+                        <select id="province" name="province">
+                            <option value="">All provinces</option>
+                        </select>
+                    </div>
+
+                    <div class="user-form-field full-width">
+                        <label for="schoolSearch">School</label>
+
+                        <div class="school-picker">
+                            <input
+                                type="text"
+                                id="schoolSearch"
+                                placeholder="Search for a school..."
+                                autocomplete="off"
+                                role="combobox"
+                                aria-autocomplete="list"
+                                aria-controls="schoolList"
+                                aria-expanded="false">
+
+                            <input
+                                type="hidden"
+                                id="school"
+                                name="school">
+
+                            <ul id="schoolList"
+                                role="listbox"
+                                hidden>
+                            </ul>
+
+                            <small id="schoolHint">
+                                Select a province and search for a school.
+                            </small>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- PASSWORD FIELDS -->
+            <div id="passwordFields">
+
+                <div class="user-form-grid">
+                    <div class="user-form-field">
+                        <label for="password">Password</label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            autocomplete="new-password"
+                            minlength="8"
+                            required>
+                    </div>
+
+                    <div class="user-form-field">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type="password"
+                            autocomplete="new-password"
+                            minlength="8"
+                            required>
+                    </div>
+                </div>
+
+                <p class="user-form-note">
+                    Passwords must contain at least 8 characters.
+                </p>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button"
+                        class="btn btn-outline"
+                        id="cancelAddUser">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="btn btn-primary"
+                        id="saveUserBtn">
+                    Save User
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- SHARED API HELPER -->
+<script src="../../EduQuest-with-js/EduQuest/js/api.js"></script>
+
+<!-- ADMIN ACCESS GUARD -->
+<script src="../../js/admin-guard.js"></script>
+
+<!-- USER MANAGEMENT -->
+<script src="../../js/Users.js"></script>
 
 </body>
 </html>

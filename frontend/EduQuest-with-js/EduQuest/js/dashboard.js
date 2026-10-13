@@ -1,15 +1,28 @@
 /* =============================================================
-   EduQuest - dashboard.js  (used by dashboard.html)
+   EduQuest - dashboard.js (used by dashboard.html)
 
    Loads everything on the learner dashboard in one request
    (GET /api/learner/dashboard): name, recent activity, enrolled
    classes, points, ranking and the weekly learning goal.
    Server text is written with textContent, never innerHTML.
 ============================================================= */
+
 (function () {
     "use strict";
 
-    EduQuestAPI.requireAuth();
+    // ==========================================
+    // AUTHENTICATION & HELPERS
+    // ==========================================
+
+    if (!window.EduQuestAPI) {
+        console.error("EduQuestAPI is missing.");
+        return;
+    }
+
+    // Only authenticated learners can access this page.
+    if (!EduQuestAPI.requireLearner()) {
+        return;
+    }
 
     function byId(id) {
         return document.getElementById(id);
@@ -45,13 +58,27 @@
     --------------------------------------------------------- */
 
     function renderWelcome(data) {
-        byId("welcomeHeading").textContent = "Welcome back, " + data.firstName + "!";
-        byId("profileAvatar").textContent = data.firstName.charAt(0).toUpperCase();
-        byId("profileLabel").textContent = data.firstName + " \u00b7 " + data.gradeName;
+        var firstName = data.firstName || "Learner";
+        var gradeName = data.gradeName ? " \u00b7 " + data.gradeName : "";
+
+        byId("welcomeHeading").textContent = "Welcome back, " + fullName(data) + "!";
+        byId("profileAvatar").textContent = firstName.charAt(0).toUpperCase();
+        
+        var profileLabel = byId("profileLabel") || byId("profileGrade");
+        if (profileLabel) {
+            profileLabel.textContent = firstName + gradeName;
+        }
+    }
+
+    function fullName(data) {
+        var first = String(data.firstName || "").trim();
+        var last = String(data.lastName || "").trim();
+        return [first, last].filter(Boolean).join(" ") || "Learner";
     }
 
     function renderActivity(items) {
         var list = byId("activityList");
+        if (!list) return;
         clear(list);
 
         if (!items || items.length === 0) {
@@ -69,7 +96,8 @@
     }
 
     function renderSubjects(subjects) {
-        var grid = byId("subjectGrid");
+        var grid = byId("subjectGrid") || byId("learnerClasses");
+        if (!grid) return;
         clear(grid);
 
         if (!subjects || subjects.length === 0) {
@@ -98,10 +126,15 @@
     }
 
     function renderScore(data) {
-        byId("scoreNumber").textContent = data.totalPoints;
-        byId("scoreMessage").textContent = data.totalPoints > 0
-            ? "Keep going! You're doing great."
-            : "Complete a quiz to start earning points.";
+        var scoreNum = byId("scoreNumber") || byId("learnerTotalScore");
+        var scoreMsg = byId("scoreMessage");
+        
+        if (scoreNum) scoreNum.textContent = data.totalPoints ?? 0;
+        if (scoreMsg) {
+            scoreMsg.textContent = (data.totalPoints ?? 0) > 0
+                ? "Keep going! You're doing great."
+                : "Complete a quiz to start earning points.";
+        }
     }
 
     function buildRankRow(entry) {
@@ -115,8 +148,10 @@
     function renderRanking(data) {
         var list = byId("rankingList");
         var note = byId("rankingNote");
+        if (!list) return;
+        
         clear(list);
-        note.textContent = "";
+        if (note) note.textContent = "";
 
         var top = data.topLearners || [];
         var inTop = top.some(function (entry) { return entry.isYou; });
@@ -139,12 +174,12 @@
                     points: data.totalPoints,
                     isYou: true
                 }));
-            } else {
+            } else if (note) {
                 note.textContent = "Complete a quiz to join the ranking.";
             }
         }
 
-        if (data.totalLearners) {
+        if (data.totalLearners && note) {
             var existing = note.textContent;
             var total = "Out of " + data.totalLearners + (data.totalLearners === 1 ? " learner" : " learners");
             note.textContent = existing ? existing + " " + total : total;
@@ -152,24 +187,36 @@
     }
 
     function renderGoal(goal) {
-        var percent = goal.target > 0
-            ? Math.min(100, Math.round(goal.completed * 100 / goal.target))
+        if (!goal) return;
+        
+        var target = goal.target || 5;
+        var completed = goal.completed || 0;
+        var percent = target > 0
+            ? Math.min(100, Math.round(completed * 100 / target))
             : 0;
 
-        byId("goalText").textContent = "Complete " + goal.target + " quizzes this week.";
-        byId("goalFill").style.width = percent + "%";
-        byId("goalCount").textContent = goal.completed + " of " + goal.target + " quizzes";
-        byId("goalPercent").textContent = percent + "%";
+        var goalText = byId("goalText");
+        var goalFill = byId("goalFill");
+        var goalCount = byId("goalCount");
+        var goalPercent = byId("goalPercent");
+
+        if (goalText) goalText.textContent = "Complete " + target + " quizzes this week.";
+        if (goalFill) goalFill.style.width = percent + "%";
+        if (goalCount) goalCount.textContent = completed + " of " + target + " quizzes";
+        if (goalPercent) goalPercent.textContent = percent + "%";
     }
 
     /* ---------------------------------------------------------
-       Start
+       Start & Event Listeners
     --------------------------------------------------------- */
 
-    byId("logoutLink").addEventListener("click", function (event) {
-        event.preventDefault();
-        EduQuestAPI.logout();
-    });
+    var logoutLink = byId("logoutLink");
+    if (logoutLink) {
+        logoutLink.addEventListener("click", function (event) {
+            event.preventDefault();
+            EduQuestAPI.logout();
+        });
+    }
 
     EduQuestAPI.get("/learner/dashboard")
         .then(function (data) {
@@ -178,15 +225,21 @@
             renderSubjects(data.subjects);
             renderScore(data);
             renderRanking(data);
-            renderGoal(data.goal);
+            if (data.goal) {
+                renderGoal(data.goal);
+            }
         })
         .catch(function (err) {
             console.error("Dashboard failed to load:", err);
             var message = err.message || "Could not load your dashboard.";
             showStatus(byId("activityList"), message, true);
-            showStatus(byId("subjectGrid"), message, true);
+            showStatus(byId("subjectGrid") || byId("learnerClasses"), message, true);
             showStatus(byId("rankingList"), message, true);
-            byId("scoreNumber").textContent = "\u2013";
-            byId("goalCount").textContent = "\u2013";
+            
+            var scoreNum = byId("scoreNumber") || byId("learnerTotalScore");
+            if (scoreNum) scoreNum.textContent = "\u2013";
+            
+            var goalCount = byId("goalCount");
+            if (goalCount) goalCount.textContent = "\u2013";
         });
 })();
