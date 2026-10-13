@@ -4,12 +4,13 @@
 EduQuest - Login
 
 CHANGED:
-- Admins go to the admin dashboard.
-- Learners go to the learner dashboard.
-- Incorrect login details show an error message.
-- Supports show/hide password.
-- Prevents repeated login submissions.
-- Uses the role returned by the backend.
+1. Saves both JWT and user profile information.
+2. Displays the learner's real name on the dashboard.
+3. Redirects Admins and Learners correctly.
+4. Preserves login validation and error messages.
+5. Preserves show/hide password.
+6. Prevents repeated login submissions.
+7. Preserves existing authenticated sessions.
 ========================================================
 */
 
@@ -20,35 +21,53 @@ CHANGED:
     // HTML ELEMENTS
     // ==========================================
 
-    var form = document.getElementById("loginForm");
+    const form = document.getElementById("loginForm");
 
     if (!form) {
         return;
     }
 
-    var emailInput = document.getElementById("email");
-    var passwordInput = document.getElementById("password");
+    const emailInput =
+        document.getElementById("email");
 
-    // NEW: Supports the updated login HTML.
-    var messageBox =
+    const passwordInput =
+        document.getElementById("password");
+
+    const messageBox =
         document.getElementById("loginMessage") ||
         document.getElementById("error");
 
-    var togglePassword =
+    const togglePassword =
         document.getElementById("togglePassword");
 
-    var submitButton =
+    const submitButton =
         document.getElementById("loginButton") ||
         form.querySelector("button[type='submit']");
+
+    // ==========================================
+    // API CHECK
+    // ==========================================
+
+    if (!window.EduQuestAPI) {
+        console.error("EduQuestAPI is missing.");
+
+        if (messageBox) {
+            messageBox.textContent =
+                "Unable to load login services.";
+            messageBox.style.display = "block";
+        }
+
+        return;
+    }
 
     // ==========================================
     // DASHBOARD PATHS
     // ==========================================
 
-    var ADMIN_DASHBOARD =
+    const ADMIN_DASHBOARD =
         "../../pages/admin/dashboard.html";
 
-    var LEARNER_DASHBOARD =
+    const LEARNER_DASHBOARD =
         "dashboard.html";
 
     // ==========================================
@@ -56,7 +75,6 @@ CHANGED:
     // ==========================================
 
     function showMessage(message, type) {
-
         if (!messageBox) {
             return;
         }
@@ -75,7 +93,6 @@ CHANGED:
     }
 
     function clearMessage() {
-
         if (!messageBox) {
             return;
         }
@@ -89,29 +106,16 @@ CHANGED:
     // ROLE-BASED REDIRECTION
     // ==========================================
 
-    function redirectUser(role) {
-
-        var normalizedRole =
-            String(role || "").trim().toLowerCase();
-
+    async function redirectUser(role) {
+        const normalizedRole = String(role || "").trim().toLowerCase();
         if (normalizedRole === "admin") {
-
-            window.location.replace(
-                ADMIN_DASHBOARD
-            );
-
+            window.location.replace(ADMIN_DASHBOARD);
             return true;
         }
-
         if (normalizedRole === "learner") {
-
-            window.location.replace(
-                LEARNER_DASHBOARD
-            );
-
+            await EduQuestProfileGate.redirectAfterLogin();
             return true;
         }
-
         return false;
     }
 
@@ -119,13 +123,11 @@ CHANGED:
     // SHOW / HIDE PASSWORD
     // ==========================================
 
-    if (togglePassword) {
-
+    if (togglePassword && passwordInput) {
         togglePassword.addEventListener(
             "click",
             function () {
-
-                var isHidden =
+                const isHidden =
                     passwordInput.type === "password";
 
                 passwordInput.type =
@@ -148,45 +150,35 @@ CHANGED:
     // CLEAR ERRORS WHEN TYPING
     // ==========================================
 
-    emailInput.addEventListener(
-        "input",
-        clearMessage
-    );
+    if (emailInput) {
+        emailInput.addEventListener(
+            "input",
+            clearMessage
+        );
+    }
 
-    passwordInput.addEventListener(
-        "input",
-        clearMessage
-    );
+    if (passwordInput) {
+        passwordInput.addEventListener(
+            "input",
+            clearMessage
+        );
+    }
 
     // ==========================================
-    // CHANGED: EXISTING LOGIN SESSION
+    // EXISTING LOGIN SESSION
     // ==========================================
 
-    // Previously, every logged-in user was
-    // redirected to the learner dashboard.
-    //
-    // Now we check their role first.
+    // CHANGED:
+    // Preserve existing valid sessions.
+    // Redirect according to the JWT role.
 
-    if (
-        window.EduQuestAPI &&
-        EduQuestAPI.getToken()
-    ) {
-
-        var currentUser =
-            EduQuestAPI.getCurrentUser();
-
-        if (
-            currentUser &&
-            redirectUser(currentUser.role)
-        ) {
-            return;
-        }
-
-        // If a token exists but the role cannot
-        // be determined, clear the invalid session.
-        // The user can then sign in again.
-
-        if (EduQuestAPI.clearToken) {
+    if (EduQuestAPI.getToken()) {
+        const currentUser = EduQuestAPI.getCurrentUser();
+        if (currentUser && ["admin", "learner"].includes(String(currentUser.role).toLowerCase())) {
+            redirectUser(currentUser.role).catch(function (error) {
+                showMessage(error.message || "Unable to verify your profile.", "error");
+            });
+        } else {
             EduQuestAPI.clearToken();
         }
     }
@@ -195,23 +187,31 @@ CHANGED:
     // LOGIN FORM
     // ==========================================
 
+    let isSubmitting = false;
+
     form.addEventListener(
         "submit",
-        function (event) {
-
+        async function (event) {
             event.preventDefault();
+
+            // NEW: Prevent duplicate requests.
+            if (isSubmitting) {
+                return;
+            }
 
             clearMessage();
 
-            var email = emailInput.value.trim();
-            var password = passwordInput.value;
+            const email =
+                emailInput.value.trim();
+
+            const password =
+                passwordInput.value;
 
             // ==================================
             // INPUT VALIDATION
             // ==================================
 
             if (!email) {
-
                 showMessage(
                     "Please enter your email address.",
                     "error"
@@ -222,7 +222,6 @@ CHANGED:
             }
 
             if (!emailInput.checkValidity()) {
-
                 showMessage(
                     "Please enter a valid email address.",
                     "error"
@@ -233,7 +232,6 @@ CHANGED:
             }
 
             if (!password) {
-
                 showMessage(
                     "Please enter your password.",
                     "error"
@@ -247,49 +245,59 @@ CHANGED:
             // LOADING STATE
             // ==================================
 
-            submitButton.disabled = true;
-            submitButton.textContent = "Signing in...";
+            isSubmitting = true;
+
+            const originalButtonText =
+                submitButton
+                    ? submitButton.textContent
+                    : "Sign In";
+
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.textContent =
+                    "Signing in...";
+            }
 
             // ==================================
             // BACKEND LOGIN REQUEST
             // ==================================
 
-            EduQuestAPI.post(
-                "/auth/login",
-                {
-                    email: email,
-                    password: password
-                },
-                {
-                    auth: false
-                }
-            )
+            try {
+                const result =
+                    await EduQuestAPI.post(
+                        "/auth/login",
+                        {
+                            email: email,
+                            password: password
+                        },
+                        {
+                            auth: false
+                        }
+                    );
 
-            .then(function (result) {
+                // ==================================
+                // VALIDATE BACKEND RESPONSE
+                // ==================================
 
-                // Check backend response.
                 if (
                     !result ||
                     !result.token ||
                     !result.user ||
                     !result.user.role
                 ) {
-
                     throw new Error(
                         "Login response is incomplete."
                     );
                 }
 
-                var role = String(
+                const role = String(
                     result.user.role
                 ).trim().toLowerCase();
 
-                // Reject unsupported roles.
                 if (
                     role !== "admin" &&
                     role !== "learner"
                 ) {
-
                     throw new Error(
                         "Your account role is not supported."
                     );
@@ -299,15 +307,53 @@ CHANGED:
                 // SAVE AUTHENTICATION
                 // ==================================
 
-                // Keep using the existing API helper
-                // so token storage stays consistent.
+                // CHANGED:
+                // Save JWT together with the user
+                // returned by the backend.
+                //
+                // The user object contains:
+                // - userId
+                // - firstName
+                // - lastName
+                // - email
+                // - role
+                //
+                // api.js uses this information
+                // to populate the dashboard.
 
-                EduQuestAPI.saveToken(result.token);
+                EduQuestAPI.saveToken(
+                    result.token,
+                    result.user
+                );
 
-                // IMPORTANT:
-                // We will verify getCurrentUser()
-                // in api.js next. It should read
-                // the actual role from the JWT.
+                // ==================================
+                // VERIFY SAVED SESSION
+                // ==================================
+
+                // NEW:
+                // Check that the JWT was stored
+                // and its role matches the response.
+
+                const currentUser =
+                    EduQuestAPI.getCurrentUser();
+
+                if (!currentUser) {
+                    throw new Error(
+                        "Unable to establish your login session."
+                    );
+                }
+
+                if (
+                    String(currentUser.role)
+                        .trim()
+                        .toLowerCase() !== role
+                ) {
+                    EduQuestAPI.clearToken();
+
+                    throw new Error(
+                        "Authentication role mismatch."
+                    );
+                }
 
                 // ==================================
                 // SUCCESS NOTIFICATION
@@ -322,35 +368,34 @@ CHANGED:
                 // REDIRECT BY ROLE
                 // ==================================
 
-                redirectUser(role);
-            })
+                await redirectUser(role);
 
-            .catch(function (error) {
-
-                var message =
+            } catch (error) {
+                let message =
                     error.message ||
                     "Could not sign in. Please try again.";
 
-                // Use a consistent message for
-                // invalid login credentials.
                 if (
                     /unauthorized|invalid email|incorrect email|401/i
                         .test(message)
                 ) {
-
                     message =
                         "Incorrect email or password. " +
                         "Please try again.";
                 }
 
                 showMessage(message, "error");
-            })
 
-            .finally(function () {
+            } finally {
+                isSubmitting = false;
 
-                submitButton.disabled = false;
-                submitButton.textContent = "Sign In";
-            });
+                if (submitButton) {
+                    submitButton.disabled = false;
+
+                    submitButton.textContent =
+                        originalButtonText;
+                }
+            }
         }
     );
 

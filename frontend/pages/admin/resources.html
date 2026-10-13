@@ -1,424 +1,100 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Manage Resources | EduQuest</title>
-
-    <!-- Existing EduQuest stylesheet -->
-    <link rel="stylesheet" href="../../css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Resources | EduQuest</title>
+  <link rel="stylesheet" href="../../css/style.css">
+  <link rel="stylesheet" href="../../css/admin-theme.css">
+  <link rel="stylesheet" href="../../css/admin-resources.css">
 </head>
-
 <body>
+<div class="app">
+  <aside class="sidebar">
+    <div>
+      <div class="brand"><img class="brand-logo" src="../../EduQuest-with-js/EduQuest/images/eduquest-logo.png" alt="EduQuest logo"></div>
+      <nav class="sidebar-nav" aria-label="Admin navigation">
+        <a class="nav-link" href="dashboard.html">Home</a>
+        <a class="nav-link" href="users.html">Users</a>
+        <a class="nav-link" href="quiz.html">Quizzes</a>
+        <a class="nav-link active" href="resources.html" aria-current="page">Resources</a>
+        <a class="nav-link" href="competition.html">Competitions</a>
+        <a class="nav-link" href="leaderboard.html">Leaderboard</a>
+        <a class="nav-link" href="reports.html">Reports</a>
+        <button type="button" class="nav-link" id="adminLogout">Log Out</button>
+      </nav>
+    </div>
+    <div class="sidebar-social"><a href="#">Instagram</a><a href="#">Facebook</a></div>
+  </aside>
 
-    <!-- Topbar -->
-    <header class="topbar">
-        <div class="topbar-search">
-            <input type="search" placeholder="Search EduQuest...">
-        </div>
-
-        <div class="topbar-actions">
-            <button class="notification-btn">🔔</button>
-            <button class="profile-btn">👤 Admin</button>
-        </div>
+  <main class="main resource-page">
+    <header class="resource-heading">
+      <div><h1>Resources</h1><p>Manage textbooks, past papers, question papers and study materials for learners.</p></div>
     </header>
 
-    <!-- Dashboard layout -->
-    <div class="app">
-
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div>
-                <div class="brand">
-                    <img src="../../images/EduQuestLogo.jpg"
-                         alt="EduQuest Logo"
-                         class="brand-logo">
-
-                    <div class="brand-name">EduQuest</div>
-                </div>
-
-                <nav class="sidebar-nav">
-                    <a href="dashboard.html" class="nav-link">Home</a>
-                    <a href="users.html" class="nav-link">Users</a>
-                    <a href="quiz.html" class="nav-link">Quizzes</a>
-
-                    <a href="resources.html"
-                       class="nav-link active">
-                        Resources
-                    </a>
-
-                    <a href="competition.html"
-                       class="nav-link">Competitions</a>
-
-                    <a href="leaderboard.html"
-                       class="nav-link">Leaderboard</a>
-
-                    <a href="reports.html"
-                       class="nav-link">Reports</a>
-                </nav>
-            </div>
-
-            <div class="sidebar-footer">
-                <p>Enhancing education through tech.</p>
-                <small>© 2026 EduQuest</small>
-            </div>
-        </aside>
-
-        <!-- Main content -->
-        <main class="main">
-            <section class="home-content">
-
-                <div class="page-header">
-                    <h1>Resources</h1>
-                    <p>
-                        Manage textbooks, past papers,
-                        question papers and study materials
-                        for learners.
-                    </p>
-                </div>
-
-                <!-- ===================================
-                     RESOURCE OVERVIEW
-                     =================================== -->
-
-                <div class="parent-card">
-                    <h2>Overview</h2>
-
-                    <div class="child-cards">
-
-                        <div class="child-card">
-                            <h3 id="statTotal">0</h3>
-                            <p>Total resources</p>
-                        </div>
-
-                        <div class="child-card">
-                            <h3 id="statTextbooks">0</h3>
-                            <p>Textbooks</p>
-                        </div>
-
-                        <div class="child-card">
-                            <h3 id="statSubjects">0</h3>
-                            <p>Subjects with content</p>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- ===================================
-                     AVAILABLE RESOURCES TABLE
-                     =================================== -->
-
-                <section class="users-table-card">
-
-                    <div class="users-table-header">
-                        <h2>Available Resources</h2>
-
-                        <p>
-                            Resources that learners can
-                            view or download.
-                        </p>
-                    </div>
-
-                    <div class="users-toolbar">
-
-                        <!-- Search resources -->
-                        <div class="user-search-box">
-                            <input type="text"
-                                   id="resourceSearch"
-                                   placeholder="Search by title or subject">
-
-                            <button type="button"
-                                    class="search-btn"
-                                    id="resourceSearchBtn">
-                                Search
-                            </button>
-                        </div>
-
-                        <!-- Filter by grade -->
-                        <select id="gradeFilter"
-                                class="user-filter">
-                            <option value="all">
-                                All Grades
-                            </option>
-                        </select>
-
-                        <!-- Filter by resource type -->
-                        <select id="typeFilter"
-                                class="user-filter">
-
-                            <option value="all">All types</option>
-                            <option value="Textbook">Textbook</option>
-                            <option value="Past Paper">Past Paper</option>
-                            <option value="Question Paper">Question Paper</option>
-                            <option value="Notes">Notes</option>
-                            <option value="Video">Video</option>
-                        </select>
-
-                        <!-- ADMIN ONLY:
-                             Opens the resource upload form.
-                             JavaScript also checks admin role.
-                             Backend enforces actual security. -->
-
-                        <button type="button"
-                                class="add-user-btn"
-                                id="openAddResource">
-
-                            <span>+</span> Add Resource
-                        </button>
-                    </div>
-
-                    <!-- NEW:
-                         General feedback message.
-                         JavaScript can show loading,
-                         success or failure messages here. -->
-
-                    <p id="resourcesMessage"
-                       role="status"
-                       aria-live="polite"
-                       style="display:none;">
-                    </p>
-
-                    <div class="table-container">
-                        <table class="users-table">
-
-                            <thead>
-                                <tr>
-                                    <th>Resource</th>
-                                    <th>Type</th>
-                                    <th>Subject</th>
-                                    <th>Grade</th>
-                                    <th>Topic</th>
-                                    <th>Source</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-
-                            <!-- JavaScript creates rows
-                                 using actual database records. -->
-
-                            <tbody id="resourcesTableBody">
-                            </tbody>
-
-                        </table>
-                    </div>
-
-                    <!-- NEW:
-                         This message can be shown when
-                         the database contains no materials.
-                         The next JS revision will control it. -->
-
-                    <div id="emptyResourcesMessage"
-                         style="display:none; text-align:center; padding:24px;">
-
-                        <h3>No study materials available yet</h3>
-
-                        <p>
-                            No resources have been uploaded.
-                            Click "Add Resource" to upload a
-                            document or add a study link.
-                        </p>
-                    </div>
-
-                </section>
-
-                <!-- ===================================
-                     ADD RESOURCE MODAL
-                     =================================== -->
-
-                <div id="addResourceModal"
-                     class="modal"
-                     style="display:none;">
-
-                    <div class="modal-content">
-
-                        <h2>Add Study Resource</h2>
-
-                        <p>
-                            Upload a document or add a
-                            learning resource link.
-                        </p>
-
-                        <!-- Existing error element -->
-                        <p id="resourceFormError"
-                           role="alert"
-                           style="display:none; color:#b42318;">
-                        </p>
-
-                        <!-- NEW:
-                             enctype indicates multipart data.
-                             JavaScript will submit FormData
-                             to the backend API. -->
-
-                        <form id="addResourceForm"
-                              enctype="multipart/form-data">
-
-                            <!-- Resource title -->
-                            <label for="resourceTitle">
-                                Resource Title
-                            </label>
-
-                            <input id="resourceTitle"
-                                   type="text"
-                                   placeholder="Enter resource title"
-                                   maxlength="200"
-                                   required>
-
-                            <!-- Description -->
-                            <label for="resourceDescription">
-                                Description (Optional)
-                            </label>
-
-                            <textarea id="resourceDescription"
-                                      placeholder="Short description"
-                                      maxlength="1000"
-                                      rows="3">
-                            </textarea>
-
-                            <!-- Resource type -->
-                            <label for="resourceType">
-                                Resource Type
-                            </label>
-
-                            <select id="resourceType" required>
-                                <option value="">Select type</option>
-                                <option value="Textbook">Textbook</option>
-                                <option value="Past Paper">Past Paper</option>
-                                <option value="Question Paper">Question Paper</option>
-                                <option value="Notes">Notes</option>
-                                <option value="Video">Video</option>
-                            </select>
-
-                            <!-- Grade selection -->
-                            <label for="resourceGrade">
-                                Grade
-                            </label>
-
-                            <select id="resourceGrade" required>
-                                <option value="">Select grade</option>
-                            </select>
-
-                            <!-- Subject selection -->
-                            <label for="resourceSubject">
-                                Subject
-                            </label>
-
-                            <select id="resourceSubject"
-                                    required
-                                    disabled>
-                                <option value="">
-                                    Select grade first
-                                </option>
-                            </select>
-
-                            <!-- Optional topic -->
-                            <label for="resourceTopic">
-                                Topic (Optional)
-                            </label>
-
-                            <select id="resourceTopic" disabled>
-                                <option value="">
-                                    Topic (optional)
-                                </option>
-                            </select>
-
-                            <!-- ===================================
-                                 RESOURCE SOURCE SELECTION
-                                 =================================== -->
-
-                            <fieldset>
-                                <legend>Resource Source</legend>
-
-                                <!-- Admin chooses a file -->
-                                <label>
-                                    <input type="radio"
-                                           name="resourceSource"
-                                           value="file"
-                                           checked>
-                                    Upload a file
-                                </label>
-
-                                <!-- Or admin chooses a URL -->
-                                <label>
-                                    <input type="radio"
-                                           name="resourceSource"
-                                           value="url">
-                                    Add a link
-                                </label>
-                            </fieldset>
-
-                            <!-- CHANGED:
-                                 Accept only document extensions
-                                 supported by the controller.
-                                 Backend must still validate. -->
-
-                            <div id="resourceFileSection">
-
-                                <label for="resourceFile">
-                                    Select Document
-                                </label>
-
-                                <input id="resourceFile"
-                                       type="file"
-                                       accept=".pdf,.doc,.docx,.ppt,.pptx,.txt">
-
-                                <small>
-                                    Supported: PDF, Word,
-                                    PowerPoint and TXT.
-                                    Maximum size: 10 MB.
-                                </small>
-                            </div>
-
-                            <!-- NEW:
-                                 URL is hidden until the admin
-                                 chooses "Add a link". -->
-
-                            <div id="resourceUrlSection"
-                                 style="display:none;">
-
-                                <label for="resourceUrl">
-                                    Resource URL
-                                </label>
-
-                                <input id="resourceUrl"
-                                       type="url"
-                                       placeholder="https://example.com/resource"
-                                       maxlength="500">
-
-                                <small>
-                                    Enter a valid HTTP or HTTPS link.
-                                </small>
-                            </div>
-
-                            <!-- Form actions -->
-                            <div class="form-actions">
-
-                                <button type="submit"
-                                        id="saveResourceBtn">
-                                    Save Resource
-                                </button>
-
-                                <button type="button"
-                                        id="closeAddResource">
-                                    Cancel
-                                </button>
-
-                            </div>
-
-                        </form>
-                    </div>
-                </div>
-
-            </section>
-        </main>
-    </div>
-
-    <!-- API helper must load first -->
-    <script src="../../js/api.js"></script>
-
-    <!-- Admin resource management logic -->
-    <script src="../../js/resources.js"></script>
-
+    <section class="resource-overview" aria-label="Resource overview">
+      <h2>Overview</h2>
+      <div class="resource-stats">
+        <article class="resource-stat"><strong id="statTotal">0</strong><span>Total resources</span></article>
+        <article class="resource-stat"><strong id="statTextbooks">0</strong><span>Textbooks</span></article>
+        <article class="resource-stat"><strong id="statSubjects">0</strong><span>Subjects with content</span></article>
+      </div>
+    </section>
+
+    <section class="resource-panel" aria-labelledby="availableResourcesTitle">
+      <div class="resource-panel-heading">
+        <h2 id="availableResourcesTitle">Available Resources</h2>
+        <p>Resources that learners can view or download.</p>
+      </div>
+
+      <div class="resource-toolbar">
+        <div class="resource-search"><label class="sr-only" for="resourceSearch">Search resources</label><input id="resourceSearch" type="search" placeholder="Search by title or subject"><button type="button" class="resource-btn resource-btn-outline" id="resourceSearchBtn">Search</button></div>
+        <label class="sr-only" for="gradeFilter">Filter by grade</label>
+        <select id="gradeFilter" class="resource-filter"><option value="all">All Grades</option></select>
+        <label class="sr-only" for="typeFilter">Filter by type</label>
+        <select id="typeFilter" class="resource-filter"><option value="all">All types</option><option value="Textbook">Textbook</option><option value="Past Paper">Past Paper</option><option value="Question Paper">Question Paper</option><option value="Notes">Notes</option><option value="Video">Video</option></select>
+        <button type="button" class="resource-btn resource-btn-primary" id="openAddResource">+ Add Resource</button>
+      </div>
+
+      <p id="resourcesMessage" class="resource-notice" role="status" aria-live="polite" style="display:none"></p>
+      <div class="resource-table-scroll">
+        <table class="resource-table">
+          <thead><tr><th>Resource</th><th>Type</th><th>Subject</th><th>Grade</th><th>Topic</th><th>Source</th><th>Actions</th></tr></thead>
+          <tbody id="resourcesTableBody"></tbody>
+        </table>
+      </div>
+      <div id="emptyResourcesMessage" class="resource-empty" style="display:none"><h3>No study materials available yet</h3><p>No resources have been uploaded. Click Add Resource to upload a document or add a study link.</p></div>
+    </section>
+  </main>
+</div>
+
+<div id="addResourceModal" class="modal resource-modal" role="dialog" aria-modal="true" aria-labelledby="addResourceTitle" style="display:none">
+  <div class="modal-content resource-modal-content">
+    <div class="resource-modal-header"><div><h2 id="addResourceTitle">Add Study Resource</h2><p>Upload a document or add a learning resource link.</p></div><button type="button" class="resource-close" id="closeResourceIcon" aria-label="Close form">×</button></div>
+    <p id="resourceFormError" class="resource-form-error" role="alert" style="display:none"></p>
+    <form id="addResourceForm" enctype="multipart/form-data">
+      <div class="resource-field"><label for="resourceTitle">Resource Title <span class="required">*</span></label><input id="resourceTitle" type="text" placeholder="Enter resource title" maxlength="200" required></div>
+      <div class="resource-field"><label for="resourceDescription">Description <span class="optional">(Optional)</span></label><textarea id="resourceDescription" placeholder="Briefly describe this resource" maxlength="1000" rows="3"></textarea></div>
+      <div class="resource-field-grid">
+        <div class="resource-field"><label for="resourceType">Resource Type <span class="required">*</span></label><select id="resourceType" required><option value="">Select type</option><option value="Textbook">Textbook</option><option value="Past Paper">Past Paper</option><option value="Question Paper">Question Paper</option><option value="Notes">Notes</option><option value="Video">Video</option></select></div>
+        <div class="resource-field"><label for="resourceGrade">Grade <span class="required">*</span></label><select id="resourceGrade" required><option value="">Select grade</option></select></div>
+        <div class="resource-field"><label for="resourceSubject">Subject <span class="required">*</span></label><select id="resourceSubject" required disabled><option value="">Select grade first</option></select></div>
+        <div class="resource-field"><label for="resourceTopic">Topic <span class="optional">(Optional)</span></label><select id="resourceTopic" disabled><option value="">Topic (optional)</option></select></div>
+      </div>
+      <fieldset class="resource-source"><legend>Resource Source <span class="required">*</span></legend><div class="resource-radio-group"><label><input type="radio" name="resourceSource" value="file" checked> Upload a file</label><label><input type="radio" name="resourceSource" value="url"> Add a link</label></div></fieldset>
+      <div id="resourceFileSection" class="resource-field"><label for="resourceFile">Select Document</label><input id="resourceFile" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.txt"><small>Supported: PDF, Word, PowerPoint and TXT. Maximum size: 10 MB.</small></div>
+      <div id="resourceUrlSection" class="resource-field" style="display:none"><label for="resourceUrl">Resource URL</label><input id="resourceUrl" type="url" placeholder="https://example.com/resource" maxlength="500"><small>Enter a valid HTTP or HTTPS link.</small></div>
+      <div class="resource-form-actions"><button type="button" class="resource-btn resource-btn-outline" id="closeAddResource">Cancel</button><button type="submit" class="resource-btn resource-btn-primary" id="saveResourceBtn">Save Resource</button></div>
+    </form>
+  </div>
+</div>
+<script src="../../js/api.js"></script>
+<script src="../../js/resources.js"></script>
+<script src="../../js/admin-shell.js"></script>
+<script>
+  document.getElementById('closeResourceIcon').addEventListener('click', function () { document.getElementById('closeAddResource').click(); });
+  document.getElementById('addResourceModal').addEventListener('click', function (event) { if (event.target === this) document.getElementById('closeAddResource').click(); });
+  document.addEventListener('keydown', function (event) { if (event.key === 'Escape' && document.getElementById('addResourceModal').style.display !== 'none') document.getElementById('closeAddResource').click(); });
+</script>
 </body>
 </html>

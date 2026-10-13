@@ -9,227 +9,349 @@
 
     <title>Admin Dashboard | EduQuest</title>
 
+    <!-- EXISTING: Main EduQuest stylesheet -->
     <link rel="stylesheet" href="../../css/style.css">
 
-    <!-- NEW: Dashboard-specific styling -->
+    <!-- NEW: Minimalist admin dashboard theme -->
     <style>
-        .admin-dashboard {
-            padding: 32px;
-            max-width: 1400px;
-            margin: 0 auto;
+        :root {
+            --admin-navy: #123b61;
+            --admin-teal: #2aa6a3;
+            --admin-background: #f4f7fb;
+            --admin-white: #ffffff;
+            --admin-border: #e2e8f0;
+            --admin-muted: #64748b;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
+        /* CHANGED: Consistent page appearance */
+        body {
+            margin: 0;
+            background: var(--admin-background);
+            color: var(--admin-navy);
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .app {
+            min-height: 100vh;
+        }
+
+        /* CHANGED: Learner-inspired sidebar */
+        .sidebar {
+            background: var(--admin-white);
+            border-right: 1px solid var(--admin-border);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 22px 12px;
+        }
+
+        .brand-logo {
+            width: 88px;
+            height: 88px;
+            object-fit: contain;
+        }
+
+        .brand-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--admin-navy);
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+            padding: 0 18px;
+        }
+
+        .sidebar-nav .nav-link {
+            display: block;
+            padding: 12px 16px;
+            border: 1px solid #cce4e5;
+            border-radius: 10px;
+            background: #fff;
+            color: var(--admin-navy);
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: background 0.2s ease;
+        }
+
+        .sidebar-nav .nav-link:hover {
+            background: #edf8f8;
+        }
+
+        .sidebar-nav .nav-link.active {
+            background: var(--admin-teal);
+            border-color: var(--admin-teal);
+            color: #fff;
+        }
+
+        /* CHANGED: Logout looks like navigation */
+        .sidebar-nav .admin-logout {
+            width: 100%;
+            font-family: inherit;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            text-align: left;
+            padding-left: 14px;
+            margin-top: 10px;
+        }
+
+        .sidebar-footer {
+            padding: 22px;
+            color: var(--admin-muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .sidebar-footer p {
+            margin: 0 0 5px;
+        }
+
+        /* CHANGED: Main content */
+        .main {
+            min-width: 0;
+            background: var(--admin-background);
+        }
+
+        .admin-dashboard {
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 36px;
+        }
+
+        /* CHANGED: Welcome and profile */
         .admin-topbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 20px;
-            margin-bottom: 32px;
+            gap: 24px;
+            margin-bottom: 30px;
         }
 
         .admin-topbar h1 {
             margin: 0 0 8px;
+            color: var(--admin-navy);
+            font-size: clamp(24px, 2.4vw, 32px);
+            font-weight: 700;
         }
 
         .admin-topbar p {
             margin: 0;
-            color: #64748b;
+            color: var(--admin-muted);
+            font-size: 14px;
+            line-height: 1.6;
         }
 
         .admin-profile {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            white-space: nowrap;
+            color: var(--admin-navy);
+            font-size: 14px;
+            font-weight: 500;
         }
 
         .admin-avatar {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            background: #e0e7ff;
-            color: #1e40af;
+            background: #e1f3f2;
+            color: #187d7a;
             font-weight: 700;
         }
 
+        /* CHANGED: Real statistics */
         .admin-stats {
             display: grid;
             grid-template-columns:
-                repeat(auto-fit, minmax(210px, 1fr));
+                repeat(3, minmax(0, 1fr));
             gap: 18px;
-            margin-bottom: 32px;
+            margin-bottom: 26px;
         }
 
         .admin-stat-card {
+            min-width: 0;
             padding: 24px;
-            border: 1px solid #e2e8f0;
+            background: var(--admin-white);
+            border: 1px solid var(--admin-border);
             border-radius: 12px;
-            background: #fff;
         }
 
         .admin-stat-card h3 {
-            margin: 0 0 16px;
+            margin: 0 0 18px;
+            color: var(--admin-muted);
             font-size: 14px;
             font-weight: 500;
-            color: #64748b;
         }
 
         .admin-stat-number {
-            font-size: 30px;
+            color: var(--admin-navy);
+            font-size: 32px;
+            line-height: 1.2;
             font-weight: 700;
-            color: #0f172a;
         }
 
         .admin-stat-note {
             margin: 12px 0 0;
-            font-size: 13px;
-            color: #64748b;
+            color: var(--admin-muted);
+            font-size: 12px;
+            line-height: 1.5;
         }
 
+        /* CHANGED: Quick actions and status */
         .admin-content-grid {
             display: grid;
-            grid-template-columns: 1.3fr 1fr;
-            gap: 24px;
+            grid-template-columns: 1.25fr 1fr;
+            gap: 20px;
         }
 
         .admin-panel {
+            min-width: 0;
             padding: 24px;
-            border: 1px solid #e2e8f0;
+            background: var(--admin-white);
+            border: 1px solid var(--admin-border);
             border-radius: 12px;
-            background: #fff;
         }
 
         .admin-panel h2 {
             margin: 0 0 20px;
+            color: var(--admin-navy);
             font-size: 18px;
+            font-weight: 700;
+        }
+
+        .admin-actions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .admin-action {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
             padding: 14px 16px;
-            margin-bottom: 12px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--admin-border);
             border-radius: 8px;
+            color: var(--admin-navy);
+            background: #fff;
+            font-size: 14px;
             text-decoration: none;
-            color: #1e293b;
-            font-weight: 500;
+            transition: background 0.2s ease;
         }
 
         .admin-action:hover {
-            background: #f8fafc;
+            background: #f1f8f8;
+            border-color: #b6dddd;
+        }
+
+        .admin-action-arrow {
+            color: var(--admin-teal);
+            font-size: 18px;
         }
 
         .admin-status {
-            color: #64748b;
-            line-height: 1.6;
+            margin: 0;
+            color: var(--admin-muted);
+            font-size: 14px;
+            line-height: 1.7;
         }
 
-        .admin-logout {
-            display: block;
-            width: 100%;
-            border: none;
-            background: transparent;
-            text-align: left;
-            font: inherit;
-            cursor: pointer;
+        /* NEW: Keyboard accessibility */
+        a:focus-visible,
+        button:focus-visible {
+            outline: 2px solid var(--admin-teal);
+            outline-offset: 3px;
+        }
+
+        /* NEW: Responsive layout */
+        @media (max-width: 1100px) {
+            .admin-stats {
+                grid-template-columns:
+                    repeat(2, minmax(0, 1fr));
+            }
         }
 
         @media (max-width: 850px) {
+            .admin-dashboard {
+                padding: 24px;
+            }
+
             .admin-content-grid {
                 grid-template-columns: 1fr;
             }
 
             .admin-topbar {
-                flex-direction: column;
                 align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .admin-dashboard {
+                padding: 16px;
             }
 
-            .admin-dashboard {
+            .admin-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-stat-card,
+            .admin-panel {
                 padding: 20px;
             }
         }
     </style>
+<link rel="stylesheet" href="../../css/admin-theme.css">
 </head>
 
 <body>
 
 <div class="app">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <!-- ======================================
+         SIDEBAR
+         ====================================== -->
+    <aside class="sidebar"><div><div class="brand"><img src="../../EduQuest-with-js/EduQuest/images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo"></div><nav class="sidebar-nav" aria-label="Admin navigation"><a href="dashboard.html" class="nav-link active">Home</a>
+<a href="users.html" class="nav-link">Users</a>
+<a href="quiz.html" class="nav-link">Quizzes</a>
+<a href="resources.html" class="nav-link">Resources</a>
+<a href="competition.html" class="nav-link">Competitions</a>
+<a href="leaderboard.html" class="nav-link">Leaderboard</a>
+<a href="reports.html" class="nav-link">Reports</a><button type="button" class="nav-link" id="adminLogout">Log Out</button></nav></div><div class="sidebar-social"><a href="#">Instagram</a><a href="#">Facebook</a></div></aside>
 
-        <div>
-            <div class="brand">
-                <img
-                    src="../../images/EduQuestLogo.jpg"
-                    alt="EduQuest logo"
-                    class="brand-logo">
-
-                <div class="brand-name">
-                    EduQuest
-                </div>
-            </div>
-
-            <nav class="sidebar-nav">
-
-                <a href="dashboard.html"
-                   class="nav-link active">
-                    Home
-                </a>
-
-                <a href="users.html" class="nav-link">
-                    Users
-                </a>
-
-                <a href="quiz.html" class="nav-link">
-                    Quizzes
-                </a>
-
-                <a href="resources.html" class="nav-link">
-                    Resources
-                </a>
-
-                <a href="competition.html" class="nav-link">
-                    Competitions
-                </a>
-
-                <a href="leaderboard.html" class="nav-link">
-                    Leaderboard
-                </a>
-
-                <a href="reports.html" class="nav-link">
-                    Reports
-                </a>
-
-                <!-- NEW: Logout -->
-                <button
-                    type="button"
-                    id="adminLogout"
-                    class="nav-link admin-logout">
-                    Log Out
-                </button>
-
-            </nav>
-        </div>
-
-        <div class="sidebar-footer">
-            <p>Enhancing education through technology.</p>
-            <small>© 2026 EduQuest</small>
-        </div>
-
-    </aside>
-
-    <!-- MAIN CONTENT -->
+    <!-- ======================================
+         MAIN CONTENT
+         ====================================== -->
     <main class="main">
 
         <div class="admin-dashboard">
 
             <!-- WELCOME -->
-            <div class="admin-topbar">
+            <header class="admin-topbar">
 
                 <div>
+                    <!-- EXISTING: JS updates heading -->
                     <h1 id="adminWelcome">
                         Welcome back, Admin!
                     </h1>
@@ -240,6 +362,7 @@
                     </p>
                 </div>
 
+                <!-- EXISTING: Profile IDs preserved -->
                 <div class="admin-profile">
 
                     <div class="admin-avatar"
@@ -252,10 +375,15 @@
                     </span>
 
                 </div>
-            </div>
 
-            <!-- CHANGED: REAL BACKEND STATISTICS -->
-            <section class="admin-stats">
+            </header>
+
+            <!-- ==================================
+                 REAL BACKEND STATISTICS
+                 All existing IDs preserved
+                 ================================== -->
+            <section class="admin-stats"
+                     aria-label="Platform statistics">
 
                 <article class="admin-stat-card">
                     <h3>Total Learners</h3>
@@ -325,39 +453,56 @@
 
             </section>
 
-            <!-- LOWER DASHBOARD -->
+            <!-- ==================================
+                 LOWER DASHBOARD
+                 ================================== -->
             <div class="admin-content-grid">
 
+                <!-- QUICK ACTIONS -->
                 <section class="admin-panel">
 
                     <h2>Quick Actions</h2>
 
-                    <a href="quiz.html"
-                       class="admin-action">
-                        Create a Quiz
-                    </a>
+                    <div class="admin-actions-list">
 
-                    <a href="resources.html"
-                       class="admin-action">
-                        Upload Study Material
-                    </a>
+                        <a href="quiz.html"
+                           class="admin-action">
+                            <span>Create a Quiz</span>
+                            <span class="admin-action-arrow"
+                                  aria-hidden="true">→</span>
+                        </a>
 
-                    <a href="users.html"
-                       class="admin-action">
-                        Manage Learners
-                    </a>
+                        <a href="resources.html"
+                           class="admin-action">
+                            <span>Upload Study Material</span>
+                            <span class="admin-action-arrow"
+                                  aria-hidden="true">→</span>
+                        </a>
 
-                    <a href="competition.html"
-                       class="admin-action">
-                        Manage Competitions
-                    </a>
+                        <a href="users.html"
+                           class="admin-action">
+                            <span>Manage Learners</span>
+                            <span class="admin-action-arrow"
+                                  aria-hidden="true">→</span>
+                        </a>
+
+                        <a href="competition.html"
+                           class="admin-action">
+                            <span>Manage Competitions</span>
+                            <span class="admin-action-arrow"
+                                  aria-hidden="true">→</span>
+                        </a>
+
+                    </div>
 
                 </section>
 
+                <!-- DASHBOARD STATUS -->
                 <section class="admin-panel">
 
                     <h2>Dashboard Status</h2>
 
+                    <!-- EXISTING: JS updates status -->
                     <p class="admin-status"
                        id="adminActivity"
                        role="status"
@@ -375,7 +520,7 @@
 
 </div>
 
-<!-- CHANGED: Load API before dashboard logic -->
+<!-- EXISTING: Authentication and statistics -->
 <script src="../../js/api.js"></script>
 <script src="../../js/admin-dashboard.js"></script>
 

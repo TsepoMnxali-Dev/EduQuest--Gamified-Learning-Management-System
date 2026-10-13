@@ -25,6 +25,7 @@
             margin-top: 12px;
         }
     </style>
+<link rel="stylesheet" href="css/theme-unified.css">
 </head>
 
 <body>
@@ -263,6 +264,8 @@
 
 <!-- CHANGED: API loads before dashboard -->
 <script src="js/api.js"></script>
+<script src="js/profile-gate.js"></script>
+<script>EduQuestProfileGate.protectDashboard();</script>
 <script src="js/dashboard.js" defer></script>
 
 </body>

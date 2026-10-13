@@ -9,10 +9,12 @@
 
     <title>EduQuest | Sign In</title>
 
+    <!-- CHANGED: Original EduQuest theme -->
     <link rel="stylesheet" href="css/style.css">
 
-    <!-- NEW: Login notification styling -->
     <style>
+        /* NEW: Shared login form styling */
+
         .login-message {
             display: none;
             padding: 12px;
@@ -35,93 +37,131 @@
             border: 1px solid #86efac;
         }
 
-        .password-container {
+        .password-wrapper {
             position: relative;
         }
 
-        .password-container input {
+        .password-wrapper input {
             width: 100%;
             padding-right: 75px;
             box-sizing: border-box;
         }
 
-        .toggle-password {
+        .show-password {
             position: absolute;
             right: 10px;
             top: 50%;
             transform: translateY(-50%);
             border: none;
             background: transparent;
+            color: #193f68;
             cursor: pointer;
             font-size: 13px;
+        }
+
+        .auth-submit {
+            width: 100%;
         }
 
         .auth-submit:disabled {
             opacity: 0.65;
             cursor: not-allowed;
         }
+
+        .auth-switch {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .auth-switch a {
+            color: #2aa9a4;
+            font-weight: 700;
+        }
+
+        .brand-logo,
+        .auth-logo {
+            border-radius: 50%;
+            object-fit: cover;
+        }
     </style>
+<link rel="stylesheet" href="css/theme-unified.css">
 </head>
 
 <body>
 
 <div class="app">
 
-    <!-- EXISTING SIDEBAR -->
+    <!-- SIDEBAR -->
     <aside class="sidebar">
 
         <div>
+
             <div class="brand">
-                <img src="images/eduquest-logo.png"
-                     alt="EduQuest logo"
-                     class="brand-logo">
+                <img
+                    src="images/eduquest-logo.png"
+                    alt="EduQuest logo"
+                    class="brand-logo">
             </div>
 
-            <nav class="sidebar-nav">
-                <a href="#" class="nav-link">Home</a>
-                <a href="#" class="nav-link">Classes</a>
-                <a href="#" class="nav-link">Quizzes</a>
-                <a href="#" class="nav-link">Resources</a>
-                <a href="#" class="nav-link">Leaderboard</a>
-                <a href="#" class="nav-link">Profile</a>
-                <a href="#" class="nav-link">Help &amp; Support</a>
+            <!-- CHANGED: No Admin/Learner selection -->
+            <nav class="sidebar-nav"
+                 aria-label="Authentication navigation">
+
+                <a href="index.html"
+                   class="nav-link">
+                    Home
+                </a>
+
+                <a href="login.html"
+                   class="nav-link active"
+                   aria-current="page">
+                    Sign In
+                </a>
+
+                <a href="signup.html"
+                   class="nav-link">
+                    Sign Up
+                </a>
+
             </nav>
+
         </div>
 
         <div class="sidebar-social">
-            <a href="#">Instagram</a>
-            <a href="#">Facebook</a>
+            <span>EduQuest</span>
         </div>
 
     </aside>
 
-    <!-- LOGIN -->
+    <!-- UNIFIED LOGIN -->
     <main class="main auth-main">
 
         <div class="auth-wrapper">
 
             <section class="auth-card">
 
-                <img src="images/eduquest-logo.png"
-                     alt="EduQuest logo"
-                     class="auth-logo">
+                <img
+                    src="images/eduquest-logo.png"
+                    alt="EduQuest logo"
+                    class="auth-logo">
 
                 <h1>Welcome Back!</h1>
 
                 <p class="auth-subtitle">
-                    Sign in to continue your EduQuest journey.
+                    Sign in to your EduQuest account.
                 </p>
 
-                <!-- NEW: Login notification -->
-                <div id="loginMessage"
-                     class="login-message"
-                     role="status"
-                     aria-live="polite">
+                <!-- LOGIN NOTIFICATIONS -->
+                <div
+                    id="loginMessage"
+                    class="login-message"
+                    role="status"
+                    aria-live="polite">
                 </div>
 
+                <!-- CHANGED: One form for both roles -->
                 <form id="loginForm" novalidate>
 
-                    <!-- EMAIL -->
                     <div class="form-group">
 
                         <label for="email">
@@ -138,15 +178,13 @@
 
                     </div>
 
-                    <!-- PASSWORD -->
                     <div class="form-group">
 
                         <label for="password">
                             Password
                         </label>
 
-                        <!-- NEW: Show/hide password -->
-                        <div class="password-container">
+                        <div class="password-wrapper">
 
                             <input
                                 type="password"
@@ -159,52 +197,28 @@
                             <button
                                 type="button"
                                 id="togglePassword"
-                                class="toggle-password"
-                                aria-label="Show password">
-
+                                class="show-password">
                                 Show
-
                             </button>
 
                         </div>
 
                     </div>
 
-                    <!-- REMEMBER ME -->
-                    <div class="form-row">
-
-                        <label class="remember">
-
-                            <input type="checkbox"
-                                   id="remember">
-
-                            Remember me
-
-                        </label>
-
-                        <a href="reset-password.html"
-                           class="forgot">
-                            Forgot password?
-                        </a>
-
-                    </div>
-
-                    <!-- SIGN IN -->
-                    <button type="submit"
-                            id="loginButton"
-                            class="btn btn-primary auth-submit">
-
+                    <button
+                        type="submit"
+                        id="loginButton"
+                        class="btn btn-primary auth-submit">
                         Sign In
-
                     </button>
 
                 </form>
 
-                <div class="divider">or</div>
-
                 <p class="auth-switch">
                     Don't have an account?
-                    <a href="signup.html">Sign Up</a>
+                    <a href="signup.html">
+                        Sign Up
+                    </a>
                 </p>
 
             </section>
@@ -215,8 +229,9 @@
 
 </div>
 
-<!-- API helper must load before login.js -->
-<script src="js/api.js"></script>
+<!-- CHANGED: Shared authentication scripts -->
+<script src="js/api.js" defer></script>
+<script src="js/profile-gate.js" defer></script>
 <script src="js/login.js" defer></script>
 
 </body>

@@ -12,6 +12,7 @@
 
     <!-- Existing admin stylesheet -->
     <link rel="stylesheet" href="../../css/style.css">
+<link rel="stylesheet" href="../../css/admin-theme.css">
 </head>
 
 <body>
@@ -45,72 +46,13 @@
 
         <!-- SIDEBAR -->
 
-        <aside class="sidebar">
-
-            <div>
-
-                <div class="brand">
-
-                    <img src="../../images/EduQuestLogo.jpg"
-                         alt="EduQuest Logo"
-                         class="brand-logo">
-
-                    <div class="brand-name">
-                        EduQuest
-                    </div>
-
-                </div>
-
-                <nav class="sidebar-nav">
-
-                    <a href="dashboard.html"
-                       class="nav-link">
-                        Home
-                    </a>
-
-                    <a href="users.html"
-                       class="nav-link">
-                        Users
-                    </a>
-
-                    <a href="quiz.html"
-                       class="nav-link">
-                        Quizzes
-                    </a>
-
-                    <a href="resources.html"
-                       class="nav-link">
-                        Resources
-                    </a>
-
-                    <a href="competition.html"
-                       class="nav-link">
-                        Competitions
-                    </a>
-
-                    <a href="leaderboard.html"
-                       class="nav-link active">
-                        Leaderboard
-                    </a>
-
-                    <a href="reports.html"
-                       class="nav-link">
-                        Reports
-                    </a>
-
-                </nav>
-
-            </div>
-
-            <div class="sidebar-footer">
-
-                <p>Enhancing education through tech.</p>
-
-                <small>© 2026 EduQuest</small>
-
-            </div>
-
-        </aside>
+        <aside class="sidebar"><div><div class="brand"><img src="../../EduQuest-with-js/EduQuest/images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo"></div><nav class="sidebar-nav" aria-label="Admin navigation"><a href="dashboard.html" class="nav-link">Home</a>
+<a href="users.html" class="nav-link">Users</a>
+<a href="quiz.html" class="nav-link">Quizzes</a>
+<a href="resources.html" class="nav-link">Resources</a>
+<a href="competition.html" class="nav-link">Competitions</a>
+<a href="leaderboard.html" class="nav-link active">Leaderboard</a>
+<a href="reports.html" class="nav-link">Reports</a><button type="button" class="nav-link" id="adminLogout">Log Out</button></nav></div><div class="sidebar-social"><a href="#">Instagram</a><a href="#">Facebook</a></div></aside>
 
         <!-- ==========================================
              MAIN CONTENT
@@ -236,5 +178,6 @@
 
     <script src="../../js/leaderboard.js"></script>
 
+<script src="../../js/admin-shell.js"></script>
 </body>
 </html>
