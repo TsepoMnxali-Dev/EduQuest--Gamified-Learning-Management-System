@@ -1,9 +1,13 @@
-﻿
+using System.Security.Cryptography;
+using System.Text;
 using EduQuest.API.Data;
 using EduQuest.API.DTOs.Auth;
 using EduQuest.API.Models.Entities;
 using EduQuest.API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 
 namespace EduQuest.API.Controllers
@@ -14,13 +18,22 @@ namespace EduQuest.API.Controllers
     {
         private readonly ApplicationDBContext _context;
         private readonly TokenService _tokenService;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _config;
+        private readonly ILogger<AuthController> _logger;
 
         public AuthController(
             ApplicationDBContext context,
-            TokenService tokenService)
+            TokenService tokenService,
+            IEmailService emailService,
+            IConfiguration config,
+            ILogger<AuthController> logger)
         {
             _context = context;
             _tokenService = tokenService;
+            _emailService = emailService;
+            _config = config;
+            _logger = logger;
         }
 
         // ==========================================
@@ -28,27 +41,21 @@ namespace EduQuest.API.Controllers
         // ==========================================
 
         [HttpPost("register")]
-        public async Task<ActionResult> Register(
-            RegisterDto dto)
+        public async Task<ActionResult> Register(RegisterDto dto)
         {
             var email = dto.Email.Trim().ToLowerInvariant();
 
-            if (await _context.Users.AnyAsync(
-                u => u.Email == email))
+            if (await _context.Users.AnyAsync(u => u.Email == email))
             {
-                return Conflict(
-                    "An account with this email already exists.");
+                return Conflict("An account with this email already exists.");
             }
 
             var learnerRole = await _context.Roles
-                .FirstOrDefaultAsync(
-                    r => r.RoleName == "Learner");
+                .FirstOrDefaultAsync(r => r.RoleName == "Learner");
 
             if (learnerRole == null)
             {
-                return StatusCode(
-                    500,
-                    "Learner role has not been configured.");
+                return StatusCode(500, "Learner role has not been configured.");
             }
 
             var user = new User
@@ -56,17 +63,13 @@ namespace EduQuest.API.Controllers
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
                 Email = email,
-
-                PasswordHash =
-                    BCrypt.Net.BCrypt.HashPassword(
-                        dto.Password),
-
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 RoleID = learnerRole.RoleID,
-                IsActive = true
+                IsActive = true,
+                DateCreated = DateTime.UtcNow
             };
 
             _context.Users.Add(user);
-
             await _context.SaveChangesAsync();
 
             return Ok(new
@@ -76,16 +79,41 @@ namespace EduQuest.API.Controllers
             });
         }
 
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<ActionResult> ChangePassword(ChangePasswordDto dto)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null || !user.IsActive)
+                return Unauthorized();
+
+            if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
+                return BadRequest("Your current password is incorrect.");
+
+            if (dto.NewPassword.Length < 8)
+                return BadRequest("The new password must be at least 8 characters.");
+
+            if (dto.NewPassword == dto.CurrentPassword)
+                return BadRequest("The new password must be different from your current password.");
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         // ==========================================
         // NEW: COMPLETE LEARNER REGISTRATION
         // POST: api/auth/register-learner
         // ==========================================
 
         [HttpPost("register-learner")]
-        public async Task<ActionResult> RegisterLearner(
-            RegisterLearnerDto dto)
+        public async Task<ActionResult> RegisterLearner(RegisterLearnerDto dto)
         {
-            // NEW: Validate incoming request.
             if (!ModelState.IsValid)
             {
                 return ValidationProblem(ModelState);
@@ -96,79 +124,50 @@ namespace EduQuest.API.Controllers
                 string.IsNullOrWhiteSpace(dto.Email) ||
                 string.IsNullOrWhiteSpace(dto.Password))
             {
-                return BadRequest(new
-                {
-                    message = "Please complete all account details."
-                });
+                return BadRequest(new { message = "Please complete all account details." });
             }
 
             var email = dto.Email.Trim().ToLowerInvariant();
 
-            // NEW: Prevent duplicate email addresses.
-            if (await _context.Users.AnyAsync(
-                u => u.Email == email))
+            if (await _context.Users.AnyAsync(u => u.Email == email))
             {
-                return Conflict(new
-                {
-                    message = "An account with this email already exists."
-                });
+                return Conflict(new { message = "An account with this email already exists." });
             }
 
-            // NEW: Find the Learner role.
             var learnerRole = await _context.Roles
-                .FirstOrDefaultAsync(
-                    r => r.RoleName == "Learner");
+                .FirstOrDefaultAsync(r => r.RoleName == "Learner");
 
             if (learnerRole == null)
             {
-                return StatusCode(500, new
-                {
-                    message = "Learner role is not configured."
-                });
+                return StatusCode(500, new { message = "Learner role is not configured." });
             }
 
-            // NEW: Validate the selected grade.
             var gradeExists = await _context.Grades
                 .AnyAsync(g => g.GradeID == dto.GradeID);
 
             if (!gradeExists)
             {
-                return BadRequest(new
-                {
-                    message = "The selected grade does not exist."
-                });
+                return BadRequest(new { message = "The selected grade does not exist." });
             }
 
-            // NEW: Validate the selected school.
             var schoolExists = await _context.Schools
                 .AnyAsync(s => s.SchoolID == dto.SchoolID);
 
             if (!schoolExists)
             {
-                return BadRequest(new
-                {
-                    message = "The selected school does not exist."
-                });
+                return BadRequest(new { message = "The selected school does not exist." });
             }
 
-            // NEW: Validate subject selections.
-            if (dto.SubjectIDs == null ||
-                dto.SubjectIDs.Count == 0)
+            if (dto.SubjectIDs == null || dto.SubjectIDs.Count == 0)
             {
-                return BadRequest(new
-                {
-                    message = "Please select at least one subject."
-                });
+                return BadRequest(new { message = "Please select at least one subject." });
             }
 
             var subjectIds = dto.SubjectIDs.Distinct().ToList();
 
             if (subjectIds.Any(id => id <= 0))
             {
-                return BadRequest(new
-                {
-                    message = "One or more selected subjects are invalid."
-                });
+                return BadRequest(new { message = "One or more selected subjects are invalid." });
             }
 
             var validSubjectCount = await _context.Subjects
@@ -176,61 +175,35 @@ namespace EduQuest.API.Controllers
 
             if (validSubjectCount != subjectIds.Count)
             {
-                return BadRequest(new
-                {
-                    message = "One or more selected subjects do not exist."
-                });
+                return BadRequest(new { message = "One or more selected subjects do not exist." });
             }
 
-            // NEW: Ensure subjects belong to the
-            // selected grade.
-            var validGradeSubjectCount =
-                await _context.GradeSubjects.CountAsync(
-                    gs => gs.GradeID == dto.GradeID &&
-                          subjectIds.Contains(gs.SubjectID));
+            var validGradeSubjectCount = await _context.GradeSubjects.CountAsync(
+                gs => gs.GradeID == dto.GradeID && subjectIds.Contains(gs.SubjectID));
 
             if (validGradeSubjectCount != subjectIds.Count)
             {
-                return BadRequest(new
-                {
-                    message =
-                        "One or more subjects are not available for the selected grade."
-                });
+                return BadRequest(new { message = "One or more subjects are not available for the selected grade." });
             }
 
-            // NEW: Transaction ensures that user,
-            // learner profile and subjects are
-            // saved together or not at all.
-            await using var transaction =
-                await _context.Database.BeginTransactionAsync();
+            await using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                // ==================================
-                // CREATE USER ACCOUNT
-                // ==================================
-
                 var user = new User
                 {
                     FirstName = dto.FirstName.Trim(),
                     LastName = dto.LastName.Trim(),
                     Email = email,
-
-                    PasswordHash =
-                        BCrypt.Net.BCrypt.HashPassword(
-                            dto.Password),
-
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                     RoleID = learnerRole.RoleID,
                     Role = learnerRole,
-                    IsActive = true
+                    IsActive = true,
+                    DateCreated = DateTime.UtcNow
                 };
 
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
-
-                // ==================================
-                // CREATE LEARNER PROFILE
-                // ==================================
 
                 var learner = new Learner
                 {
@@ -242,39 +215,25 @@ namespace EduQuest.API.Controllers
                 _context.Learners.Add(learner);
                 await _context.SaveChangesAsync();
 
-                // ==================================
-                // SAVE SELECTED SUBJECTS
-                // ==================================
-
                 foreach (var subjectId in subjectIds)
                 {
-                    var learnerSubject = new LearnerSubject
+                    _context.learnerSubjects.Add(new LearnerSubject
                     {
                         LearnerID = learner.LearnerID,
                         SubjectID = subjectId
-                    };
-
-                    _context.learnerSubjects.Add(learnerSubject);
+                    });
                 }
 
                 await _context.SaveChangesAsync();
-
-                // ==================================
-                // GENERATE AUTHENTICATION TOKEN
-                // ==================================
 
                 var token = _tokenService.CreateToken(user);
 
                 await transaction.CommitAsync();
 
-                // NEW: Same response structure as
-                // the existing login endpoint.
                 return Ok(new
                 {
                     message = "Learner account created successfully.",
-
                     token = token,
-
                     user = new
                     {
                         userId = user.UserID,
@@ -289,22 +248,12 @@ namespace EduQuest.API.Controllers
             catch (DbUpdateException)
             {
                 await transaction.RollbackAsync();
-
-                return StatusCode(500, new
-                {
-                    message =
-                        "Unable to save your learner account. Please try again."
-                });
+                return StatusCode(500, new { message = "Unable to save your learner account. Please try again." });
             }
             catch (Exception)
             {
                 await transaction.RollbackAsync();
-
-                return StatusCode(500, new
-                {
-                    message =
-                        "An unexpected error occurred during registration."
-                });
+                return StatusCode(500, new { message = "An unexpected error occurred during registration." });
             }
         }
 
@@ -313,48 +262,30 @@ namespace EduQuest.API.Controllers
         // ==========================================
 
         [HttpPost("login")]
-        public async Task<ActionResult> Login(
-            LoginDto dto)
+        public async Task<ActionResult> Login(LoginDto dto)
         {
             if (dto == null ||
                 string.IsNullOrWhiteSpace(dto.Email) ||
                 string.IsNullOrWhiteSpace(dto.Password))
             {
-                return BadRequest(new
-                {
-                    message =
-                        "Please enter your email and password."
-                });
+                return BadRequest(new { message = "Please enter your email and password." });
             }
 
             var email = dto.Email.Trim().ToLowerInvariant();
 
             var user = await _context.Users
                 .Include(u => u.Role)
-                .FirstOrDefaultAsync(
-                    u => u.Email == email && u.IsActive);
+                .FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
 
             if (user == null ||
-                !BCrypt.Net.BCrypt.Verify(
-                    dto.Password,
-                    user.PasswordHash))
+                !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             {
-                return Unauthorized(new
-                {
-                    message =
-                        "Incorrect email or password. Please try again."
-                });
+                return Unauthorized(new { message = "Incorrect email or password. Please try again." });
             }
 
-            if (user.Role == null ||
-                string.IsNullOrWhiteSpace(
-                    user.Role.RoleName))
+            if (user.Role == null || string.IsNullOrWhiteSpace(user.Role.RoleName))
             {
-                return StatusCode(500, new
-                {
-                    message =
-                        "Account role is not configured. Contact support."
-                });
+                return StatusCode(500, new { message = "Account role is not configured. Contact support." });
             }
 
             var token = _tokenService.CreateToken(user);
@@ -362,9 +293,7 @@ namespace EduQuest.API.Controllers
             return Ok(new
             {
                 message = "Login successful.",
-
                 token = token,
-
                 user = new
                 {
                     userId = user.UserID,
@@ -374,6 +303,89 @@ namespace EduQuest.API.Controllers
                     role = user.Role.RoleName
                 }
             });
+        }
+
+        // POST: api/auth/forgot-password
+        [HttpPost("forgot-password")]
+        public async Task<ActionResult> ForgotPassword(ForgotPasswordDto dto)
+        {
+            const string genericMessage =
+                "If an account exists for that email, a password reset link has been sent.";
+
+            var email = dto.Email.Trim().ToLowerInvariant();
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
+
+            if (user == null)
+                return Ok(new { message = genericMessage });
+
+            var token = WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32));
+            user.PasswordResetTokenHash = HashToken(token);
+            user.PasswordResetExpiresAt = DateTime.UtcNow.AddHours(1);
+            await _context.SaveChangesAsync();
+
+            var frontendBase = (_config["Frontend:BaseUrl"] ?? "http://127.0.0.1:5500").TrimEnd('/');
+            var link = $"{frontendBase}/reset-password.html" +
+                       $"?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(token)}";
+
+            var body =
+                $"<p>Hi {System.Net.WebUtility.HtmlEncode(user.FirstName)},</p>" +
+                "<p>We received a request to reset your EduQuest password. " +
+                "Click the link below to choose a new one. It expires in 1 hour.</p>" +
+                $"<p><a href=\"{link}\">Reset my password</a></p>" +
+                "<p>If you did not ask for this, you can ignore this email.</p>";
+
+            try
+            {
+                await _emailService.SendAsync(email, "Reset your EduQuest password", body);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send password reset email to {Email}", email);
+            }
+
+            return Ok(new { message = genericMessage });
+        }
+
+        // POST: api/auth/reset-password
+        [HttpPost("reset-password")]
+        public async Task<ActionResult> ResetPassword(ResetPasswordDto dto)
+        {
+            const string invalidMessage =
+                "This reset link is invalid or has expired. Please request a new one.";
+
+            var email = dto.Email.Trim().ToLowerInvariant();
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email && u.IsActive);
+
+            if (user == null ||
+                string.IsNullOrEmpty(user.PasswordResetTokenHash) ||
+                user.PasswordResetExpiresAt == null ||
+                user.PasswordResetExpiresAt < DateTime.UtcNow)
+            {
+                return BadRequest(invalidMessage);
+            }
+
+            var suppliedHash = Encoding.UTF8.GetBytes(HashToken(dto.Token));
+            var storedHash = Encoding.UTF8.GetBytes(user.PasswordResetTokenHash);
+
+            if (!CryptographicOperations.FixedTimeEquals(suppliedHash, storedHash))
+                return BadRequest(invalidMessage);
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+
+            user.PasswordResetTokenHash = null;
+            user.PasswordResetExpiresAt = null;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Your password has been reset. You can now sign in." });
+        }
+
+        private static string HashToken(string token)
+        {
+            return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(token)));
         }
     }
 }

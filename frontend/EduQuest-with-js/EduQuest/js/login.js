@@ -1,4 +1,3 @@
-
 /*
 ========================================================
 EduQuest - Login
@@ -113,7 +112,11 @@ CHANGED:
             return true;
         }
         if (normalizedRole === "learner") {
-            await EduQuestProfileGate.redirectAfterLogin();
+            if (window.EduQuestProfileGate && typeof EduQuestProfileGate.redirectAfterLogin === "function") {
+                await EduQuestProfileGate.redirectAfterLogin();
+            } else {
+                window.location.replace(LEARNER_DASHBOARD);
+            }
             return true;
         }
         return false;
@@ -168,10 +171,6 @@ CHANGED:
     // EXISTING LOGIN SESSION
     // ==========================================
 
-    // CHANGED:
-    // Preserve existing valid sessions.
-    // Redirect according to the JWT role.
-
     if (EduQuestAPI.getToken()) {
         const currentUser = EduQuestAPI.getCurrentUser();
         if (currentUser && ["admin", "learner"].includes(String(currentUser.role).toLowerCase())) {
@@ -194,7 +193,6 @@ CHANGED:
         async function (event) {
             event.preventDefault();
 
-            // NEW: Prevent duplicate requests.
             if (isSubmitting) {
                 return;
             }
@@ -307,20 +305,6 @@ CHANGED:
                 // SAVE AUTHENTICATION
                 // ==================================
 
-                // CHANGED:
-                // Save JWT together with the user
-                // returned by the backend.
-                //
-                // The user object contains:
-                // - userId
-                // - firstName
-                // - lastName
-                // - email
-                // - role
-                //
-                // api.js uses this information
-                // to populate the dashboard.
-
                 EduQuestAPI.saveToken(
                     result.token,
                     result.user
@@ -329,10 +313,6 @@ CHANGED:
                 // ==================================
                 // VERIFY SAVED SESSION
                 // ==================================
-
-                // NEW:
-                // Check that the JWT was stored
-                // and its role matches the response.
 
                 const currentUser =
                     EduQuestAPI.getCurrentUser();

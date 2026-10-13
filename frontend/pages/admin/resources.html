@@ -12,7 +12,7 @@
 <div class="app">
   <aside class="sidebar">
     <div>
-      <div class="brand"><img class="brand-logo" src="../../EduQuest-with-js/EduQuest/images/eduquest-logo.png" alt="EduQuest logo"></div>
+      <div class="brand"><img class="brand-logo" src="../../images/eduquest-logo.png" alt="EduQuest logo"></div>
       <nav class="sidebar-nav" aria-label="Admin navigation">
         <a class="nav-link" href="dashboard.html">Home</a>
         <a class="nav-link" href="users.html">Users</a>
@@ -21,7 +21,7 @@
         <a class="nav-link" href="competition.html">Competitions</a>
         <a class="nav-link" href="leaderboard.html">Leaderboard</a>
         <a class="nav-link" href="reports.html">Reports</a>
-        <button type="button" class="nav-link" id="adminLogout">Log Out</button>
+        <button type="button" class="nav-link" id="adminLogout" style="width:100%; text-align:center;">Log Out</button>
       </nav>
     </div>
     <div class="sidebar-social"><a href="#">Instagram</a><a href="#">Facebook</a></div>
@@ -68,9 +68,10 @@
   </main>
 </div>
 
+<!-- Add Resource Modal -->
 <div id="addResourceModal" class="modal resource-modal" role="dialog" aria-modal="true" aria-labelledby="addResourceTitle" style="display:none">
   <div class="modal-content resource-modal-content">
-    <div class="resource-modal-header"><div><h2 id="addResourceTitle">Add Study Resource</h2><p>Upload a document or add a learning resource link.</p></div><button type="button" class="resource-close" id="closeResourceIcon" aria-label="Close form">×</button></div>
+    <div class="resource-modal-header"><div><h2 id="addResourceTitle">Add Study Resource</h2><p>Upload a document or add a learning resource link.</p></div><button type="button" class="resource-close" id="closeResourceIcon" aria-label="Close form">&times;</button></div>
     <p id="resourceFormError" class="resource-form-error" role="alert" style="display:none"></p>
     <form id="addResourceForm" enctype="multipart/form-data">
       <div class="resource-field"><label for="resourceTitle">Resource Title <span class="required">*</span></label><input id="resourceTitle" type="text" placeholder="Enter resource title" maxlength="200" required></div>
@@ -88,6 +89,7 @@
     </form>
   </div>
 </div>
+
 <script src="../../js/api.js"></script>
 <script src="../../js/resources.js"></script>
 <script src="../../js/admin-shell.js"></script>

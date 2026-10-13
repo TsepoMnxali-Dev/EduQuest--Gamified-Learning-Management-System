@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduQuest | Class</title>
+  <link rel="stylesheet" href="css/classes.css">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .class-status{padding:18px;border:1px dashed #b9dddd;border-radius:12px;color:#666f78;background:#fff;margin-bottom:16px}
+    .class-status.error{color:#b42318;border-color:#f0b8b3;background:#fff1f0}
+    .class-notice{display:none;background:#fff1f0;color:#b42318;border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:14px}
+    .topic-materials{margin-top:12px}
+    .material-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+    .topic-actions .chip-btn.disabled{color:var(--muted);background:#f1f2f6;cursor:default}
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <aside class="sidebar">
+      <div>
+        <div class="brand">
+          <img src="images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo">
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="dashboard.html" class="nav-link">Home</a>
+          <a href="classes.html" class="nav-link active">Classes</a>
+          <a href="Quizzes.html" class="nav-link">Quizzes</a>
+          <a href="resources.html" class="nav-link">Resources</a>
+          <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+          <a href="profile.html" class="nav-link">Profile</a>
+          <a href="help.html" class="nav-link">Help &amp; Support</a>
+        </nav>
+      </div>
+
+      <div class="sidebar-social">
+        <a href="#">Instagram</a>
+        <a href="#">Facebook</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="content">
+
+        <a href="classes.html" class="back-link">&larr; Back to My Classes</a>
+
+        <div class="class-header">
+          <div class="subject-icon math" id="classIcon"></div>
+          <div>
+            <h1 id="className">Loading&hellip;</h1>
+            <p id="classSubtitle"></p>
+          </div>
+        </div>
+
+        <div class="class-overall-progress">
+          <div class="progress-label">
+            <span>Overall progress</span>
+            <strong id="overallPercent">&ndash;</strong>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="overallFill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <div class="class-notice" id="classNotice" role="alert"></div>
+
+        <div class="section-header">
+          <h2>Topics</h2>
+        </div>
+
+        <!-- Topic cards are built by class.js -->
+        <section class="topic-list" id="topicsList">
+          <p class="class-status">Loading topics&hellip;</p>
+        </section>
+
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-nav">
+    <a href="dashboard.html"><span>🏠</span>Home</a>
+    <a href="classes.html" class="active"><span>📚</span>Classes</a>
+    <a href="Quizzes.html"><span>📝</span>Quizzes</a>
+    <a href="resources.html"><span>📂</span>Resources</a>
+    <a href="leaderboard.html"><span>🏅</span>Leaderboard</a>
+    <a href="profile.html"><span>👤</span>Profile</a>
+  </nav>
+
+  <script src="js/api.js" defer></script>
+  <script src="js/class.js" defer></script>
+</body>
+</html>

@@ -1,4 +1,3 @@
-
 using EduQuest.API.Data;
 using EduQuest.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -53,9 +52,8 @@ builder.Services.AddDbContext<ApplicationDBContext>(options =>
 // ==============================================
 
 builder.Services.AddScoped<TokenService>();
-
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddHttpClient<GeminiQuizGeneratorService>();
-
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 
 // ==============================================
@@ -80,7 +78,6 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
 
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
-
         ValidAudience = builder.Configuration["Jwt:Audience"],
 
         IssuerSigningKey = new SymmetricSecurityKey(
@@ -97,7 +94,6 @@ builder.Services.AddAuthorization();
 // ==============================================
 // CORS CONFIGURATION
 // ==============================================
-
 // Allows the frontend to communicate with the API.
 // Add other trusted frontend origins if necessary.
 
@@ -142,15 +138,9 @@ if (app.Environment.IsDevelopment())
     await DbSeeder.SeedAdminAsync(context, configuration);
 
     // Seed existing academic structure.
-    // These are needed when the admin assigns
-    // resources to grades, subjects and topics.
-
     await DbSeeder.SeedGradesAsync(context);
-
     await DbSeeder.SeedSubjectsAsync(context);
-
     await DbSeeder.SeedGradeSubjectsAsync(context);
-
     await DbSeeder.SeedTopicsAsync(context);
 
     // Existing quiz questions.
@@ -159,31 +149,15 @@ if (app.Environment.IsDevelopment())
     // ==========================================
     // CHANGED: DISABLE STUDY MATERIAL SEEDING
     // ==========================================
+    // Study materials must only be added by an administrator through the frontend.
 
-    // Previously:
     // await DbSeeder.SeedStudyMaterialsAsync(context);
-
-    // NEW:
-    // Study materials must only be added by
-    // an administrator through the frontend.
-    //
-    // We do not want the database to automatically
-    // contain sample documents or resource links.
-    //
-    // When the database has no study materials,
-    // the learner Resources page will display:
-    //
-    // "No study materials available yet."
-    //
-    // The admin will later upload documents or
-    // add learning links using the Resources form.
 
     // ==========================================
     // EXISTING LEARNER SEEDING
     // ==========================================
 
     await DbSeeder.SeedDemoLearnersAsync(context);
-
     await DbSeeder.SeedLearnerSubjectsAsync(context);
 
     // Enable Swagger in Development.

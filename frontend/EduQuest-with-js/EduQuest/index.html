@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -11,7 +10,7 @@
 
     <!-- Original EduQuest styling -->
     <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/theme-unified.css">
+    <link rel="stylesheet" href="css/theme-unified.css">
 </head>
 
 <body>
@@ -59,7 +58,7 @@
                     Profile
                 </a>
 
-                <a href="#" class="nav-link">
+                <a href="help.html" class="nav-link">
                     Help &amp; Support
                 </a>
 
@@ -94,8 +93,7 @@
 
                 <div class="hero-actions">
 
-                    <!-- CHANGED:
-                         Unified login for both roles -->
+                    <!-- Unified login for both roles -->
                     <a href="login.html"
                        class="btn btn-primary">
                         Sign In
@@ -111,13 +109,29 @@
 
             </section>
 
-            <!-- CHANGED:
-                 Removed hardcoded statistics:
-                 5000+ students, 1000+ schools,
-                 and 80% improvement.
+            <!-- Numbers are loaded from the backend by home-stats.js -->
+            <section class="stats-panel">
+                <div class="stats-grid">
 
-                 Real statistics can be integrated
-                 from the backend later. -->
+                    <div class="stat" id="cardStudents">
+                        <div class="stat-number" id="statStudents">&hellip;</div>
+                        <div class="stat-text">students enrolled</div>
+                    </div>
+
+                    <div class="stat" id="cardSchools">
+                        <div class="stat-number" id="statSchools">&hellip;</div>
+                        <div class="stat-text">Schools</div>
+                    </div>
+
+                    <div class="stat" id="cardImproved">
+                        <div class="stat-number" id="statImproved">&hellip;</div>
+                        <div class="stat-text">
+                            of the enrolled students have improved
+                        </div>
+                    </div>
+
+                </div>
+            </section>
 
         </div>
 
@@ -125,8 +139,9 @@
 
 </div>
 
-<!-- Original homepage JavaScript -->
-<script src="js/index.js" defer></script>
+    <script src="js/api.js" defer></script>
+    <script src="js/index.js" defer></script>
+    <script src="js/home-stats.js" defer></script>
 
 </body>
 </html>

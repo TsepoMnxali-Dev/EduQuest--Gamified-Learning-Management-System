@@ -1,17 +1,17 @@
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduQuest | Manage Users</title>
 
-    <!-- CHANGED: Shared Learner Dashboard theme -->
     <link rel="stylesheet"
           href="../../EduQuest-with-js/EduQuest/css/style.css">
+    <link rel="stylesheet"
+          href="../../css/admin-theme.css">
 
     <style>
-        /* NEW: Admin Users page styling */
         .users-page-description {
             color: var(--muted);
             font-size: 14px;
@@ -27,11 +27,6 @@
             margin-bottom: 20px;
         }
 
-        .users-toolbar h2 {
-            color: var(--navy);
-            font-size: 20px;
-        }
-
         .users-count {
             background: var(--teal-light);
             color: var(--navy);
@@ -43,7 +38,7 @@
 
         .users-filters {
             display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
             gap: 12px;
             margin-bottom: 22px;
         }
@@ -51,7 +46,9 @@
         .users-filters input,
         .users-filters select,
         .user-form-grid input,
-        .user-form-grid select {
+        .user-form-grid select,
+        .modal input,
+        .modal select {
             width: 100%;
             min-width: 0;
             padding: 12px 14px;
@@ -61,15 +58,16 @@
             color: var(--navy);
             font: inherit;
             font-size: 13px;
+            box-sizing: border-box;
         }
 
         .users-filters input:focus,
         .users-filters select:focus,
-        .user-form-grid input:focus,
-        .user-form-grid select:focus {
+        .modal input:focus,
+        .modal select:focus {
             outline: none;
             border-color: var(--teal);
-            box-shadow: 0 0 0 3px rgba(44,169,165,.12);
+            box-shadow: 0 0 0 3px rgba(44, 169, 165, .12);
         }
 
         .users-table-card {
@@ -169,7 +167,6 @@
             border: 1px solid #efc9c5;
         }
 
-        /* NEW: Modal styling using Learner theme */
         .modal {
             display: none;
             position: fixed;
@@ -177,7 +174,7 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
-            background: rgba(18,53,83,.55);
+            background: rgba(18, 53, 83, .55);
             padding: 20px;
         }
 
@@ -188,7 +185,8 @@
             background: var(--white);
             border-radius: 18px;
             padding: 28px;
-            box-shadow: 0 18px 50px rgba(18,53,83,.2);
+            box-shadow: 0 18px 50px rgba(18, 53, 83, .2);
+            box-sizing: border-box;
         }
 
         .modal-header {
@@ -212,82 +210,11 @@
             cursor: pointer;
         }
 
-        .user-details-profile {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 20px;
-            background: var(--teal-light);
-            border-radius: 14px;
-            margin-bottom: 24px;
-        }
-
-        .user-details-avatar {
-            width: 60px;
-            height: 60px;
-            flex-shrink: 0;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            background: var(--teal);
-            color: white;
-            font-size: 20px;
-            font-weight: 800;
-        }
-
-        .user-details-profile h3 {
-            color: var(--navy);
-            margin-bottom: 6px;
-        }
-
-        .user-details-profile p {
-            color: var(--muted);
-            font-size: 13px;
-            overflow-wrap: anywhere;
-            margin-bottom: 10px;
-        }
-
-        .user-details-badge {
-            display: inline-block;
-            background: white;
-            color: var(--navy);
-            border-radius: 999px;
-            padding: 5px 12px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .user-details-heading {
-            color: var(--navy);
-            font-size: 17px;
-            margin-bottom: 14px;
-        }
-
-        .user-details-grid,
         .user-form-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 14px;
             margin-bottom: 22px;
-        }
-
-        .user-details-field {
-            background: var(--page-bg);
-            border: 1px solid #edf1f4;
-            border-radius: 12px;
-            padding: 15px;
-        }
-
-        .user-details-field span {
-            display: block;
-            color: var(--muted);
-            font-size: 12px;
-            margin-bottom: 8px;
-        }
-
-        .user-details-field strong {
-            color: var(--navy);
-            font-size: 14px;
         }
 
         .user-form-field label {
@@ -319,34 +246,52 @@
             justify-content: flex-end;
             gap: 12px;
             margin-top: 18px;
+            flex-wrap: wrap;
         }
 
-        .sidebar-nav button.nav-link {
-            width: 100%;
-            background: white;
-            font: inherit;
+        .school-picker {
+            position: relative;
+        }
+
+        #schoolList {
+            list-style: none;
+            padding: 0;
+            margin: 4px 0 0;
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--white);
+        }
+
+        #schoolList li {
+            padding: 10px 12px;
             cursor: pointer;
+            color: var(--navy);
+            font-size: 13px;
         }
 
-        @media (max-width: 850px) {
-            .users-filters {
-                grid-template-columns: 1fr 1fr;
-            }
+        #schoolList li:hover {
+            background: var(--teal-light);
+        }
 
-            .users-filters input {
-                grid-column: 1 / -1;
+        #schoolHint {
+            display: block;
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        @media (max-width: 1000px) {
+            .users-filters {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 
         @media (max-width: 650px) {
             .users-filters,
-            .user-details-grid,
             .user-form-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .users-filters input {
-                grid-column: auto;
             }
 
             .user-form-field.full-width {
@@ -358,30 +303,55 @@
             }
         }
     </style>
-<link rel="stylesheet" href="../../css/admin-theme.css">
 </head>
 
 <body>
 
 <div class="app">
 
-    <!-- SIDEBAR: Same EduQuest Learner theme -->
-    <aside class="sidebar"><div><div class="brand"><img src="../../EduQuest-with-js/EduQuest/images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo"></div><nav class="sidebar-nav" aria-label="Admin navigation"><a href="dashboard.html" class="nav-link">Home</a>
-<a href="users.html" class="nav-link active">Users</a>
-<a href="quiz.html" class="nav-link">Quizzes</a>
-<a href="resources.html" class="nav-link">Resources</a>
-<a href="competition.html" class="nav-link">Competitions</a>
-<a href="leaderboard.html" class="nav-link">Leaderboard</a>
-<a href="reports.html" class="nav-link">Reports</a><button type="button" class="nav-link" id="adminLogout">Log Out</button></nav></div><div class="sidebar-social"><a href="#">Instagram</a><a href="#">Facebook</a></div></aside>
+    <!-- ADMIN SIDEBAR -->
+    <aside class="sidebar">
+        <div>
+            <div class="brand">
+                <img
+                    src="../../EduQuest-with-js/EduQuest/images/eduquest-logo.png"
+                    alt="EduQuest logo"
+                    class="brand-logo">
 
-    <!-- MAIN -->
+                <div class="brand-name">EduQuest</div>
+            </div>
+
+            <nav class="sidebar-nav" aria-label="Admin navigation">
+                <a href="dashboard.html" class="nav-link">Home</a>
+                <a href="users.html" class="nav-link active">Users</a>
+                <a href="quiz.html" class="nav-link">Quizzes</a>
+                <a href="resources.html" class="nav-link">Resources</a>
+                <a href="competition.html" class="nav-link">Competitions</a>
+                <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+                <a href="reports.html" class="nav-link">Reports</a>
+
+                <button type="button"
+                        class="nav-link"
+                        id="adminLogout">
+                    Log Out
+                </button>
+            </nav>
+        </div>
+
+        <div class="sidebar-footer">
+            <p>Enhancing education through tech.</p>
+            <small>© 2026 EduQuest</small>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
     <main class="main">
 
         <div class="dashboard-topbar">
             <div class="dashboard-welcome">
                 <h1>Manage Users</h1>
                 <p class="users-page-description">
-                    View and manage registered EduQuest users.
+                    Manage learner, administrator and sponsor accounts.
                 </p>
             </div>
 
@@ -393,16 +363,39 @@
 
         <section class="dashboard-section">
 
+            <!-- OVERVIEW -->
+            <div class="parent-card">
+                <h2>Overview</h2>
+
+                <div class="child-cards">
+                    <div class="child-card">
+                        <h3>Registered Users</h3>
+                        <h3 id="statTotal">0</h3>
+                        <p id="statTotalSub">Loading users...</p>
+                    </div>
+
+                    <div class="child-card">
+                        <h3>Active Accounts</h3>
+                        <h3 id="statActive">0</h3>
+                        <p id="statActiveSub">Loading account status...</p>
+                    </div>
+
+                    <div class="child-card">
+                        <h3>New This Month</h3>
+                        <h3 id="statNew">0</h3>
+                        <p id="statNewSub">Loading new accounts...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- USER TABLE HEADER -->
             <div class="users-toolbar">
-                <h2 class="dashboard-section-title">
-                    Registered Users
-                </h2>
+                <h2 class="dashboard-section-title">Registered Users</h2>
 
                 <span class="users-count" id="usersCount">
-                    Loading...
+                    Loading users...
                 </span>
 
-                <!-- CHANGED: Add User now has a modal -->
                 <button type="button"
                         class="btn btn-primary"
                         id="openAddUser">
@@ -410,28 +403,33 @@
                 </button>
             </div>
 
+            <!-- SEARCH AND FILTERS -->
             <div class="users-filters">
-                <input type="search"
-                       id="userSearch"
-                       placeholder="Search by name or email..."
-                       aria-label="Search users">
+                <input
+                    type="search"
+                    id="userSearch"
+                    placeholder="Search by name or email..."
+                    aria-label="Search users">
 
-                <select id="roleFilter"
-                        aria-label="Filter by role">
-                    <option value="">All Roles</option>
-                    <option value="Learner">Learner</option>
-                    <option value="Teacher">Teacher</option>
-                    <option value="Admin">Admin</option>
+                <select id="roleFilter" aria-label="Filter by role">
+                    <option value="all">All roles</option>
+                    <option value="learner">Learners</option>
+                    <option value="admin">Admins</option>
+                    <option value="sponsor">Sponsors</option>
                 </select>
 
-                <select id="statusFilter"
-                        aria-label="Filter by status">
-                    <option value="">All Statuses</option>
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
+                <select id="gradeFilter" aria-label="Filter by grade">
+                    <option value="all">All grades</option>
+                </select>
+
+                <select id="statusFilter" aria-label="Filter by status">
+                    <option value="all">All statuses</option>
+                    <option value="active">Active</option>
+                    <option value="suspended">Suspended</option>
                 </select>
             </div>
 
+            <!-- USERS TABLE -->
             <div class="users-table-card">
                 <div class="users-table-wrapper">
                     <table class="users-table">
@@ -440,17 +438,17 @@
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Role</th>
+                                <th>Grade</th>
+                                <th>School</th>
+                                <th>Province</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
 
-                        <!-- NEW: Real users populated by JS -->
                         <tbody id="usersTableBody">
                             <tr>
-                                <td colspan="5">
-                                    Loading registered users...
-                                </td>
+                                <td colspan="8">Loading users...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -461,155 +459,170 @@
     </main>
 </div>
 
-<!-- ======================================
-     VIEW USER DETAILS MODAL
-======================================= -->
-<div class="modal"
-     id="viewUserModal"
+<!-- ADD / EDIT USER MODAL -->
+<div id="addUserModal"
+     class="modal"
      role="dialog"
      aria-modal="true"
-     aria-labelledby="viewUserTitle">
+     aria-labelledby="userModalTitle">
 
     <div class="modal-content">
+
         <div class="modal-header">
-            <h2 id="viewUserTitle">User Details</h2>
-
-            <button type="button"
-                    class="modal-close"
-                    id="closeViewUser"
-                    aria-label="Close user details">
-                &times;
-            </button>
-        </div>
-
-        <div class="user-details-profile">
-            <div class="user-details-avatar"
-                 id="viewUserAvatar">U</div>
-
-            <div>
-                <h3 id="viewUserName">—</h3>
-                <p id="viewUserEmail">—</p>
-                <span class="user-details-badge"
-                      id="viewUserStatus">—</span>
-            </div>
-        </div>
-
-        <h3 class="user-details-heading">
-            Account Information
-        </h3>
-
-        <div class="user-details-grid">
-            <div class="user-details-field">
-                <span>User ID</span>
-                <strong id="viewUserId">—</strong>
-            </div>
-
-            <div class="user-details-field">
-                <span>Role</span>
-                <strong id="viewUserRole">—</strong>
-            </div>
-
-            <div class="user-details-field">
-                <span>Role ID</span>
-                <strong id="viewUserRoleId">—</strong>
-            </div>
-
-            <div class="user-details-field">
-                <span>Account Status</span>
-                <strong id="viewUserAccountStatus">—</strong>
-            </div>
-        </div>
-
-        <div class="modal-actions">
-            <button type="button"
-                    class="btn btn-primary"
-                    id="doneViewUser">
-                Close
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- ======================================
-     ADD USER MODAL
-======================================= -->
-<div class="modal"
-     id="addUserModal"
-     role="dialog"
-     aria-modal="true"
-     aria-labelledby="addUserTitle">
-
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="addUserTitle">Add New User</h2>
+            <h2 id="userModalTitle">Add User</h2>
 
             <button type="button"
                     class="modal-close"
                     id="closeAddUser"
-                    aria-label="Close Add User">
+                    aria-label="Close user form">
                 &times;
             </button>
         </div>
 
-        <form id="addUserForm">
+        <p id="userFormError"
+           class="user-form-error"
+           role="alert"
+           hidden></p>
+
+        <form id="userForm">
 
             <div class="user-form-grid">
 
                 <div class="user-form-field">
-                    <label for="addFirstName">First Name</label>
-                    <input type="text"
-                           id="addFirstName"
-                           required
-                           maxlength="50">
+                    <label for="firstName">First Name</label>
+                    <input
+                        id="firstName"
+                        name="firstName"
+                        type="text"
+                        autocomplete="given-name"
+                        maxlength="50"
+                        required>
                 </div>
 
                 <div class="user-form-field">
-                    <label for="addLastName">Last Name</label>
-                    <input type="text"
-                           id="addLastName"
-                           required
-                           maxlength="50">
+                    <label for="surname">Surname</label>
+                    <input
+                        id="surname"
+                        name="surname"
+                        type="text"
+                        autocomplete="family-name"
+                        maxlength="50"
+                        required>
                 </div>
 
                 <div class="user-form-field full-width">
-                    <label for="addEmail">Email Address</label>
-                    <input type="email"
-                           id="addEmail"
-                           required
-                           maxlength="100">
+                    <label for="email">Email Address</label>
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autocomplete="email"
+                        maxlength="100"
+                        required>
                 </div>
 
                 <div class="user-form-field">
-                    <label for="addRole">Role</label>
-
-                    <!-- CHANGED: JS must populate real role IDs -->
-                    <select id="addRole" required>
-                        <option value="">
-                            Select a role
-                        </option>
+                    <label for="role">Role</label>
+                    <select id="role" name="role" required>
+                        <option value="learner">Learner</option>
+                        <option value="admin">Admin</option>
+                        <option value="sponsor">Sponsor</option>
                     </select>
                 </div>
 
                 <div class="user-form-field">
-                    <label for="addPassword">Password</label>
-                    <input type="password"
-                           id="addPassword"
-                           required
-                           minlength="8"
-                           autocomplete="new-password">
+                    <label for="status">Account Status</label>
+                    <select id="status" name="status" required>
+                        <option value="active">Active</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
                 </div>
 
             </div>
 
-            <p class="user-form-note">
-                The account will be created as Active.
-                Password must contain at least 8 characters.
-            </p>
+            <!-- LEARNER-SPECIFIC FIELDS -->
+            <div id="learnerFields">
 
-            <p class="user-form-error"
-               id="addUserError"
-               role="alert"
-               hidden></p>
+                <div class="user-form-grid">
+
+                    <div class="user-form-field">
+                        <label for="grade">Grade</label>
+                        <select id="grade" name="grade">
+                            <option value="">Select grade</option>
+                        </select>
+                    </div>
+
+                    <div class="user-form-field">
+                        <label for="province">Province</label>
+                        <select id="province" name="province">
+                            <option value="">All provinces</option>
+                        </select>
+                    </div>
+
+                    <div class="user-form-field full-width">
+                        <label for="schoolSearch">School</label>
+
+                        <div class="school-picker">
+                            <input
+                                type="text"
+                                id="schoolSearch"
+                                placeholder="Search for a school..."
+                                autocomplete="off"
+                                role="combobox"
+                                aria-autocomplete="list"
+                                aria-controls="schoolList"
+                                aria-expanded="false">
+
+                            <input
+                                type="hidden"
+                                id="school"
+                                name="school">
+
+                            <ul id="schoolList"
+                                role="listbox"
+                                hidden>
+                            </ul>
+
+                            <small id="schoolHint">
+                                Select a province and search for a school.
+                            </small>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- PASSWORD FIELDS -->
+            <div id="passwordFields">
+
+                <div class="user-form-grid">
+                    <div class="user-form-field">
+                        <label for="password">Password</label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            autocomplete="new-password"
+                            minlength="8"
+                            required>
+                    </div>
+
+                    <div class="user-form-field">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input
+                            id="confirmPassword"
+                            name="confirmPassword"
+                            type="password"
+                            autocomplete="new-password"
+                            minlength="8"
+                            required>
+                    </div>
+                </div>
+
+                <p class="user-form-note">
+                    Passwords must contain at least 8 characters.
+                </p>
+            </div>
 
             <div class="modal-actions">
                 <button type="button"
@@ -620,111 +633,23 @@
 
                 <button type="submit"
                         class="btn btn-primary"
-                        id="saveAddUser">
-                    Create User
+                        id="saveUserBtn">
+                    Save User
                 </button>
             </div>
+
         </form>
     </div>
 </div>
 
-<!-- ======================================
-     EDIT USER MODAL
-======================================= -->
-<div class="modal"
-     id="editUserModal"
-     role="dialog"
-     aria-modal="true"
-     aria-labelledby="editUserTitle">
-
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="editUserTitle">Edit User</h2>
-
-            <button type="button"
-                    class="modal-close"
-                    id="closeEditUser"
-                    aria-label="Close Edit User">
-                &times;
-            </button>
-        </div>
-
-        <form id="editUserForm">
-
-            <!-- NEW: Selected backend user ID -->
-            <input type="hidden" id="editUserId">
-
-            <div class="user-form-grid">
-
-                <div class="user-form-field">
-                    <label for="editFirstName">First Name</label>
-                    <input type="text"
-                           id="editFirstName"
-                           required
-                           maxlength="50">
-                </div>
-
-                <div class="user-form-field">
-                    <label for="editLastName">Last Name</label>
-                    <input type="text"
-                           id="editLastName"
-                           required
-                           maxlength="50">
-                </div>
-
-                <div class="user-form-field full-width">
-                    <label for="editEmail">Email Address</label>
-                    <input type="email"
-                           id="editEmail"
-                           required
-                           maxlength="100">
-                </div>
-
-                <div class="user-form-field full-width">
-                    <label for="editRole">Role</label>
-
-                    <!-- CHANGED: Populated using real role IDs -->
-                    <select id="editRole" required>
-                        <option value="">
-                            Select a role
-                        </option>
-                    </select>
-                </div>
-
-            </div>
-
-            <p class="user-form-note">
-                Changes will be saved to the EduQuest database.
-                Password changes are not supported by this endpoint.
-            </p>
-
-            <p class="user-form-error"
-               id="editUserError"
-               role="alert"
-               hidden></p>
-
-            <div class="modal-actions">
-                <button type="button"
-                        class="btn btn-outline"
-                        id="cancelEditUser">
-                    Cancel
-                </button>
-
-                <button type="submit"
-                        class="btn btn-primary"
-                        id="saveEditUser">
-                    Save Changes
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- CHANGED: Authentication helper -->
+<!-- SHARED API HELPER -->
 <script src="../../EduQuest-with-js/EduQuest/js/api.js"></script>
 
-<!-- CHANGED: Backend user management -->
-<script src="../../js/main.js"></script>
+<!-- ADMIN ACCESS GUARD -->
+<script src="../../js/admin-guard.js"></script>
+
+<!-- USER MANAGEMENT -->
+<script src="../../js/Users.js"></script>
 
 </body>
 </html>

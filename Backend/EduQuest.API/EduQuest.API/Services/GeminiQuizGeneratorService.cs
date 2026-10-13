@@ -277,6 +277,28 @@ namespace EduQuest.API.Services
             => currentTotalBytes + newFileBytes <= MaxTotalMaterialBytes;
 
         // ------------------------------------------------------------------
+        // How Gemini must write mathematics. This is a plain (not interpolated)
+        // string on purpose: LaTeX is full of { } characters that would break $"...".
+        //
+        // The admin page typesets anything between single dollar signs with KaTeX
+        // (js/math-format.js). Without this instruction Gemini writes maths however
+        // it likes ("lim(h -> 0)", "x^2", "x²"...), and the page has to guess what
+        // is maths - which is what made some questions render and others not.
+        // ------------------------------------------------------------------
+        private const string MathFormattingInstruction =
+            @"MATHS FORMATTING: write every mathematical expression, equation, formula, symbol and chemical formula "
+          + @"in LaTeX wrapped in single dollar signs, in questionText, sourceExtract, every optionText and the explanation. "
+          + @"Examples: $f'(x)$, $x^2$, $\frac{x^3}{3}$, $\sqrt{x+1}$, $\lim_{h \to 0} \frac{f(x+h) - f(x)}{h}$, "
+          + @"$\sin\theta$, $20\ \mathrm{m/s}$, $\mathrm{H_2O}$. "
+          + @"If an option is only a formula, put the whole option in one pair of dollar signs, for example $3x^2$. "
+          + @"Keep ordinary words outside the dollar signs. "
+          + @"Never write maths as plain text or Unicode (no x^2 without dollar signs, no x², no sqrt(x), no lim h->0) "
+          + @"and never use $$, \( \) or \[ \]. "
+          + @"Do not use the dollar sign for money; write amounts such as R50. "
+          + @"Because your reply is JSON, every backslash must be escaped, for example \\frac. "
+          + @"Questions that contain no mathematics or formulas need no LaTeX.";
+
+        // ------------------------------------------------------------------
         // Builds the plain-English instructions we send Gemini alongside
         // the study material (or alone, if there's no material to attach).
         // ------------------------------------------------------------------
@@ -313,7 +335,8 @@ namespace EduQuest.API.Services
                 $"The explanation must be supported by the supplied material when material is provided. " +
                 $"Do not repeat questions. " +
                 $"Keep question text under 400 characters, sourceExtract under 1500 characters, " +
-                $"and explanation text under 800 characters.";
+                $"and explanation text under 800 characters. " +
+                MathFormattingInstruction;
         }
 
         // ------------------------------------------------------------------
@@ -330,9 +353,9 @@ namespace EduQuest.API.Services
                 type = "OBJECT",
                 properties = new
                 {
-                    questionText = new { type = "STRING" },
+                    questionText = new { type = "STRING", description = "The question. Maths written as LaTeX between single dollar signs." },
                     sourceExtract = new { type = "STRING" },
-                    explanation = new { type = "STRING" },
+                    explanation = new { type = "STRING", description = "Why the correct option is right. Maths written as LaTeX between single dollar signs." },
                     options = new
                     {
                         type = "ARRAY",
@@ -341,14 +364,14 @@ namespace EduQuest.API.Services
                             type = "OBJECT",
                             properties = new
                             {
-                                optionText = new { type = "STRING" },
+                                optionText = new { type = "STRING", description = "One answer option. A formula-only option is wrapped entirely in single dollar signs, e.g. $3x^2$." },
                                 isCorrect = new { type = "BOOLEAN" }
                             },
                             required = new[] { "optionText", "isCorrect" }
                         }
                     }
                 },
-                required = new[] { "questionText","sourceExtract", "explanation", "options" }
+                required = new[] { "questionText", "sourceExtract", "explanation", "options" }
             }
         };
     }
