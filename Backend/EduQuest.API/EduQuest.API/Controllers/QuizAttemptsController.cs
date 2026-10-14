@@ -206,6 +206,73 @@ namespace EduQuest.API.Controllers
             }
 
             // ---------------------------------------------------------------
+            // 3a. Two SUBMITTED attempts per learner per quiz.
+            // Starting without submitting does not waste an attempt: the
+            // unfinished attempt is resumed rather than creating another.
+            // Do not trust a frontend counter to enforce this rule.
+            // ---------------------------------------------------------------
+            var previousAttempts = await _context.QuizAttempts
+                .Where(a => a.LearnerID == learner.LearnerID && a.QuizID == quizId)
+                .Select(a => new
+                {
+                    a.QuizAttemptID,
+                    HasSubmittedAnswers = _context.QuizAttemptAnswers
+                        .Any(answer => answer.AttemptID == a.QuizAttemptID)
+                })
+                .OrderByDescending(a => a.QuizAttemptID)
+                .ToListAsync();
+
+            var submittedCount = previousAttempts.Count(a => a.HasSubmittedAnswers);
+            if (submittedCount >= 2)
+            {
+                return Conflict("You have already used both attempts for this quiz. You can review your results.");
+            }
+
+            var unfinished = previousAttempts.FirstOrDefault(a => !a.HasSubmittedAnswers);
+            if (unfinished != null)
+            {
+                var savedQuestions = await _context.QuizAttemptQuestions
+                    .Where(q => q.QuizAttemptID == unfinished.QuizAttemptID)
+                    .Include(q => q.QuizQuestion)
+                    .ThenInclude(q => q!.QuizOptions)
+                    .OrderBy(q => q.QuestionOrder)
+                    .ToListAsync();
+
+                if (savedQuestions.Count != 10 ||
+                    savedQuestions.Any(q => q.QuizQuestion == null ||
+                        q.QuizQuestion.QuizOptions == null ||
+                        q.QuizQuestion.QuizOptions.Count < 2))
+                {
+                    return Conflict("The previous unsubmitted quiz has incomplete question data. Contact the administrator.");
+                }
+
+                return Ok(new StartQuizResponseDto
+                {
+                    QuizAttemptID = unfinished.QuizAttemptID,
+                    QuizID = quiz.QuizID,
+                    LearnerID = learner.LearnerID,
+                    QuizTitle = quiz.QuizTitle,
+                    Difficulty = quiz.Difficulty,
+                    TimeLimit = quiz.TimeLimit,
+                    Questions = savedQuestions.Select(q => new QuizAttemptQuestionDto
+                    {
+                        QuizAttemptQuestionID = q.QuizAttemptQuestionID,
+                        QuizQuestionID = q.QuizQuestionID,
+                        QuestionOrder = q.QuestionOrder,
+                        QuestionText = q.QuizQuestion!.QuestionText,
+                        SourceExtract = q.QuizQuestion.SourceExtract,
+                        Options = q.QuizQuestion.QuizOptions
+                            .Select(option => new QuizAttemptOptionDto
+                            {
+                                QuizOptionID = option.QuizOptionID,
+                                OptionText = option.OptionText
+                            })
+                            .ToList()
+                    }).ToList()
+                });
+            }
+
+            // ---------------------------------------------------------------
             // 4. Get all approved questions for this quiz
             // ---------------------------------------------------------------
             var approvedQuestions = await _context.QuizQuestions
@@ -319,13 +386,13 @@ namespace EduQuest.API.Controllers
             return Ok(response);
         }
 
-       
-            // POST: api/quizattempts/{attemptId}/submit
-            [HttpPost("{attemptId}/submit")]
-            public async Task<ActionResult<QuizAttemptDto>> SubmitQuizAttempt(
-                int attemptId,
-                SubmitQuizAttemptDto dto)
-                    {
+
+        // POST: api/quizattempts/{attemptId}/submit
+        [HttpPost("{attemptId}/submit")]
+        public async Task<ActionResult<QuizAttemptDto>> SubmitQuizAttempt(
+            int attemptId,
+            SubmitQuizAttemptDto dto)
+        {
             // ---------------------------------------------------------------
             // 1. Make sure the attempt exists
             // ---------------------------------------------------------------
@@ -368,6 +435,19 @@ namespace EduQuest.API.Controllers
             if (existingAnswers)
             {
                 return BadRequest("This quiz attempt has already been submitted.");
+            }
+
+            // Enforce the two-submission rule on the server even if a learner
+            // uses an older frontend or already has an unfinished attempt.
+            var earlierCompleted = await _context.QuizAttempts
+                .CountAsync(a => a.LearnerID == learner.LearnerID &&
+                                 a.QuizID == attempt.QuizID &&
+                                 a.QuizAttemptID != attemptId &&
+                                 _context.QuizAttemptAnswers.Any(answer =>
+                                     answer.AttemptID == a.QuizAttemptID));
+            if (earlierCompleted >= 2)
+            {
+                return Conflict("You have already used both attempts for this quiz.");
             }
 
             // ---------------------------------------------------------------
