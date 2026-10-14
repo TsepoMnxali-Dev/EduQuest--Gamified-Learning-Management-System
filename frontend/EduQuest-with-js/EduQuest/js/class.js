@@ -2,10 +2,11 @@
    EduQuest - class.js  (used by class.html?subject=ID)
 
    Loads one subject for the signed-in learner
-   (GET /api/learner/classes/{subjectId}): overall progress, the
-   topics for their grade with quiz status, and each topic's
-   study materials.
+   (GET /api/learner/classes/{subjectId}): overall progress, every
+   published quiz for the subject, the topics for their grade with
+   quiz status, and each topic's study materials.
 
+   - Quizzes with too few questions show as "Coming soon".
    - External links open in a new tab (http/https only).
    - Uploaded files are fetched with the learner's token and
      saved to their device.
@@ -17,6 +18,9 @@
     EduQuestAPI.requireAuth();
 
     var COLOR_CLASSES = ["math", "science", "life", "geography"];
+
+    /* A quiz needs this many approved questions before it can be started. */
+    var QUESTIONS_NEEDED = 10;
 
     var subjectId = Number(new URLSearchParams(window.location.search).get("subject"));
 
@@ -35,10 +39,9 @@
         while (node.firstChild) node.removeChild(node.firstChild);
     }
 
-    function showStatus(message, isError) {
-        var list = byId("topicsList");
-        clear(list);
-        list.appendChild(el("p", "class-status" + (isError ? " error" : ""), message));
+    function showStatus(container, message, isError) {
+        clear(container);
+        container.appendChild(el("p", "class-status" + (isError ? " error" : ""), message));
     }
 
     function showNotice(message) {
@@ -126,6 +129,82 @@
         return null;
     }
 
+    /* ---------------------------------------------------------
+       Quizzes
+    --------------------------------------------------------- */
+
+    /* The buttons for one quiz: Review, then Start / Retake or "Coming soon". */
+    function quizActions(quiz) {
+        var items = [];
+
+        if (quiz.isCompleted && quiz.latestAttemptID) {
+            var review = el("a", "chip-btn", "\uD83D\uDCC4 Review (" + quiz.latestPercentage + "%)");
+            review.href = "quiz.html?attempt=" + quiz.latestAttemptID + "&review=1";
+            items.push(review);
+        }
+
+        if (quiz.isReady) {
+            var start = el(
+                "a", "chip-btn primary",
+                quiz.isCompleted ? "\uD83D\uDD01 Retake" : "\uD83D\uDCDD Start Quiz"
+            );
+            start.href = "quiz.html?id=" + quiz.quizID;
+            items.push(start);
+        } else if (!quiz.isCompleted) {
+            items.push(el(
+                "span", "chip-btn disabled",
+                "Coming soon \u00b7 " + quiz.questionCount + " of " + QUESTIONS_NEEDED + " questions"
+            ));
+        }
+
+        return items;
+    }
+
+    function buildQuizRow(quiz) {
+        var row = el("div", "subject-resource-row");
+
+        var info = el("div", "subject-resource-info");
+        info.appendChild(el("div", "subject-resource-icon", quiz.isCompleted ? "\u2713" : "\uD83D\uDCDD"));
+
+        var text = el("div");
+        text.appendChild(el("strong", null, quiz.quizTitle));
+        text.appendChild(el("span", null, [
+            quiz.topicName,
+            quiz.difficulty,
+            quiz.timeLimitMinutes + " min"
+        ].join(" \u00b7 ")));
+        info.appendChild(text);
+        row.appendChild(info);
+
+        var actions = el("div", "topic-actions");
+        quizActions(quiz).forEach(function (item) { actions.appendChild(item); });
+        row.appendChild(actions);
+
+        return row;
+    }
+
+    function renderQuizzes(quizzes) {
+        var list = byId("quizList");
+        clear(list);
+
+        if (!quizzes || quizzes.length === 0) {
+            showStatus(
+                list,
+                "No quizzes have been published for this subject and grade yet. Check back soon.",
+                false
+            );
+            return;
+        }
+
+        quizzes.forEach(function (quiz) {
+            list.appendChild(buildQuizRow(quiz));
+        });
+    }
+
+    /* ---------------------------------------------------------
+       Topics
+    --------------------------------------------------------- */
+
     function statusClass(status) {
         if (status === "Completed") return "completed";
         if (status === "In Progress") return "progress";
@@ -139,10 +218,15 @@
         var heading = el("div");
         heading.appendChild(el("h3", null, topic.topicName));
 
-        var detail = topic.quizzesTotal > 0
-            ? topic.quizzesCompleted + " of " + topic.quizzesTotal +
-              (topic.quizzesTotal === 1 ? " quiz" : " quizzes") + " completed"
-            : "No quizzes available for this topic yet.";
+        var detail;
+        if (topic.quizzesTotal > 0) {
+            detail = topic.quizzesCompleted + " of " + topic.quizzesTotal +
+                (topic.quizzesTotal === 1 ? " quiz" : " quizzes") + " completed";
+        } else if (topic.quizzes.length > 0) {
+            detail = "A quiz for this topic is being prepared.";
+        } else {
+            detail = "No quiz for this topic yet.";
+        }
         var detailLine = el("p", null, detail);
         detailLine.style.cssText = "color:var(--muted);font-size:12px;";
         heading.appendChild(detailLine);
@@ -151,19 +235,17 @@
         top.appendChild(el("span", "topic-status " + statusClass(topic.status), topic.status));
         card.appendChild(top);
 
-        var actions = el("div", "topic-actions");
-        if (topic.nextQuizID) {
-            var quizLink = el(
-                "a", "chip-btn primary",
-                (topic.nextQuizIsRetake ? "\uD83D\uDD01 Retake Quiz" : "\uD83D\uDCDD Take Quiz")
-            );
-            quizLink.href = "quiz.html?id=" + topic.nextQuizID;
-            if (topic.nextQuizTitle) quizLink.title = topic.nextQuizTitle;
-            actions.appendChild(quizLink);
-        } else {
-            actions.appendChild(el("span", "chip-btn disabled", "No quiz available yet"));
+        if (topic.quizzes.length > 0) {
+            var actions = el("div", "topic-actions");
+            topic.quizzes.forEach(function (quiz) {
+                quizActions(quiz).forEach(function (item) {
+                    /* Make the title clear when a topic has more than one quiz. */
+                    item.title = quiz.quizTitle;
+                    actions.appendChild(item);
+                });
+            });
+            card.appendChild(actions);
         }
-        card.appendChild(actions);
 
         var chips = (topic.materials || [])
             .map(buildMaterialChip)
@@ -197,21 +279,24 @@
         byId("overallPercent").textContent = detail.progressPercent + "%";
         byId("overallFill").style.width = detail.progressPercent + "%";
 
+        renderQuizzes(detail.quizzes);
+
+        var topicsList = byId("topicsList");
         if (!detail.topics || detail.topics.length === 0) {
-            showStatus("No topics have been added for this subject and grade yet.", false);
+            showStatus(topicsList, "No topics have been added for this subject and grade yet.", false);
             return;
         }
 
-        var list = byId("topicsList");
-        clear(list);
+        clear(topicsList);
         detail.topics.forEach(function (topic) {
-            list.appendChild(buildTopicCard(topic));
+            topicsList.appendChild(buildTopicCard(topic));
         });
     }
 
     if (!subjectId) {
         byId("className").textContent = "Class not found";
-        showStatus("No subject was selected.", true);
+        showStatus(byId("quizList"), "No subject was selected.", true);
+        showStatus(byId("topicsList"), "No subject was selected.", true);
         return;
     }
 
@@ -220,6 +305,8 @@
         .catch(function (err) {
             console.error("Class failed to load:", err);
             byId("className").textContent = "Class not available";
-            showStatus(err.message || "Could not load this class.", true);
+            var message = err.message || "Could not load this class.";
+            showStatus(byId("quizList"), message, true);
+            showStatus(byId("topicsList"), message, true);
         });
 })();

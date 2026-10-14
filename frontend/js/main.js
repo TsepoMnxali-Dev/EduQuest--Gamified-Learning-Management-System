@@ -1,4 +1,3 @@
-
 /* ============================================================
    EDUQUEST - ADMIN USER MANAGEMENT
    File: frontend/js/main.js

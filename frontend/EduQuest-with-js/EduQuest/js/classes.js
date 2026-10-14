@@ -29,11 +29,21 @@
         while (node.firstChild) node.removeChild(node.firstChild);
     }
 
+    /* Top corner: first name and grade, e.g. "Ben · Grade 12",
+       from GET /api/learner/me. */
     function showProfile() {
-        var user = EduQuestAPI.getCurrentUser();
-        if (!user || !user.email) return;
-        byId("profileAvatar").textContent = user.email.charAt(0).toUpperCase();
-        byId("profileName").textContent = user.email;
+        EduQuestAPI.get("/learner/me")
+            .then(function (me) {
+                var firstName = String(me.firstName || "").trim() || "Learner";
+                var gradeName = me.gradeName ? " \u00b7 " + me.gradeName : "";
+
+                byId("profileAvatar").textContent = firstName.charAt(0).toUpperCase();
+                byId("profileName").textContent = firstName + gradeName;
+            })
+            .catch(function (err) {
+                // The page still works without it.
+                console.error("Learner name failed to load:", err);
+            });
     }
 
     function showGridStatus(message, isError) {

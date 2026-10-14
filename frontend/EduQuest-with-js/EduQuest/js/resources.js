@@ -1,4 +1,3 @@
-
 /*
 ========================================================
 EduQuest - Learner Resources
@@ -14,7 +13,8 @@ Learners cannot:
 2. Edit resources.
 3. Delete resources.
 
-Resources come from the database.
+Resources come from the database. The name and grade in the
+top corner come from GET /api/learner/me.
 ========================================================
 */
 
@@ -107,6 +107,56 @@ Resources come from the database.
                    parsed.protocol === "https:";
         } catch {
             return false;
+        }
+    }
+
+    // ==============================================
+    // LEARNER NAME AND GRADE (TOP CORNER)
+    // ==============================================
+
+    // The corner label: tries the known ids, then the profile-mini block.
+    function cornerLabel() {
+
+        return document.getElementById("profileLabel") ||
+               document.getElementById("profileGrade") ||
+               document.getElementById("profileName") ||
+               document.querySelector(".profile-mini span");
+    }
+
+    function cornerAvatar() {
+
+        return document.getElementById("profileAvatar") ||
+               document.querySelector(".profile-mini .profile-avatar");
+    }
+
+    // Shows the first name and grade, e.g. "Ben · Grade 12".
+    async function loadIdentity() {
+
+        try {
+
+            const me = await EduQuestAPI.get("/learner/me");
+
+            const firstName =
+                String(me.firstName || "").trim() || "Learner";
+
+            const gradeName =
+                me.gradeName ? " \u00b7 " + me.gradeName : "";
+
+            const avatar = cornerAvatar();
+            const label = cornerLabel();
+
+            if (avatar) {
+                avatar.textContent = firstName.charAt(0).toUpperCase();
+            }
+
+            if (label) {
+                label.textContent = firstName + gradeName;
+            }
+
+        } catch (error) {
+
+            // The page still works without it.
+            console.error("Learner name failed to load:", error);
         }
     }
 
@@ -499,6 +549,7 @@ Resources come from the database.
     // INITIAL PAGE LOAD
     // ==============================================
 
+    loadIdentity();
     loadResources();
 
 })();

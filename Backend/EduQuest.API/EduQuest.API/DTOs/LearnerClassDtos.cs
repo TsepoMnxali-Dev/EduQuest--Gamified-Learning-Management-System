@@ -38,21 +38,39 @@
         public bool HasFile { get; set; }
     }
 
+    // One published quiz as the learner sees it.
+    public class ClassQuizDto
+    {
+        public int QuizID { get; set; }
+        public string QuizTitle { get; set; } = string.Empty;
+        public string Difficulty { get; set; } = string.Empty;
+        public int TimeLimitMinutes { get; set; }
+
+        public int TopicID { get; set; }
+        public string TopicName { get; set; } = string.Empty;
+
+        // Approved questions the quiz has, and whether that is enough to start it.
+        public int QuestionCount { get; set; }
+        public bool IsReady { get; set; }
+
+        // The learner's most recent submitted attempt, if any.
+        public bool IsCompleted { get; set; }
+        public int? LatestAttemptID { get; set; }
+        public int? LatestPercentage { get; set; }
+        public DateTime? LatestDate { get; set; }
+    }
+
     public class ClassTopicDto
     {
         public int TopicID { get; set; }
         public string TopicName { get; set; } = string.Empty;
 
-        // "Completed", "In Progress", "Not Started" or "No Quiz Yet"
+        // "Completed", "In Progress", "Not Started", "Coming Soon" or "No Quiz Yet"
         public string Status { get; set; } = string.Empty;
         public int QuizzesCompleted { get; set; }
         public int QuizzesTotal { get; set; }
 
-        // The quiz the learner should take (or retake) for this topic.
-        public int? NextQuizID { get; set; }
-        public string? NextQuizTitle { get; set; }
-        public bool NextQuizIsRetake { get; set; }
-
+        public List<ClassQuizDto> Quizzes { get; set; } = new();
         public List<ClassMaterialDto> Materials { get; set; } = new();
     }
 
@@ -65,6 +83,9 @@
         public int QuizzesTotal { get; set; }
         public int ProgressPercent { get; set; }
         public int? AverageScorePercent { get; set; }
+
+        // Every published quiz for this subject and grade, whatever its topic.
+        public List<ClassQuizDto> Quizzes { get; set; } = new();
         public List<ClassTopicDto> Topics { get; set; } = new();
     }
 }

@@ -30,6 +30,22 @@
     }
 
     /* ---------------------------------------------------------
+       Top corner and logout: show nothing
+    --------------------------------------------------------- */
+
+    var cornerBox = byId("profileMini");
+    if (cornerBox) {
+        cornerBox.hidden = true;
+        cornerBox.style.display = "none";
+    }
+
+    var logoutBox = byId("logoutLink");
+    if (logoutBox) {
+        logoutBox.hidden = true;
+        logoutBox.style.display = "none";
+    }
+
+    /* ---------------------------------------------------------
        FAQ search
     --------------------------------------------------------- */
 
@@ -63,19 +79,6 @@
     /* ---------------------------------------------------------
        Signed-in learners
     --------------------------------------------------------- */
-
-    var user = EduQuestAPI.getCurrentUser();
-    if (user && user.email) {
-        byId("profileAvatar").textContent = user.email.charAt(0).toUpperCase();
-        byId("profileName").textContent = user.email;
-        byId("profileMini").hidden = false;
-    }
-
-    byId("logoutLink").hidden = false;
-    byId("logoutLink").addEventListener("click", function (event) {
-        event.preventDefault();
-        EduQuestAPI.logout();
-    });
 
     byId("supportForm").hidden = false;
     byId("myRequests").hidden = false;

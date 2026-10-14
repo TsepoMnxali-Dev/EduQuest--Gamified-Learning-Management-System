@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace EduQuest.API.Controllers
 {
     // The signed-in learner's classes: their enrolled subjects, the topics for
-    // their grade, quiz progress and study materials.
+    // their grade, every published quiz, quiz progress and study materials.
     [Authorize]
     [ApiController]
     [Route("api/learner/classes")]
@@ -139,7 +139,15 @@ namespace EduQuest.API.Controllers
                 .ToListAsync();
 
             var topicIds = topics.Select(t => t.TopicID).ToList();
+            var topicNames = topics.ToDictionary(t => t.TopicID, t => t.TopicName);
             var quizInfos = await LoadQuizInfoAsync(learner.LearnerID, topicIds);
+
+            // Every published quiz for this subject and grade, in topic order.
+            var quizDtos = quizInfos
+                .OrderBy(q => q.TopicID)
+                .ThenBy(q => q.QuizTitle)
+                .Select(q => ToQuizDto(q, topicNames[q.TopicID]))
+                .ToList();
 
             // Comparing against int? works whether StudyMaterial.TopicID is int or int?.
             var nullableTopicIds = topicIds.Select(id => (int?)id).ToList();
@@ -160,25 +168,16 @@ namespace EduQuest.API.Controllers
 
             var topicDtos = topics.Select(topic =>
             {
-                var counted = quizInfos
-                    .Where(q => q.TopicID == topic.TopicID && (q.IsReady || q.IsCompleted))
-                    .ToList();
+                var topicQuizzes = quizDtos.Where(q => q.TopicID == topic.TopicID).ToList();
+                var counted = topicQuizzes.Where(q => q.IsReady || q.IsCompleted).ToList();
                 var completedCount = counted.Count(q => q.IsCompleted);
 
                 string status;
-                if (counted.Count == 0) status = "No Quiz Yet";
+                if (topicQuizzes.Count == 0) status = "No Quiz Yet";
+                else if (counted.Count == 0) status = "Coming Soon";
                 else if (completedCount == counted.Count) status = "Completed";
                 else if (completedCount > 0) status = "In Progress";
                 else status = "Not Started";
-
-                // Prefer a quiz not taken yet; otherwise offer a retake.
-                var next = counted.FirstOrDefault(q => q.IsReady && !q.IsCompleted);
-                var isRetake = false;
-                if (next == null)
-                {
-                    next = counted.FirstOrDefault(q => q.IsReady);
-                    isRetake = next != null;
-                }
 
                 return new ClassTopicDto
                 {
@@ -187,9 +186,7 @@ namespace EduQuest.API.Controllers
                     Status = status,
                     QuizzesCompleted = completedCount,
                     QuizzesTotal = counted.Count,
-                    NextQuizID = next?.QuizID,
-                    NextQuizTitle = next?.QuizTitle,
-                    NextQuizIsRetake = isRetake,
+                    Quizzes = topicQuizzes,
                     Materials = materials
                         .Where(m => m.TopicID == topic.TopicID)
                         .Select(m => new ClassMaterialDto
@@ -217,6 +214,7 @@ namespace EduQuest.API.Controllers
                 QuizzesTotal = allCounted.Count,
                 ProgressPercent = Percent(allCompleted.Count, allCounted.Count),
                 AverageScorePercent = Average(allCompleted),
+                Quizzes = quizDtos,
                 Topics = topicDtos
             });
         }
@@ -268,10 +266,34 @@ namespace EduQuest.API.Controllers
         {
             public int QuizID { get; init; }
             public string QuizTitle { get; init; } = string.Empty;
+            public string Difficulty { get; init; } = string.Empty;
+            public int TimeLimitMinutes { get; init; }
             public int TopicID { get; init; }
+            public int QuestionCount { get; init; }
             public bool IsReady { get; init; }
             public bool IsCompleted { get; init; }
+            public int? LatestAttemptID { get; init; }
+            public DateTime? LatestDate { get; init; }
             public int? LatestPercentage { get; init; }
+        }
+
+        private static ClassQuizDto ToQuizDto(QuizInfo q, string topicName)
+        {
+            return new ClassQuizDto
+            {
+                QuizID = q.QuizID,
+                QuizTitle = q.QuizTitle,
+                Difficulty = q.Difficulty,
+                TimeLimitMinutes = q.TimeLimitMinutes,
+                TopicID = q.TopicID,
+                TopicName = topicName,
+                QuestionCount = q.QuestionCount,
+                IsReady = q.IsReady,
+                IsCompleted = q.IsCompleted,
+                LatestAttemptID = q.LatestAttemptID,
+                LatestPercentage = q.LatestPercentage,
+                LatestDate = q.LatestDate
+            };
         }
 
         private async Task<Learner?> GetLearnerAsync()
@@ -292,14 +314,14 @@ namespace EduQuest.API.Controllers
                 .ToListAsync();
         }
 
-        // Published quizzes in the given topics, with readiness and the
-        // learner's latest submitted result for each.
+        // Published quizzes in the given topics, with their question counts,
+        // readiness and the learner's latest submitted result for each.
         private async Task<List<QuizInfo>> LoadQuizInfoAsync(int learnerId, List<int> topicIds)
         {
             var quizzes = await _context.Quizzes
                 .Where(q => q.IsPublished && topicIds.Contains(q.TopicID))
                 .OrderBy(q => q.QuizTitle)
-                .Select(q => new { q.QuizID, q.QuizTitle, q.TopicID })
+                .Select(q => new { q.QuizID, q.QuizTitle, q.Difficulty, q.TimeLimit, q.TopicID })
                 .ToListAsync();
 
             var quizIds = quizzes.Select(q => q.QuizID).ToList();
@@ -317,6 +339,7 @@ namespace EduQuest.API.Controllers
                          && a.QuizAttemptAnswers.Any())
                 .Select(a => new
                 {
+                    a.QuizAttemptID,
                     a.QuizID,
                     a.Score,
                     a.DateTaken,
@@ -345,9 +368,14 @@ namespace EduQuest.API.Controllers
                 {
                     QuizID = q.QuizID,
                     QuizTitle = q.QuizTitle,
+                    Difficulty = q.Difficulty,
+                    TimeLimitMinutes = (int)Math.Round(q.TimeLimit.TotalMinutes),
                     TopicID = q.TopicID,
+                    QuestionCount = questionCount,
                     IsReady = questionCount >= QuestionsPerAttempt,
                     IsCompleted = latest != null,
+                    LatestAttemptID = latest?.QuizAttemptID,
+                    LatestDate = latest?.DateTaken,
                     LatestPercentage = percentage
                 };
             }).ToList();

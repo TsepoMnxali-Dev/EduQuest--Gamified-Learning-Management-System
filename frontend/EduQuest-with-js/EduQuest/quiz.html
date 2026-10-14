@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduQuest | Quiz</title>
+    <title>EduQuest | Quizzes</title>
     <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/theme-unified.css">
 </head>
@@ -35,17 +35,35 @@
         <main class="main">
             <div class="quizzes-topbar">
                 <div class="dashboard-welcome">
-                    <h1 id="quiz-title">Quiz</h1>
-                    <p id="quiz-subject"></p>
+                    <h1>Quizzes</h1>
+                    <p>Work through each subject's quizzes at your own pace.</p>
                 </div>
-                <div class="quiz-timer" id="quiz-timer" hidden>Time 00:00</div>
+                <div class="profile-mini">
+                    <div class="profile-avatar" id="profileAvatar">L</div>
+                    <span id="profileName">Learner</span>
+                </div>
             </div>
 
-            <div id="quiz-root" class="quiz-root"></div>
+            <div class="quiz-summary">
+                <div class="profile-stat">
+                    <div class="stat-number" id="statCompleted">–</div>
+                    <div class="stat-text">Completed</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="stat-number" id="statTodo">–</div>
+                    <div class="stat-text">Still To Do</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="stat-number" id="statAverage">–</div>
+                    <div class="stat-text">Average Score</div>
+                </div>
+            </div>
+
+            <div class="quizzes-grid" id="quizzesGrid"></div>
         </main>
     </div>
 
     <script src="js/api.js"></script>
-    <script src="js/quiz.js" defer></script>
+    <script src="js/quizzes.js" defer></script>
 </body>
 </html>
