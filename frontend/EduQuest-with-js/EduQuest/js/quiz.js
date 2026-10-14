@@ -1,668 +1,477 @@
 /* =============================================================
-   EduQuest - quiz.js  (used by quiz.html)
-
-   Runs one quiz attempt: intro -> questions -> review -> results.
-   Open it as quiz.html?id=<quiz-id>   (add &review=1 to see the
-   learner's last submitted result instead of starting a new attempt).
-
-   Backend:
-     GET  /api/learner/quizzes             quiz title, subject, latest attempt
-     POST /api/quizzes/{id}/start          creates the attempt, sends questions
-     POST /api/quizattempts/{id}/submit    { answers: [{ quizAttemptQuestionID, quizOptionID }] }
-     GET  /api/quizattempts/{id}/result    server-scored result with explanations
-
-   The server does the scoring, so correct answers never reach the
-   browser before the quiz is submitted.
-   Server text is written with textContent, never innerHTML.
+   EDUQUEST LEARNER QUIZ — complete backend-connected replacement.
+   - Real quiz and attempt IDs; grades only on the server.
+   - Reuses the administrator's EduQuestMath formatter for all
+     question text, answer options, and result explanations.
+   - Uses explicit attempt IDs when reviewing older quiz results.
+   - Requires js/api.js, KaTeX, and ../../js/math-format.js.
 ============================================================= */
 (function () {
     "use strict";
 
-    if (!EduQuestAPI.requireLearner()) {
-        return;
-    }
+    document.addEventListener("DOMContentLoaded", async function () {
+        const api = window.EduQuestAPI;
+        const root = document.getElementById("quiz-root");
+        const pageTitle = document.getElementById("quiz-title");
+        const pageSubtitle = document.getElementById("quiz-subject");
+        const timer = document.getElementById("quiz-timer");
+        if (!api || !root) return;
+        if (!api.requireLearner()) return;
 
-    var LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
+        const params = new URLSearchParams(location.search);
+        const quizId = Number(params.get("id"));
+        const review = params.get("review") === "1";
+        const requestedAttemptId = Number(params.get("attempt"));
+        const currentUser = api.getCurrentUser();
+        const lastAttemptKey = "eduquest.lastQuizAttempt." + currentUser.userId + "." + quizId;
+        const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    var params = new URLSearchParams(window.location.search);
-    var quizId = Number(params.get("id"));
-    var wantsReview = params.get("review") === "1";
+        let quiz = null;
+        let attemptId = null;
+        let questions = [];
+        let answers = [];
+        let current = 0;
+        let startedAt = null;
+        let timerHandle = null;
+        let sending = false;
+        let submittedAttemptsUsed = null;
+        let bestAttemptId = null;
+        let attemptHistory = [];
 
-    var root = document.getElementById("quiz-root");
-    var titleEl = document.getElementById("quiz-title");
-    var subjectEl = document.getElementById("quiz-subject");
-    var timerEl = document.getElementById("quiz-timer");
-
-    var info = null;        /* this quiz from the learner's list */
-    var attempt = null;     /* { id, questions: [{ attemptQuestionId, text, options: [{ id, text }] }] } */
-
-    var state = {
-        current: 0,
-        answers: [],        /* chosen option id per question, or null */
-        startedAt: 0,
-        timerId: null
-    };
-
-    /* =========================================================
-       HELPERS
-    ========================================================= */
-
-    function el(tag, className, text) {
-        var node = document.createElement(tag);
-        if (className) node.className = className;
-        if (text !== undefined && text !== null) node.textContent = text;
-        return node;
-    }
-
-    function clear(node) {
-        while (node.firstChild) node.removeChild(node.firstChild);
-    }
-
-    /* Lower-cases every key so the page works whether the API sends
-       camelCase or PascalCase. */
-    function norm(value) {
-        if (Array.isArray(value)) return value.map(norm);
-        if (value && typeof value === "object") {
-            var out = {};
-            Object.keys(value).forEach(function (key) {
-                out[key.toLowerCase()] = norm(value[key]);
-            });
-            return out;
-        }
-        return value;
-    }
-
-    /* Writes text, turning x^2 into x with a superscript 2 (built as
-       DOM nodes, so no HTML is ever parsed). */
-    function appendMath(node, text) {
-        var s = String(text === null || text === undefined ? "" : text);
-        var re = /\^(\([^)]*\)|-?[A-Za-z0-9]+)/g;
-        var last = 0;
-        var m;
-
-        while ((m = re.exec(s)) !== null) {
-            if (m.index > last) {
-                node.appendChild(document.createTextNode(s.slice(last, m.index)));
-            }
-            var exponent = m[1];
-            if (exponent.charAt(0) === "(" && exponent.charAt(exponent.length - 1) === ")") {
-                exponent = exponent.slice(1, -1);
-            }
-            node.appendChild(el("sup", null, exponent));
-            last = re.lastIndex;
-        }
-
-        if (last < s.length) {
-            node.appendChild(document.createTextNode(s.slice(last)));
-        }
-        return node;
-    }
-
-    function formatTime(totalSeconds) {
-        var h = Math.floor(totalSeconds / 3600);
-        var m = Math.floor((totalSeconds % 3600) / 60);
-        var s = totalSeconds % 60;
-        var mm = (m < 10 ? "0" : "") + m;
-        var ss = (s < 10 ? "0" : "") + s;
-        return h > 0 ? h + ":" + mm + ":" + ss : mm + ":" + ss;
-    }
-
-    /* "00:12:30", "00:12:30.5" or "1.00:00:00" -> seconds. */
-    function parseSeconds(value) {
-        var m = /^(?:(\d+)\.)?(\d{1,2}):(\d{2}):(\d{2})/.exec(String(value || ""));
-        if (!m) return 0;
-        return (Number(m[1] || 0) * 86400) + (Number(m[2]) * 3600) + (Number(m[3]) * 60) + Number(m[4]);
-    }
-
-    function elapsedSeconds() {
-        return Math.round((Date.now() - state.startedAt) / 1000);
-    }
-
-    function updateTimer() {
-        timerEl.textContent = "Time " + formatTime(elapsedSeconds());
-    }
-
-    function startTimer() {
-        stopTimer();
-        state.startedAt = Date.now();
-        timerEl.hidden = false;
-        updateTimer();
-        state.timerId = window.setInterval(updateTimer, 1000);
-    }
-
-    function stopTimer() {
-        if (state.timerId !== null) {
-            window.clearInterval(state.timerId);
-            state.timerId = null;
-        }
-    }
-
-    function answeredCount() {
-        return state.answers.filter(function (a) { return a !== null; }).length;
-    }
-
-    /* Replace the page content and move focus to the new heading so
-       keyboard and screen-reader users know the view changed. */
-    function show() {
-        clear(root);
-        for (var i = 0; i < arguments.length; i++) {
-            root.appendChild(arguments[i]);
-        }
-        var target = root.querySelector("[data-focus]");
-        if (target) {
-            target.setAttribute("tabindex", "-1");
-            target.focus();
-        }
-    }
-
-    function button(label, className, handler) {
-        var b = el("button", className, label);
-        b.type = "button";
-        if (handler) b.addEventListener("click", handler);
-        return b;
-    }
-
-    function link(label, className, href) {
-        var a = el("a", className, label);
-        a.href = href;
-        return a;
-    }
-
-    function card(extraClass) {
-        return el("section", "card quiz-card" + (extraClass ? " " + extraClass : ""));
-    }
-
-    /* =========================================================
-       VIEWS
-    ========================================================= */
-
-    function renderLoading() {
-        var p = el("p", "quiz-note", "Loading quiz\u2026");
-        p.setAttribute("role", "status");
-        show(p);
-    }
-
-    function renderMessage(title, text, withRetry) {
-        var c = card();
-        var h = el("h2", null, title);
-        h.setAttribute("data-focus", "");
-        c.appendChild(h);
-        c.appendChild(el("p", "quiz-intro-meta", text));
-
-        var actions = el("div", "quiz-actions");
-        actions.appendChild(link("Back to quizzes", "btn btn-outline", "Quizzes.html"));
-        if (withRetry) {
-            actions.appendChild(button("Try again", "btn btn-primary", function () {
-                window.location.reload();
-            }));
-        }
-        c.appendChild(actions);
-        show(c);
-    }
-
-    function renderNotFound() {
-        titleEl.textContent = "Quiz not found";
-        subjectEl.textContent = "";
-        renderMessage(
-            "We couldn\u2019t find that quiz",
-            "It may not be available for your grade and subjects, or it may no longer be published. Head back to the quiz list and pick one from there.",
-            false
-        );
-    }
-
-    function renderIntro(errorMessage) {
-        var c = card();
-        var h = el("h2", null, "Ready to start?");
-        h.setAttribute("data-focus", "");
-        c.appendChild(h);
-
-        var meta = info.questioncount + " questions.";
-        if (info.timelimitminutes) {
-            meta += " Suggested time: " + info.timelimitminutes + " minutes.";
-        }
-        meta += " Your time is tracked so you can see how you did.";
-        c.appendChild(el("p", "quiz-intro-meta", meta));
-
-        var tips = el("ul", "quiz-tips");
-        tips.appendChild(el("li", null, "Choose one answer for each question. You can change it until you submit."));
-        tips.appendChild(el("li", null, "Use Previous and Next, or tap a question number, to move around."));
-        tips.appendChild(el("li", null, "You need to answer every question before you can submit."));
-        tips.appendChild(el("li", null, "After you submit, you\u2019ll see the correct answers with a short explanation for each."));
-        c.appendChild(tips);
-
-        if (errorMessage) {
-            var warning = el("div", "quiz-warning", errorMessage);
-            warning.setAttribute("role", "status");
-            c.appendChild(warning);
-        }
-
-        var actions = el("div", "quiz-actions");
-        actions.appendChild(link("Back to quizzes", "btn btn-outline", "Quizzes.html"));
-        var start = button("Start quiz", "btn btn-primary", function () {
-            startAttempt(start);
-        });
-        actions.appendChild(start);
-        c.appendChild(actions);
-
-        show(c);
-    }
-
-    /* Creates the attempt on the server and shows the first question. */
-    function startAttempt(startButton) {
-        if (startButton) {
-            startButton.disabled = true;
-            startButton.textContent = "Starting\u2026";
-        }
-
-        EduQuestAPI.post("/quizzes/" + quizId + "/start")
-            .then(function (raw) {
-                var data = norm(raw);
-
-                attempt = {
-                    id: data.quizattemptid,
-                    questions: (data.questions || [])
-                        .sort(function (a, b) { return a.questionorder - b.questionorder; })
-                        .map(function (q) {
-                            return {
-                                attemptQuestionId: q.quizattemptquestionid,
-                                text: q.questiontext,
-                                options: (q.options || []).map(function (o) {
-                                    return { id: o.quizoptionid, text: o.optiontext };
-                                })
-                            };
-                        })
-                };
-
-                if (attempt.questions.length === 0) {
-                    renderIntro("This quiz has no questions yet.");
-                    return;
+        async function refreshAttemptUsage() {
+            try {
+                // One submitted attempt is a completion; unfinished starts
+                // are intentionally not charged against the two allowed tries.
+                const history = await api.get("/learner-quiz-progress");
+                if (!Array.isArray(history)) {
+                    throw new Error("Invalid learner progress response.");
                 }
+                const progress = history.find(item => Number(item.quizID) === quizId);
+                submittedAttemptsUsed = progress ? Number(progress.completedAttempts) || 0 : 0;
+                bestAttemptId = progress ? Number(progress.bestAttemptID || progress.quizAttemptID) : null;
+                attemptHistory = progress && Array.isArray(progress.attempts) ? progress.attempts : [];
+            } catch (error) {
+                submittedAttemptsUsed = null;
+                bestAttemptId = null;
+                attemptHistory = [];
+                console.warn("Could not verify remaining quiz attempts:", error);
+            }
+        }
 
-                state.current = 0;
-                state.answers = attempt.questions.map(function () { return null; });
+        function escapeHtml(text) {
+            return String(text ?? "").replace(/[&<>"']/g, char => ({
+                "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+            })[char]);
+        }
+
+        // The formatter HTML-escapes ordinary text, while rendering $...$,
+        // $$...$$, \\( ... \\), \\[ ... \\] and common unwrapped TeX.
+        function math(text) {
+            return window.EduQuestMath && typeof window.EduQuestMath.toHtml === "function"
+                ? window.EduQuestMath.toHtml(text)
+                : escapeHtml(text);
+        }
+
+        function show(html) {
+            root.innerHTML = html;
+            const focus = root.querySelector("[data-focus]");
+            if (focus) {
+                focus.setAttribute("tabindex", "-1");
+                focus.focus();
+            }
+        }
+
+        function notify(message) {
+            show('<section class="card quiz-card"><p class="quiz-note" role="status">' +
+                escapeHtml(message) + '</p></section>');
+        }
+
+        function errorPage(message, canRetry = false) {
+            show('<section class="card quiz-card">' +
+                '<h2 data-focus>Unable to load quiz</h2>' +
+                '<p class="quiz-intro-meta">' + escapeHtml(message) + '</p>' +
+                '<div class="quiz-actions">' +
+                '<a href="Quizzes.html" class="btn btn-outline">Back to quizzes</a>' +
+                (canRetry ? '<button class="btn btn-primary" type="button" id="reload-quiz">Try Again</button>' : '') +
+                '</div></section>');
+            document.getElementById("reload-quiz")?.addEventListener("click", () => location.reload());
+        }
+
+        function timeSpanSeconds(value) {
+            if (typeof value !== "string") return 0;
+            const match = /^(?:(\d+)\.)?(\d{1,2}):(\d{2}):(\d{2})(?:\.\d+)?$/.exec(value);
+            if (!match) return 0;
+            return Number(match[1] || 0) * 86400 + Number(match[2]) * 3600 +
+                Number(match[3]) * 60 + Number(match[4]);
+        }
+
+        function duration(seconds) {
+            seconds = Math.max(0, Math.floor(Number(seconds) || 0));
+            const hours = Math.floor(seconds / 3600);
+            const mins = String(Math.floor(seconds % 3600 / 60)).padStart(2, "0");
+            const secs = String(seconds % 60).padStart(2, "0");
+            return hours ? hours + ":" + mins + ":" + secs : mins + ":" + secs;
+        }
+
+        function stopTimer() {
+            if (timerHandle !== null) clearInterval(timerHandle);
+            timerHandle = null;
+        }
+
+        function refreshTimer() {
+            if (startedAt === null) return;
+            const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+            const limit = timeSpanSeconds(quiz.timeLimit);
+            const left = limit ? Math.max(0, limit - elapsed) : elapsed;
+            timer.textContent = (limit ? "Time remaining " : "Time ") + duration(left);
+            // The current API does NOT enforce a time limit on submission.
+            // We display it but don't invent an automatic 'timed out' grading action.
+            if (limit && left === 0) stopTimer();
+        }
+
+        function startTimer() {
+            stopTimer();
+            startedAt = Date.now();
+            timer.hidden = false;
+            refreshTimer();
+            timerHandle = setInterval(refreshTimer, 1000);
+        }
+
+        function answeredCount() {
+            return answers.filter(answer => answer !== null).length;
+        }
+
+        function findSavedId() {
+            try {
+                const id = Number(sessionStorage.getItem(lastAttemptKey));
+                return Number.isInteger(id) && id > 0 ? id : null;
+            } catch (_) {
+                return null;
+            }
+        }
+
+        function saveAttempt(id) {
+            try {
+                sessionStorage.setItem(lastAttemptKey, String(id));
+            } catch (_) {
+                // The explicit review link works independently of storage.
+            }
+        }
+
+        // Review buttons never depend on sessionStorage: IDs come from the database.
+        function reviewActions() {
+            if (attemptHistory.length) {
+                return attemptHistory.map((item, index) => {
+                    const id = Number(item.attemptID);
+                    if (!Number.isInteger(id) || id <= 0) return "";
+                    return '<a class="btn btn-outline" href="quiz.html?id=' + quizId +
+                        '&review=1&attempt=' + id + '">Review Attempt ' + (index + 1) + '</a>';
+                }).join("");
+            }
+            return Number.isInteger(bestAttemptId) && bestAttemptId > 0
+                ? '<a class="btn btn-outline" href="quiz.html?id=' + quizId +
+                    '&review=1&attempt=' + bestAttemptId + '">Review Results</a>'
+                : "";
+        }
+
+        // When an attempt is blocked, display review rather than a useless reload.
+        async function showAttemptLimit(message) {
+            await refreshAttemptUsage();
+            stopTimer();
+            timer.hidden = true;
+            show('<section class="card quiz-card">' +
+                '<h2 data-focus>Quiz attempts completed</h2>' +
+                '<p class="quiz-intro-meta">' + escapeHtml(message) + '</p>' +
+                '<div class="quiz-actions">' +
+                '<a class="btn btn-outline" href="Quizzes.html">Back to quizzes</a>' +
+                reviewActions() +
+                '</div>' +
+                (!reviewActions() ? '<p class="quiz-note">Your attempts were blocked, but the progress API did not return review IDs. Check GET /api/learner-quiz-progress in Swagger.</p>' : '') +
+                '</section>');
+        }
+
+        function intro() {
+            stopTimer();
+            timer.hidden = true;
+            const limit = timeSpanSeconds(quiz.timeLimit);
+            const triesKnown = submittedAttemptsUsed !== null;
+            const used = triesKnown ? Math.max(0, submittedAttemptsUsed) : 0;
+            const maxUsed = triesKnown && used >= 2;
+            const label = triesKnown
+                ? used + " of 2 submitted attempts used"
+                : "Two submissions permitted (usage unavailable)";
+            const reviewLinks = reviewActions();
+            show('<section class="card quiz-card">' +
+                '<h2 data-focus>' + (maxUsed ? 'Quiz attempts completed' : 'Ready to start?') + '</h2>' +
+                '<p class="quiz-intro-meta">' + math(quiz.quizTitle) + '</p>' +
+                '<ul class="quiz-tips">' +
+                '<li>Difficulty: ' + escapeHtml(quiz.difficulty) + '</li>' +
+                '<li>10 randomly selected approved questions</li>' +
+                '<li>Time limit: ' + (limit ? duration(limit) : "Not specified") + '</li>' +
+                '<li>' + escapeHtml(label) + '</li>' +
+                '<li>Only successfully submitted quizzes count as attempts; unfinished quizzes resume.</li>' +
+                '<li>Your best score across the two submissions counts toward your average.</li>' +
+                '<li>Choose one answer per question. You can review answers before submitting.</li>' +
+                '</ul><div class="quiz-actions">' +
+                '<a class="btn btn-outline" href="Quizzes.html">Back to quizzes</a>' +
+                reviewLinks +
+                (maxUsed ? '' : '<button class="btn btn-primary" type="button" id="start-quiz">' +
+                    (used > 0 ? 'Start Final Attempt' : 'Start Quiz') + '</button>') +
+                '</div></section>');
+            document.getElementById("start-quiz")?.addEventListener("click", startQuiz);
+        }
+
+        async function startQuiz() {
+            if (sending) return;
+            notify("Preparing your quiz questions…");
+            try {
+                const response = await api.post("/quizzes/" + quizId + "/start", {});
+                if (!response || !Number.isInteger(Number(response.quizAttemptID)) ||
+                    !Array.isArray(response.questions) || !response.questions.length) {
+                    throw new Error("The API did not return a valid quiz attempt.");
+                }
+                const loaded = response.questions.slice().sort(
+                    (a, b) => Number(a.questionOrder) - Number(b.questionOrder)
+                );
+                for (const question of loaded) {
+                    if (!Number.isInteger(Number(question.quizAttemptQuestionID)) ||
+                        !Array.isArray(question.options) || question.options.length < 2) {
+                        throw new Error("The quiz contains incomplete question information.");
+                    }
+                }
+                attemptId = Number(response.quizAttemptID);
+                questions = loaded;
+                quiz.timeLimit = response.timeLimit || quiz.timeLimit;
+                answers = questions.map(() => null);
+                current = 0;
                 startTimer();
-                renderQuestion();
-            })
-            .catch(function (err) {
-                console.error("Quiz could not be started:", err);
-                renderIntro(err.message || "This quiz could not be started.");
-            });
-    }
-
-    function renderQuestion() {
-        var n = attempt.questions.length;
-        var i = state.current;
-        var q = attempt.questions[i];
-        var isLast = i === n - 1;
-
-        var c = card();
-
-        var head = el("div", "quiz-progress-head");
-        head.appendChild(el("span", null, "Question " + (i + 1) + " of " + n));
-        var countEl = el("span", null, answeredCount() + " answered");
-        head.appendChild(countEl);
-        c.appendChild(head);
-
-        var bar = el("div", "progress-bar");
-        var fill = el("div", "progress-fill");
-        fill.style.width = Math.round(((i + 1) / n) * 100) + "%";
-        bar.appendChild(fill);
-        c.appendChild(bar);
-
-        var question = el("h2", "quiz-question");
-        question.setAttribute("data-focus", "");
-        appendMath(question, q.text);
-        c.appendChild(question);
-
-        var options = el("div", "quiz-options");
-        options.setAttribute("role", "radiogroup");
-        options.setAttribute("aria-label", "Answer options");
-
-        var dotsNav = el("nav", "quiz-dots");
-        dotsNav.setAttribute("aria-label", "Question navigator");
-
-        q.options.forEach(function (option, k) {
-            var selected = state.answers[i] === option.id;
-
-            var label = el("label", "quiz-option" + (selected ? " selected" : ""));
-
-            var input = document.createElement("input");
-            input.type = "radio";
-            input.name = "answer";
-            input.value = String(option.id);
-            input.checked = selected;
-            label.appendChild(input);
-
-            label.appendChild(el("span", "quiz-option-mark", LETTERS[k] || String(k + 1)));
-
-            var text = el("span", "quiz-option-text");
-            appendMath(text, option.text);
-            label.appendChild(text);
-
-            input.addEventListener("change", function () {
-                state.answers[i] = option.id;
-
-                options.querySelectorAll(".quiz-option").forEach(function (other) {
-                    other.classList.toggle("selected", other === label);
-                });
-
-                var dot = dotsNav.querySelector('[data-goto="' + i + '"]');
-                if (dot) {
-                    dot.classList.add("answered");
-                    dot.setAttribute("aria-label", "Question " + (i + 1) + ", answered");
-                }
-                countEl.textContent = answeredCount() + " answered";
-            });
-
-            options.appendChild(label);
-        });
-        c.appendChild(options);
-
-        var actions = el("div", "quiz-actions");
-        var prev = button("Previous", "btn btn-outline", function () {
-            if (state.current > 0) {
-                state.current -= 1;
-                renderQuestion();
-            }
-        });
-        if (i === 0) prev.disabled = true;
-        actions.appendChild(prev);
-
-        actions.appendChild(button(
-            isLast ? "Review answers" : "Next question",
-            "btn btn-primary",
-            function () {
-                if (isLast) {
-                    renderReview();
+                showQuestion();
+            } catch (error) {
+                console.error("Unable to start quiz:", error);
+                if (/both attempts|used both|attempt limit|already used/i.test(error.message || "")) {
+                    await showAttemptLimit(error.message);
                 } else {
-                    state.current += 1;
-                    renderQuestion();
+                    errorPage(error.message || "Could not start the quiz.", true);
                 }
             }
-        ));
-        c.appendChild(actions);
 
-        attempt.questions.forEach(function (_, k) {
-            var answered = state.answers[k] !== null;
-            var dot = el(
-                "button",
-                "quiz-dot" + (k === i ? " current" : "") + (answered ? " answered" : ""),
-                String(k + 1)
-            );
-            dot.type = "button";
-            dot.setAttribute("data-goto", String(k));
-            dot.setAttribute("aria-label", "Question " + (k + 1) + (answered ? ", answered" : ", not answered"));
-            if (k === i) dot.setAttribute("aria-current", "step");
-            dot.addEventListener("click", function () {
-                state.current = k;
-                renderQuestion();
+        }
+
+        function showQuestion() {
+            const question = questions[current];
+            const last = current === questions.length - 1;
+            const options = question.options.map((option, index) => {
+                const selected = Number(answers[current]) === Number(option.quizOptionID);
+                return '<label class="quiz-option ' + (selected ? 'selected' : '') + '">' +
+                    '<input type="radio" name="answer" value="' + Number(option.quizOptionID) + '" ' +
+                    (selected ? 'checked' : '') + '>' +
+                    '<span class="quiz-option-mark">' + (LETTERS[index] || String(index + 1)) + '</span>' +
+                    '<span class="quiz-option-text">' + math(option.optionText) + '</span>' +
+                    '</label>';
+            }).join("");
+            const dots = questions.map((_, index) =>
+                '<button type="button" class="quiz-dot ' +
+                (index === current ? 'current ' : '') + (answers[index] !== null ? 'answered' : '') +
+                '" data-go="' + index + '" aria-label="Question ' + (index + 1) +
+                (answers[index] !== null ? ' answered' : ' unanswered') + '">' + (index + 1) + '</button>'
+            ).join("");
+
+            show('<section class="card quiz-card">' +
+                '<div class="quiz-progress-head"><span>Question ' + (current + 1) +
+                ' of ' + questions.length + '</span><span>' + answeredCount() + ' answered</span></div>' +
+                '<div class="progress-bar"><div class="progress-fill" style="width:' +
+                Math.round((current + 1) / questions.length * 100) + '%"></div></div>' +
+                '<h2 class="quiz-question" data-focus>' + math(question.questionText) + '</h2>' +
+                '<div class="quiz-options" role="radiogroup" aria-label="Answer choices">' + options + '</div>' +
+                '<div class="quiz-actions">' +
+                '<button type="button" class="btn btn-outline" id="prev" ' +
+                (current === 0 ? 'disabled' : '') + '>Previous</button>' +
+                '<button type="button" class="btn btn-primary" id="next">' +
+                (last ? 'Review Answers' : 'Next Question') + '</button></div></section>' +
+                '<nav class="quiz-dots" aria-label="Question navigation">' + dots + '</nav>');
+
+            root.querySelectorAll('input[name="answer"]').forEach(input => {
+                input.addEventListener("change", () => {
+                    answers[current] = Number(input.value);
+                    // Redraw to update the question dots and selected styling.
+                    showQuestion();
+                });
             });
-            dotsNav.appendChild(dot);
-        });
-
-        show(c, dotsNav);
-    }
-
-    function renderReview(errorMessage) {
-        var n = attempt.questions.length;
-        var unanswered = n - answeredCount();
-
-        var c = card();
-        var h = el("h2", null, "Review your answers");
-        h.setAttribute("data-focus", "");
-        c.appendChild(h);
-
-        if (errorMessage) {
-            var failed = el("div", "quiz-warning", errorMessage);
-            failed.setAttribute("role", "status");
-            c.appendChild(failed);
-        }
-
-        if (unanswered > 0) {
-            var notice = el(
-                "div", "quiz-warning",
-                "You haven\u2019t answered " + unanswered + (unanswered === 1 ? " question" : " questions") +
-                ". Answer every question to submit."
-            );
-            notice.setAttribute("role", "status");
-            c.appendChild(notice);
-        } else {
-            c.appendChild(el("p", "quiz-note", "You\u2019ve answered all " + n + " questions. Submit when you\u2019re ready."));
-        }
-
-        var list = el("ul", "quiz-review-list");
-        attempt.questions.forEach(function (q, k) {
-            var chosen = state.answers[k];
-            var answered = chosen !== null;
-
-            var row = el("li", "quiz-review-row");
-
-            var icon = el("span", "quiz-status-icon " + (answered ? "done" : "pending"), answered ? "\u2713" : "\u2022");
-            icon.setAttribute("aria-hidden", "true");
-            row.appendChild(icon);
-
-            var textBox = el("span", "quiz-review-text", "Question " + (k + 1));
-            var letter = "";
-            q.options.forEach(function (o, idx) {
-                if (o.id === chosen) letter = LETTERS[idx] || String(idx + 1);
+            root.querySelectorAll("[data-go]").forEach(button => {
+                button.addEventListener("click", () => {
+                    current = Number(button.dataset.go);
+                    showQuestion();
+                });
             });
-            textBox.appendChild(el("small", null, answered ? "Your answer: " + letter : "Not answered"));
-            row.appendChild(textBox);
-
-            row.appendChild(button(answered ? "Change" : "Answer", "btn btn-outline", function () {
-                state.current = k;
-                renderQuestion();
-            }));
-
-            list.appendChild(row);
-        });
-        c.appendChild(list);
-
-        var actions = el("div", "quiz-actions");
-        actions.appendChild(button("Back to questions", "btn btn-outline", function () {
-            var firstUnanswered = state.answers.indexOf(null);
-            state.current = firstUnanswered === -1 ? n - 1 : firstUnanswered;
-            renderQuestion();
-        }));
-
-        var submit = button("Submit quiz", "btn btn-primary", function () {
-            submitAttempt(submit);
-        });
-        if (unanswered > 0) submit.disabled = true;
-        actions.appendChild(submit);
-        c.appendChild(actions);
-
-        show(c);
-    }
-
-    function submitAttempt(submitButton) {
-        submitButton.disabled = true;
-        submitButton.textContent = "Submitting\u2026";
-        stopTimer();
-
-        var seconds = elapsedSeconds();
-
-        var payload = {
-            answers: attempt.questions.map(function (q, k) {
-                return {
-                    quizAttemptQuestionID: q.attemptQuestionId,
-                    quizOptionID: state.answers[k]
-                };
-            })
-        };
-
-        EduQuestAPI.post("/quizattempts/" + attempt.id + "/submit", payload)
-            .then(function () {
-                return EduQuestAPI.get("/quizattempts/" + attempt.id + "/result");
-            })
-            .then(function (raw) {
-                renderResults(norm(raw), seconds, false);
-            })
-            .catch(function (err) {
-                console.error("Quiz could not be submitted:", err);
-                renderReview(err.message || "Your answers could not be submitted. Please try again.");
+            document.getElementById("prev").addEventListener("click", () => {
+                if (current > 0) { current--; showQuestion(); }
             });
-    }
-
-    function renderResults(result, justTakenSeconds, fromSaved) {
-        stopTimer();
-        timerEl.hidden = true;
-
-        var percent = Math.round(result.percentage || 0);
-        var total = result.totalquestions || 0;
-
-        var message;
-        if (percent >= 80) {
-            message = "Great work. You\u2019ve got a solid grip on this topic.";
-        } else if (percent >= 50) {
-            message = "Good effort. Read the explanations below, then try again to improve your score.";
-        } else {
-            message = "This topic needs more practice. Read the explanations below, revisit the class notes, and try again.";
+            document.getElementById("next").addEventListener("click", () => {
+                if (last) showReview();
+                else { current++; showQuestion(); }
+            });
         }
 
-        if (fromSaved && result.datetaken) {
-            message += " Your last attempt was on " +
-                new Date(result.datetaken).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) + ".";
+        function showReview() {
+            const missing = questions.length - answeredCount();
+            const rows = questions.map((question, index) => {
+                const picked = question.options.find(o => Number(o.quizOptionID) === answers[index]);
+                return '<li class="quiz-review-row">' +
+                    '<span class="quiz-status-icon ' + (picked ? 'done' : 'pending') + '">' +
+                    (picked ? '✓' : '•') + '</span>' +
+                    '<span class="quiz-review-text">Question ' + (index + 1) +
+                    '<small>' + (picked ? 'Your answer: ' + math(picked.optionText) : 'Not answered') + '</small></span>' +
+                    '<button type="button" class="btn btn-outline" data-edit="' + index + '">' +
+                    (picked ? 'Change' : 'Answer') + '</button></li>';
+            }).join("");
+            show('<section class="card quiz-card"><h2 data-focus>Review Your Answers</h2>' +
+                '<p class="quiz-intro-meta">You answered ' + answeredCount() + ' of ' +
+                questions.length + ' questions.</p>' +
+                (missing ? '<p class="quiz-note" role="status">Please answer the remaining ' +
+                    missing + ' question(s) before submitting.</p>' :
+                    '<p class="quiz-note">All questions are answered. You can submit now.</p>') +
+                '<ul class="quiz-review-list">' + rows + '</ul>' +
+                '<div class="quiz-actions">' +
+                '<button class="btn btn-outline" id="back" type="button">Back to Questions</button>' +
+                '<button class="btn btn-primary" id="submit" type="button" ' +
+                (missing ? 'disabled' : '') + '>Submit Quiz</button></div>' +
+                '<p id="submit-error" role="alert"></p></section>');
+            root.querySelectorAll("[data-edit]").forEach(button => {
+                button.addEventListener("click", () => {
+                    current = Number(button.dataset.edit);
+                    showQuestion();
+                });
+            });
+            document.getElementById("back").addEventListener("click", () => {
+                current = Math.max(0, answers.indexOf(null));
+                showQuestion();
+            });
+            document.getElementById("submit").addEventListener("click", submit);
         }
 
-        var head = card("quiz-result-head");
-        var h = el("h2", null, "You scored " + percent + "%");
-        h.setAttribute("data-focus", "");
-        head.appendChild(h);
-        head.appendChild(el("p", null, message));
-
-        var seconds = parseSeconds(result.timetaken);
-        if (seconds === 0 && justTakenSeconds) seconds = justTakenSeconds;
-
-        var stats = el("div", "profile-stats");
-        stats.style.marginTop = "18px";
-
-        function stat(value, label) {
-            var box = el("div", "profile-stat");
-            box.appendChild(el("div", "stat-number", value));
-            box.appendChild(el("div", "stat-text", label));
-            return box;
-        }
-
-        stats.appendChild(stat(percent + "%", "Score"));
-        stats.appendChild(stat(result.score + " / " + total, "Correct"));
-        stats.appendChild(stat(seconds > 0 ? formatTime(seconds) : "\u2013", "Time taken"));
-
-        var answersCard = card();
-        answersCard.appendChild(el("h3", "dashboard-section-title", "Your answers"));
-
-        var list = el("ul", "quiz-result-list");
-        (result.questions || [])
-            .sort(function (a, b) { return a.questionorder - b.questionorder; })
-            .forEach(function (q, k) {
-                var ok = !!q.iscorrect;
-
-                var item = el("li", "quiz-result-item");
-
-                var icon = el("div", "quiz-status-icon " + (ok ? "done" : "wrong"), ok ? "\u2713" : "\u2715");
-                icon.setAttribute("aria-hidden", "true");
-                item.appendChild(icon);
-
-                var body = el("div");
-
-                var title = el("h4");
-                title.appendChild(el("span", "sr-only", ok ? "Correct. " : "Incorrect. "));
-                title.appendChild(document.createTextNode((k + 1) + ". "));
-                appendMath(title, q.questiontext);
-                body.appendChild(title);
-
-                var yours = el("p", "quiz-result-line", "Your answer: ");
-                var yoursStrong = el("strong");
-                appendMath(yoursStrong, q.selectedanswer);
-                yours.appendChild(yoursStrong);
-                body.appendChild(yours);
-
-                if (!ok) {
-                    var correct = el("p", "quiz-result-line", "Correct answer: ");
-                    var correctStrong = el("strong");
-                    appendMath(correctStrong, q.correctanswer);
-                    correct.appendChild(correctStrong);
-                    body.appendChild(correct);
+        async function submit() {
+            if (sending || answeredCount() !== questions.length) return;
+            sending = true;
+            const button = document.getElementById("submit");
+            button.disabled = true;
+            button.textContent = "Submitting…";
+            try {
+                await api.post("/quizattempts/" + attemptId + "/submit", {
+                    answers: questions.map((question, index) => ({
+                        quizAttemptQuestionID: Number(question.quizAttemptQuestionID),
+                        quizOptionID: Number(answers[index])
+                    }))
+                });
+                stopTimer();
+                saveAttempt(attemptId);
+                // The database is the source of truth; immediately retrieve
+                // the grade and explanations returned by the server.
+                await loadResult(attemptId);
+            } catch (error) {
+                console.error("Quiz submission or result retrieval failed:", error);
+                const notice = document.getElementById("submit-error");
+                if (notice) notice.textContent = error.message || "Submission failed. Please try again.";
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = "Submit Quiz";
                 }
+            } finally {
+                sending = false;
+            }
+        }
 
-                if (q.explanation) {
-                    var explain = el("p", "quiz-explain");
-                    appendMath(explain, q.explanation);
-                    body.appendChild(explain);
+        async function loadResult(id) {
+            notify("Loading your marked quiz…");
+            try {
+                const result = await api.get("/quizattempts/" + id + "/result");
+                if (!result || Number(result.quizID) !== quizId) {
+                    throw new Error("These results don't belong to the selected quiz.");
                 }
+                stopTimer();
+                timer.hidden = true;
+                saveAttempt(id);
+                await refreshAttemptUsage();
+                showResult(result);
+            } catch (error) {
+                console.error("Could not load quiz results:", error);
+                errorPage(error.message || "Unable to retrieve results.", true);
+            }
+        }
 
-                item.appendChild(body);
-                list.appendChild(item);
+        function showResult(result) {
+            const percent = Number(result.percentage) || 0;
+            const score = Number(result.score) || 0;
+            const total = Number(result.totalQuestions) || 0;
+            const msg = percent >= 80
+                ? "Excellent work!"
+                : percent >= 50 ? "Good effort! Review the explanations and keep practising."
+                    : "Keep practising. Review the explanations and try again.";
+            const items = (result.questions || []).slice()
+                .sort((a, b) => Number(a.questionOrder) - Number(b.questionOrder))
+                .map((question, i) =>
+                    '<li class="quiz-result-item">' +
+                    '<div class="quiz-status-icon ' + (question.isCorrect ? 'done' : 'wrong') + '">' +
+                    (question.isCorrect ? '✓' : '✕') + '</div>' +
+                    '<div><h4>' + (i + 1) + '. ' + math(question.questionText) + '</h4>' +
+                    '<p class="quiz-result-line">Your answer: <strong>' + math(question.selectedAnswer) + '</strong></p>' +
+                    (!question.isCorrect ? '<p class="quiz-result-line">Correct answer: <strong>' +
+                        math(question.correctAnswer) + '</strong></p>' : '') +
+                    (question.explanation ? '<p class="quiz-explain">' + math(question.explanation) + '</p>' : '') +
+                    '</div></li>'
+                ).join("");
+            show('<section class="card quiz-card quiz-result-head">' +
+                '<h2 data-focus>You scored ' + Math.round(percent) + '%</h2><p>' + msg + '</p></section>' +
+                '<div class="profile-stats" style="margin-top:18px">' +
+                '<div class="profile-stat"><div class="stat-number">' + Math.round(percent) +
+                '%</div><div class="stat-text">Score</div></div>' +
+                '<div class="profile-stat"><div class="stat-number">' + score + ' / ' + total +
+                '</div><div class="stat-text">Correct</div></div>' +
+                '</div>' +
+                '<section class="card quiz-card"><h3 class="dashboard-section-title">Your Answers</h3>' +
+                '<ul class="quiz-result-list">' + items + '</ul><div class="quiz-actions">' +
+                '<a href="Quizzes.html" class="btn btn-outline">Back to quizzes</a>' +
+                reviewActions() +
+                (submittedAttemptsUsed !== null && submittedAttemptsUsed < 2
+                    ? '<button id="retry" type="button" class="btn btn-primary">' +
+                      'Try Again (' + Math.max(0, 2 - submittedAttemptsUsed) + ' remaining)</button>'
+                    : '') +
+                '</div></section>');
+            document.getElementById("retry")?.addEventListener("click", () => {
+                attemptId = null;
+                questions = [];
+                answers = [];
+                current = 0;
+                startedAt = null;
+                intro();
             });
-        answersCard.appendChild(list);
+        }
 
-        var actions = el("div", "quiz-actions");
-        actions.appendChild(link("Back to quizzes", "btn btn-outline", "Quizzes.html"));
-        var retry = button("Try again", "btn btn-primary", function () {
-            startAttempt(retry);
-        });
-        actions.appendChild(retry);
-        answersCard.appendChild(actions);
-
-        show(head, stats, answersCard);
-    }
-
-    /* =========================================================
-       START
-    ========================================================= */
-
-    function findQuiz(data) {
-        var found = null;
-        (data.subjects || []).forEach(function (subject) {
-            (subject.quizzes || []).forEach(function (quiz) {
-                if (quiz.quizid === quizId) {
-                    found = quiz;
-                    found.subjectname = subject.subjectname;
-                }
-            });
-        });
-        return found;
-    }
-
-    renderLoading();
-
-    if (!quizId) {
-        renderNotFound();
-        return;
-    }
-
-    EduQuestAPI.get("/learner/quizzes")
-        .then(function (raw) {
-            info = findQuiz(norm(raw));
-
-            if (!info) {
-                renderNotFound();
+        if (!Number.isInteger(quizId) || quizId <= 0) {
+            errorPage("The quiz link is invalid. Open a quiz from the quiz list.");
+            return;
+        }
+        try {
+            notify("Loading quiz…");
+            quiz = await api.get("/quizzes/" + quizId);
+            if (!quiz || !quiz.isPublished) {
+                errorPage("The quiz could not be found or is not published.");
                 return;
             }
-
-            document.title = "EduQuest | " + info.title;
-            titleEl.textContent = info.title;
-            subjectEl.textContent = info.subjectname;
-
-            if (wantsReview && info.latestattemptid) {
-                return EduQuestAPI.get("/quizattempts/" + info.latestattemptid + "/result")
-                    .then(function (result) {
-                        renderResults(norm(result), 0, true);
-                    })
-                    .catch(function (err) {
-                        console.error("Saved result failed to load:", err);
-                        renderIntro();
-                    });
+            pageTitle.textContent = quiz.quizTitle;
+            pageSubtitle.textContent = (quiz.difficulty || "") + " Quiz";
+            document.title = "EduQuest | " + quiz.quizTitle;
+            await refreshAttemptUsage();
+            if (review) {
+                const id = Number.isInteger(requestedAttemptId) && requestedAttemptId > 0
+                    ? requestedAttemptId : (bestAttemptId || findSavedId());
+                if (id) await loadResult(id);
+                else errorPage("Please open a completed quiz from the Quizzes page to review its results.");
+            } else {
+                intro();
             }
-
-            renderIntro();
-        })
-        .catch(function (err) {
-            console.error("Quiz failed to load:", err);
-            renderMessage(
-                "We couldn\u2019t load this quiz",
-                err.message || "Check your internet connection and try again.",
-                true
-            );
-        });
+        } catch (error) {
+            console.error("Quiz initialization failed:", error);
+            errorPage(error.message || "The quiz could not be loaded.", true);
+        }
+    });
 })();
