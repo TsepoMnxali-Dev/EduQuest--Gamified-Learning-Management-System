@@ -13,6 +13,8 @@
     .topic-materials{margin-top:12px}
     .material-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
     .topic-actions .chip-btn.disabled{color:var(--muted);background:#f1f2f6;cursor:default}
+    .quiz-section{margin-bottom:34px}
+    .quiz-section .class-status{margin-bottom:0}
   </style>
 </head>
 
@@ -66,6 +68,14 @@
         </div>
 
         <div class="class-notice" id="classNotice" role="alert"></div>
+
+        <!-- Every published quiz for this subject: built by class.js -->
+        <section class="subject-resources quiz-section">
+          <h2>Quizzes</h2>
+          <div id="quizList">
+            <p class="class-status">Loading quizzes&hellip;</p>
+          </div>
+        </section>
 
         <div class="section-header">
           <h2>Topics</h2>

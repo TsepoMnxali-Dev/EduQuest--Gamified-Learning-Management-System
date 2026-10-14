@@ -54,20 +54,50 @@
     }
 
     /* ---------------------------------------------------------
+       Top corner: first name and grade, e.g. "Ben · Grade 12",
+       from GET /api/learner/me.
+    --------------------------------------------------------- */
+
+    function cornerLabel() {
+        return byId("profileLabel") ||
+               byId("profileGrade") ||
+               byId("profileName") ||
+               document.querySelector(".profile-mini span");
+    }
+
+    function cornerAvatar() {
+        return byId("profileAvatar") ||
+               document.querySelector(".profile-mini .profile-avatar");
+    }
+
+    function loadCornerIdentity() {
+        EduQuestAPI.get("/learner/me")
+            .then(function (me) {
+                var firstName = String(me.firstName || "").trim() || "Learner";
+                var gradeName = me.gradeName ? " \u00b7 " + me.gradeName : "";
+
+                var avatar = cornerAvatar();
+                var label = cornerLabel();
+
+                if (avatar) {
+                    avatar.textContent = firstName.charAt(0).toUpperCase();
+                }
+                if (label) {
+                    label.textContent = firstName + gradeName;
+                }
+            })
+            .catch(function (err) {
+                // The page still works without it.
+                console.error("Learner name failed to load:", err);
+            });
+    }
+
+    /* ---------------------------------------------------------
        Sections
     --------------------------------------------------------- */
 
     function renderWelcome(data) {
-        var firstName = data.firstName || "Learner";
-        var gradeName = data.gradeName ? " \u00b7 " + data.gradeName : "";
-
         byId("welcomeHeading").textContent = "Welcome back, " + fullName(data) + "!";
-        byId("profileAvatar").textContent = firstName.charAt(0).toUpperCase();
-        
-        var profileLabel = byId("profileLabel") || byId("profileGrade");
-        if (profileLabel) {
-            profileLabel.textContent = firstName + gradeName;
-        }
     }
 
     function fullName(data) {
@@ -217,6 +247,8 @@
             EduQuestAPI.logout();
         });
     }
+
+    loadCornerIdentity();
 
     EduQuestAPI.get("/learner/dashboard")
         .then(function (data) {
