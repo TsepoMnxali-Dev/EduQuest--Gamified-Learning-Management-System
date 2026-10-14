@@ -20,6 +20,7 @@
         <a class="nav-link active" href="resources.html" aria-current="page">Resources</a>
         <a class="nav-link" href="competition.html">Competitions</a>
         <a class="nav-link" href="leaderboard.html">Leaderboard</a>
+        <a href="profile.html" class="nav-link">Profile</a>
         <a class="nav-link" href="reports.html">Reports</a>
         <button type="button" class="nav-link" id="adminLogout" style="width:100%; text-align:center;">Log Out</button>
       </nav>
@@ -57,12 +58,7 @@
       </div>
 
       <p id="resourcesMessage" class="resource-notice" role="status" aria-live="polite" style="display:none"></p>
-      <div class="resource-table-scroll">
-        <table class="resource-table">
-          <thead><tr><th>Resource</th><th>Type</th><th>Subject</th><th>Grade</th><th>Topic</th><th>Source</th><th>Actions</th></tr></thead>
-          <tbody id="resourcesTableBody"></tbody>
-        </table>
-      </div>
+      <div id="resourcesGrouped" class="resources-grouped" aria-live="polite"></div>
       <div id="emptyResourcesMessage" class="resource-empty" style="display:none"><h3>No study materials available yet</h3><p>No resources have been uploaded. Click Add Resource to upload a document or add a study link.</p></div>
     </section>
   </main>

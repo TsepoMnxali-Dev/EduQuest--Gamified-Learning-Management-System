@@ -1,145 +1,210 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduQuest | Profile</title>
+    <title>EduQuest | My Profile</title>
+
     <link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/theme-unified.css">
+    <link rel="stylesheet" href="css/theme-unified.css">
+    <link rel="stylesheet" href="css/profile-page.css">
 </head>
+
 <body>
-<div class="app">
+    <div class="app">
 
-    <aside class="sidebar">
-        <div>
-            <div class="brand">
-                <img src="images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo">
-                <div class="brand-name">EduQuest</div>
+        <!-- Learner Sidebar -->
+        <aside class="sidebar">
+            <div>
+                <div class="brand">
+                    <img src="images/eduquest-logo.png"
+                         alt="EduQuest logo"
+                         class="brand-logo">
+                </div>
+
+                <nav class="sidebar-nav" aria-label="Learner navigation">
+                    <a href="dashboard.html" class="nav-link">Home</a>
+                    <a href="classes.html" class="nav-link">Classes</a>
+                    <a href="Quizzes.html" class="nav-link">Quizzes</a>
+                    <a href="resources.html" class="nav-link">Resources</a>
+                    <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+                    <a href="profile.html" class="nav-link active" aria-current="page">Profile</a>
+                    <a href="help.html" class="nav-link">Help &amp; Support</a>
+                    <a href="index.html" class="nav-link" id="logoutLink">Log Out</a>
+                </nav>
             </div>
 
-            <nav class="sidebar-nav">
-                <a href="dashboard.html" class="nav-link">Home</a>
-                <a href="classes.html" class="nav-link">Classes</a>
-                <a href="Quizzes.html" class="nav-link">Quizzes</a>
-                <a href="resources.html" class="nav-link">Resources</a>
-                <a href="leaderboard.html" class="nav-link">Leaderboard</a>
-                <a href="profile.html" class="nav-link active">Profile</a>
-                <a href="help.html" class="nav-link">Help & Support</a>
-                <a href="index.html" class="nav-link" id="logoutLink">Log Out</a>
-            </nav>
-        </div>
+            <div class="sidebar-social">
+                <a href="#">Instagram</a>
+                <a href="#">Facebook</a>
+            </div>
+        </aside>
 
-        <div class="sidebar-social">
-            <a href="#">Instagram</a>
-            <a href="#">Facebook</a>
-        </div>
-    </aside>
+        <!-- Main Content -->
+        <main class="main">
 
-    <main class="main">
-
-        <div class="dashboard-topbar">
-            <div class="dashboard-welcome">
+            <header class="eq-profile-title">
                 <h1>My Profile</h1>
-                <p>Manage your account and personal information.</p>
-            </div>
-        </div>
+                <p>Your personal information and EduQuest account.</p>
+            </header>
 
-        <div class="profile-header">
-            <div class="profile-header-avatar">L</div>
-            <div class="profile-header-info">
-                <h2>Learner123</h2>
-                <p>Grade 12 &middot; Example High School &middot; Example Province</p>
-            </div>
-        </div>
+            <p id="profileStatus" role="status" aria-live="polite">
+                Loading your profile...
+            </p>
 
-        <div class="profile-stats">
-            <div class="profile-stat">
-                <div class="stat-number">850</div>
-                <div class="stat-text">Total Score</div>
-            </div>
-            <div class="profile-stat">
-                <div class="stat-number">#12</div>
-                <div class="stat-text">Current Rank</div>
-            </div>
-            <div class="profile-stat">
-                <div class="stat-number">27</div>
-                <div class="stat-text">Quizzes Completed</div>
-            </div>
-        </div>
+            <!-- Profile Overview -->
+            <section class="eq-profile-hero">
+                <div class="eq-profile-avatar" id="profileAvatar">?</div>
 
-        <section class="card dashboard-section">
-            <h2 class="dashboard-section-title">Account Information</h2>
+                <div>
+                    <h2 id="profileName">—</h2>
+                    <p id="profileSubtitle">—</p>
+                    <span class="eq-profile-pill" id="profileRole">—</span>
+                </div>
+            </section>
 
-            <div class="info-grid">
-                <div class="info-item">
-                    <label>Full Name</label>
-                    <p>Learner123</p>
+            <!-- Account Information -->
+            <section class="eq-profile-panel">
+                <h2>Account information</h2>
+
+                <div class="eq-profile-grid">
+                    <div>
+                        <span>First name</span>
+                        <strong id="profileFirstName">—</strong>
+                    </div>
+
+                    <div>
+                        <span>Last name</span>
+                        <strong id="profileLastName">—</strong>
+                    </div>
+
+                    <div>
+                        <span>Email address</span>
+                        <strong id="profileEmail">—</strong>
+                    </div>
+
+                    <div>
+                        <span>Account status</span>
+                        <strong id="profileAccountStatus">—</strong>
+                    </div>
+
+                    <div>
+                        <span>Member since</span>
+                        <strong id="profileJoined">—</strong>
+                    </div>
+
+                    <div>
+                        <span>Account ID</span>
+                        <strong id="profileUserId">—</strong>
+                    </div>
                 </div>
-                <div class="info-item">
-                    <label>Username</label>
-                    <p>learner123</p>
+            </section>
+
+            <!-- Learning Information -->
+            <section class="eq-profile-panel" id="learnerDetails">
+                <h2>Learning information</h2>
+
+                <div class="eq-profile-grid">
+                    <div>
+                        <span>Grade</span>
+                        <strong id="profileGrade">—</strong>
+                    </div>
+
+                    <div>
+                        <span>School</span>
+                        <strong id="profileSchool">—</strong>
+                    </div>
                 </div>
-                <div class="info-item">
-                    <label>Email</label>
-                    <p>learner123@example.com</p>
-                </div>
-                <div class="info-item">
-                    <label>Grade</label>
-                    <p>12</p>
-                </div>
-                <div class="info-item">
-                    <label>School</label>
-                    <p>Example High School</p>
-                </div>
-                <div class="info-item">
-                    <label>Province</label>
-                    <p>Example Province</p>
-                </div>
-                <div class="info-item">
-                    <label>Subjects</label>
-                    <p>Mathematics, Physics, Accounting</p>
-                </div>
-                <div class="info-item">
-                    <label>Enrolled Since</label>
-                    <p>January 2024</p>
-                </div>
+
+                <h3>My subjects</h3>
+                <div id="profileSubjects" class="eq-subjects"></div>
+            </section>
+
+            <!-- Edit Profile -->
+            <section class="eq-profile-panel" id="profileEditPanel" hidden>
+                <h2>Edit my details</h2>
+
+                <p class="eq-profile-note">
+                    You can change your name and email.
+                    Account role, status, grade, school and subjects
+                    are managed separately.
+                </p>
+
+                <form id="profileEditForm">
+                    <div class="eq-profile-form-grid">
+
+                        <label>
+                            First name
+                            <input id="editProfileFirstName"
+                                   name="firstName"
+                                   required
+                                   maxlength="100"
+                                   autocomplete="given-name">
+                        </label>
+
+                        <label>
+                            Last name
+                            <input id="editProfileLastName"
+                                   name="lastName"
+                                   required
+                                   maxlength="100"
+                                   autocomplete="family-name">
+                        </label>
+
+                        <label class="eq-full">
+                            Email address
+                            <input id="editProfileEmail"
+                                   name="email"
+                                   type="email"
+                                   required
+                                   maxlength="256"
+                                   autocomplete="email">
+                        </label>
+                    </div>
+
+                    <p id="profileEditMessage"
+                       role="status"
+                       aria-live="polite"></p>
+
+                    <div class="eq-profile-actions">
+                        <button type="submit" id="profileSave">
+                            Save changes
+                        </button>
+
+                        <button type="button"
+                                id="profileCancel"
+                                class="eq-secondary">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Profile Actions -->
+            <div class="eq-profile-actions">
+                <button id="profileEdit" type="button">
+                    Edit profile
+                </button>
+
+                <button id="profileRefresh" type="button">
+                    Refresh profile
+                </button>
+
+                <button id="profileLogout"
+                        type="button"
+                        class="eq-danger">
+                    Log out
+                </button>
             </div>
 
-            <div class="profile-actions">
-                <button class="btn btn-primary">Edit Profile</button>
-                <button class="btn btn-outline">Change Password</button>
-                <button class="btn btn-outline">Manage Subjects</button>
-                <button class="btn btn-outline">Help & Support</button>
-                <button class="btn btn-danger">Logout</button>
-            </div>
-        </section>
+        </main>
+    </div>
 
-        <section class="dashboard-section">
-            <h2 class="dashboard-section-title">Achievements</h2>
-
-            <div class="badge-grid">
-                <div class="badge">
-                    <div class="badge-icon">🔥</div>
-                    <p>7-Day Streak</p>
-                </div>
-                <div class="badge">
-                    <div class="badge-icon">🎯</div>
-                    <p>Quiz Master</p>
-                </div>
-                <div class="badge">
-                    <div class="badge-icon">📐</div>
-                    <p>Math Whiz</p>
-                </div>
-                <div class="badge">
-                    <div class="badge-icon">⭐</div>
-                    <p>Top 20 Learner</p>
-                </div>
-            </div>
-        </section>
-
-    </main>
-</div>
+    <!-- Existing API and Profile Logic -->
     <script src="js/api.js"></script>
     <script src="js/profile.js" defer></script>
 </body>
+
 </html>

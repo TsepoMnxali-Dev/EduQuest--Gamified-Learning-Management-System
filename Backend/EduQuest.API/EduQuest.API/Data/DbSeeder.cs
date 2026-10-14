@@ -1,4 +1,4 @@
-﻿using EduQuest.API.Models.Entities;
+using EduQuest.API.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace EduQuest.API.Data
@@ -327,93 +327,6 @@ ApplicationDBContext context)
                         GradeLevel = item.Grade,
                         TopicName = item.Topic
                     });
-                }
-            }
-
-            await context.SaveChangesAsync();
-        }
-        public static async Task SeedStudyMaterialsAsync(
-    ApplicationDBContext context)
-        {
-            var topics = await context.Topics
-                .Include(t => t.Subject)
-                .ToListAsync();
-
-            var gradeSubjects = await context.GradeSubjects
-                .Include(gs => gs.Grade)
-                .Include(gs => gs.Subject)
-                .ToListAsync();
-
-            const string dbeSelfStudyGuidesUrl =
-                "https://www.education.gov.za/SelfStudyGuidesGrade10-12.aspx";
-
-            const string dbeTextbooksUrl =
-                "https://www.education.gov.za/Curriculum/LearningandTeachingSupportMaterials%28LTSM%29/DigitalContent/StateOwnedTextbooksGrade10to12.aspx";
-
-            const string dbeDigitalContentUrl =
-                "https://www.education.gov.za/Curriculum/LearningandTeachingSupportMaterials%28LTSM%29/DigitalContent.aspx";
-
-            foreach (var topic in topics)
-            {
-                var subjectName = topic.Subject?.SubjectName ?? "Subject";
-
-                var gradeSubject = gradeSubjects.FirstOrDefault(gs =>
-                    gs.SubjectID == topic.SubjectID &&
-                    gs.Grade.GradeName == topic.GradeLevel);
-
-                if (gradeSubject == null)
-                {
-                    continue;
-                }
-
-                var materials = new[]
-                {
-            new StudyMaterial
-            {
-                GradeSubjectID = gradeSubject.GradeSubjectID,
-                TopicID = topic.TopicID,
-                Title = $"{topic.TopicName} - DBE Study Guide",
-                Description =
-                    $"Official Department of Basic Education learning resources related to {topic.TopicName} in {subjectName}.",
-                ResourceType = "Study Guide",
-                FileURL = dbeSelfStudyGuidesUrl
-            },
-
-            new StudyMaterial
-            {
-                GradeSubjectID = gradeSubject.GradeSubjectID,
-                TopicID = topic.TopicID,
-                Title = $"{topic.TopicName} - DBE Textbook Resources",
-                Description =
-                    $"Department of Basic Education textbook resources that can be used to support learning about {topic.TopicName}.",
-                ResourceType = "Textbook",
-                FileURL = dbeTextbooksUrl
-            },
-
-            new StudyMaterial
-            {
-                GradeSubjectID = gradeSubject.GradeSubjectID,
-                TopicID = topic.TopicID,
-                Title = $"{topic.TopicName} - DBE Digital Resources",
-                Description =
-                    $"Additional Department of Basic Education digital learning resources for {subjectName}.",
-                ResourceType = "Reference",
-                FileURL = dbeDigitalContentUrl
-            }
-        };
-
-                foreach (var material in materials)
-                {
-                    var exists = await context.StudyMaterials
-                        .AnyAsync(sm =>
-                            sm.GradeSubjectID == material.GradeSubjectID &&
-                            sm.TopicID == material.TopicID &&
-                            sm.Title == material.Title);
-
-                    if (!exists)
-                    {
-                        context.StudyMaterials.Add(material);
-                    }
                 }
             }
 
