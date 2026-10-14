@@ -1,763 +1,477 @@
 /* =============================================================
-   EduQuest - quiz.js  (used by quiz.html)
-
-   Runs one quiz attempt: intro -> questions -> review -> results.
-   Open it as quiz.html?id=<quiz-id>   (add &review=1 to see the
-   last saved result instead of starting a new attempt).
-
-   BACKEND: everything that talks to data lives in the "DATA ACCESS"
-   section below. Each function returns a Promise, so you can swap
-   the bodies for fetch() calls without touching the rest of the file.
+   EDUQUEST LEARNER QUIZ — complete backend-connected replacement.
+   - Real quiz and attempt IDs; grades only on the server.
+   - Reuses the administrator's EduQuestMath formatter for all
+     question text, answer options, and result explanations.
+   - Uses explicit attempt IDs when reviewing older quiz results.
+   - Requires js/api.js, KaTeX, and ../../js/math-format.js.
 ============================================================= */
 (function () {
     "use strict";
 
-    /* =========================================================
-       SAMPLE CONTENT
-       Used until the backend supplies quizzes. Delete this block
-       once fetchQuiz() calls your API.
-       "answer" is the index (0-3) of the correct option.
-    ========================================================= */
-    var SAMPLE_QUIZZES = {
-        "calculus": {
-            title: "Basic Calculus",
-            subject: "Mathematics",
-            questions: [
-                {
-                    q: "What is the derivative of f(x) = x²?",
-                    options: ["x", "x²", "2x", "2"],
-                    answer: 2,
-                    explain: "Bring the power down and reduce it by one: d/dx (xⁿ) = n·xⁿ⁻¹, so d/dx (x²) = 2x."
-                },
-                {
-                    q: "Differentiate f(x) = 5x³.",
-                    options: ["15x²", "5x²", "15x³", "3x²"],
-                    answer: 0,
-                    explain: "Multiply the coefficient by the power (5 × 3 = 15) and reduce the power by one, giving 15x²."
-                },
-                {
-                    q: "What is the derivative of the constant function f(x) = 7?",
-                    options: ["7", "1", "7x", "0"],
-                    answer: 3,
-                    explain: "A constant never changes, so its rate of change is zero."
-                },
-                {
-                    q: "What does the derivative of a function tell you at a given point?",
-                    options: ["The area under the curve", "The gradient (rate of change) at that point", "The y-intercept of the graph", "The largest value of the function"],
-                    answer: 1,
-                    explain: "The derivative gives the gradient of the tangent, which is the instantaneous rate of change."
-                },
-                {
-                    q: "Find the gradient of f(x) = x² + 3x at x = 2.",
-                    options: ["4", "3", "10", "7"],
-                    answer: 3,
-                    explain: "f′(x) = 2x + 3. Substituting x = 2 gives 2(2) + 3 = 7."
-                },
-                {
-                    q: "Differentiate f(x) = 3x² − 4x + 1.",
-                    options: ["6x − 4", "6x² − 4", "3x − 4", "6x − 4x"],
-                    answer: 0,
-                    explain: "Differentiate term by term: 3x² gives 6x, −4x gives −4, and the constant 1 gives 0."
-                },
-                {
-                    q: "At a turning point of a smooth curve, the gradient is:",
-                    options: ["Positive", "Negative", "Zero", "Undefined"],
-                    answer: 2,
-                    explain: "At a maximum or minimum the tangent is horizontal, so f′(x) = 0."
-                },
-                {
-                    q: "Find the x-coordinate of the turning point of f(x) = x² − 6x + 5.",
-                    options: ["x = 1", "x = 3", "x = 5", "x = 6"],
-                    answer: 1,
-                    explain: "f′(x) = 2x − 6. Setting 2x − 6 = 0 gives x = 3."
-                },
-                {
-                    q: "A car's distance is s(t) = t² + 4t metres after t seconds. What is its speed at t = 3 seconds?",
-                    options: ["9 m/s", "21 m/s", "13 m/s", "10 m/s"],
-                    answer: 3,
-                    explain: "Speed is the derivative of distance: s′(t) = 2t + 4. At t = 3 that is 2(3) + 4 = 10 m/s."
-                },
-                {
-                    q: "If f′(x) > 0 on an interval, what is the function doing on that interval?",
-                    options: ["Increasing", "Decreasing", "Constant", "Has a turning point"],
-                    answer: 0,
-                    explain: "A positive gradient means the graph is going up as x increases."
+    document.addEventListener("DOMContentLoaded", async function () {
+        const api = window.EduQuestAPI;
+        const root = document.getElementById("quiz-root");
+        const pageTitle = document.getElementById("quiz-title");
+        const pageSubtitle = document.getElementById("quiz-subject");
+        const timer = document.getElementById("quiz-timer");
+        if (!api || !root) return;
+        if (!api.requireLearner()) return;
+
+        const params = new URLSearchParams(location.search);
+        const quizId = Number(params.get("id"));
+        const review = params.get("review") === "1";
+        const requestedAttemptId = Number(params.get("attempt"));
+        const currentUser = api.getCurrentUser();
+        const lastAttemptKey = "eduquest.lastQuizAttempt." + currentUser.userId + "." + quizId;
+        const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        let quiz = null;
+        let attemptId = null;
+        let questions = [];
+        let answers = [];
+        let current = 0;
+        let startedAt = null;
+        let timerHandle = null;
+        let sending = false;
+        let submittedAttemptsUsed = null;
+        let bestAttemptId = null;
+        let attemptHistory = [];
+
+        async function refreshAttemptUsage() {
+            try {
+                // One submitted attempt is a completion; unfinished starts
+                // are intentionally not charged against the two allowed tries.
+                const history = await api.get("/learner-quiz-progress");
+                if (!Array.isArray(history)) {
+                    throw new Error("Invalid learner progress response.");
                 }
-            ]
-        },
-        "money-math": {
-            title: "Money Math: Interest & Loans",
-            subject: "Mathematics",
-            questions: [
-                {
-                    q: "What is the simple interest on R2 000 invested at 8% per year for 3 years?",
-                    options: ["R160", "R480", "R520", "R2 480"],
-                    answer: 1,
-                    explain: "Simple interest = P × i × n = 2 000 × 0.08 × 3 = R480. (R2 480 would be the total amount, not the interest.)"
-                },
-                {
-                    q: "Which formula gives the final amount with compound interest?",
-                    options: ["A = P(1 + in)", "A = P + in", "A = P(1 − i)ⁿ", "A = P(1 + i)ⁿ"],
-                    answer: 3,
-                    explain: "With compound interest the amount grows by a factor of (1 + i) each period: A = P(1 + i)ⁿ."
-                },
-                {
-                    q: "What is the main difference between simple and compound interest?",
-                    options: ["Compound interest is also earned on previously earned interest", "Simple interest is only used for loans", "Compound interest uses a lower rate", "Simple interest is calculated monthly"],
-                    answer: 0,
-                    explain: "Compound interest earns interest on the interest already added, which is why it grows faster over time."
-                },
-                {
-                    q: "R5 000 is invested at 10% per year, compounded annually, for 2 years. What is the final amount?",
-                    options: ["R6 000", "R6 100", "R6 050", "R5 500"],
-                    answer: 2,
-                    explain: "A = 5 000(1.10)² = 5 000 × 1.21 = R6 050."
-                },
-                {
-                    q: "R1 500 is invested at 6% simple interest per year for 4 years. What is the total amount at the end?",
-                    options: ["R360", "R1 590", "R1 896", "R1 860"],
-                    answer: 3,
-                    explain: "Interest = 1 500 × 0.06 × 4 = R360, so the total amount is 1 500 + 360 = R1 860."
-                },
-                {
-                    q: "A bank offers 12% per year compounded monthly. What interest rate is applied each month?",
-                    options: ["12%", "1%", "6%", "0.1%"],
-                    answer: 1,
-                    explain: "Divide the yearly rate by the 12 months: 12% ÷ 12 = 1% per month."
-                },
-                {
-                    q: "R10 000 is borrowed for 1 year at 12% simple interest and repaid in one payment. How much is repaid?",
-                    options: ["R11 200", "R10 012", "R1 200", "R12 000"],
-                    answer: 0,
-                    explain: "Interest = 10 000 × 0.12 × 1 = R1 200, so you repay 10 000 + 1 200 = R11 200."
-                },
-                {
-                    q: "In an interest calculation, what is the “principal”?",
-                    options: ["The interest earned so far", "The final amount at the end", "The original amount invested or borrowed", "The number of years"],
-                    answer: 2,
-                    explain: "The principal (P) is the starting amount that interest is calculated on."
-                },
-                {
-                    q: "Which change would reduce the total interest paid on a loan, if the interest rate stays the same?",
-                    options: ["Repaying it over a longer period", "Repaying it over a shorter period", "Borrowing the money for longer", "Making no payments for the first year"],
-                    answer: 1,
-                    explain: "Interest builds up over time, so paying the loan off sooner means less time for interest to accumulate."
-                },
-                {
-                    q: "R800 earns R40 simple interest in one year. What is the yearly interest rate?",
-                    options: ["4%", "40%", "8%", "5%"],
-                    answer: 3,
-                    explain: "i = interest ÷ (P × n) = 40 ÷ 800 = 0.05, which is 5%."
-                }
-            ]
-        },
-        "light-sound": {
-            title: "Light & Sound",
-            subject: "Physical Sciences",
-            questions: [
-                {
-                    q: "Which of these can travel through a vacuum?",
-                    options: ["Sound", "Light", "Both light and sound", "Neither"],
-                    answer: 1,
-                    explain: "Light is an electromagnetic wave and needs no medium. Sound needs particles to vibrate, so it cannot travel through a vacuum."
-                },
-                {
-                    q: "According to the law of reflection:",
-                    options: ["The angle of incidence is greater than the angle of reflection", "Light is bent towards the normal", "The angle of reflection is always 90°", "The angle of incidence equals the angle of reflection"],
-                    answer: 3,
-                    explain: "When a wave reflects off a surface, the angle of incidence equals the angle of reflection, both measured from the normal."
-                },
-                {
-                    q: "What is refraction?",
-                    options: ["A wave changing direction as it passes into a different medium", "A wave being absorbed by a material", "A wave bouncing off a surface", "A wave splitting into two identical waves"],
-                    answer: 0,
-                    explain: "The wave's speed changes when it enters a new medium, which makes it bend."
-                },
-                {
-                    q: "What is the approximate speed of light in a vacuum?",
-                    options: ["3 × 10⁶ m/s", "340 m/s", "3 × 10⁸ m/s", "3 × 10¹⁰ m/s"],
-                    answer: 2,
-                    explain: "Light travels at about 3 × 10⁸ m/s in a vacuum. Sound in air is only about 340 m/s."
-                },
-                {
-                    q: "Sound travels as which type of wave?",
-                    options: ["Transverse", "Stationary only", "Electromagnetic", "Longitudinal"],
-                    answer: 3,
-                    explain: "The particles of the medium vibrate parallel to the direction the wave travels, so sound is a longitudinal wave."
-                },
-                {
-                    q: "If the frequency of a sound wave increases, its pitch:",
-                    options: ["Gets lower", "Gets higher", "Stays the same", "Becomes louder"],
-                    answer: 1,
-                    explain: "Pitch depends on frequency: higher frequency means a higher pitch."
-                },
-                {
-                    q: "Increasing the amplitude of a sound wave makes the sound:",
-                    options: ["Higher in pitch", "Lower in pitch", "Louder", "Faster"],
-                    answer: 2,
-                    explain: "Loudness depends on amplitude. A bigger amplitude carries more energy and sounds louder."
-                },
-                {
-                    q: "A wave has a frequency of 50 Hz and a wavelength of 2 m. What is its speed?",
-                    options: ["100 m/s", "52 m/s", "25 m/s", "0.04 m/s"],
-                    answer: 0,
-                    explain: "Wave speed v = f × λ = 50 × 2 = 100 m/s."
-                }
-            ]
-        },
-        "chem-reactions": {
-            title: "Chemistry: Reactions",
-            subject: "Physical Sciences",
-            questions: [
-                {
-                    q: "Which is the correctly balanced equation for the formation of water?",
-                    options: ["H₂ + O₂ → H₂O", "2H₂ + 2O₂ → 2H₂O", "H₂ + 2O₂ → 2H₂O", "2H₂ + O₂ → 2H₂O"],
-                    answer: 3,
-                    explain: "2H₂ + O₂ → 2H₂O has 4 hydrogen atoms and 2 oxygen atoms on each side."
-                },
-                {
-                    q: "What are the products of the complete combustion of methane (CH₄) in oxygen?",
-                    options: ["Carbon monoxide and hydrogen", "Carbon dioxide and water", "Carbon and water", "Carbon dioxide and hydrogen"],
-                    answer: 1,
-                    explain: "Complete combustion of a hydrocarbon gives carbon dioxide and water: CH₄ + 2O₂ → CO₂ + 2H₂O."
-                },
-                {
-                    q: "2Na + Cl₂ → 2NaCl is an example of which type of reaction?",
-                    options: ["Synthesis (combination)", "Decomposition", "Single displacement", "Neutralisation"],
-                    answer: 0,
-                    explain: "Two elements join to make one compound, which is a synthesis reaction."
-                },
-                {
-                    q: "2H₂O → 2H₂ + O₂ is an example of which type of reaction?",
-                    options: ["Synthesis", "Double displacement", "Decomposition", "Combustion"],
-                    answer: 2,
-                    explain: "One compound breaks down into simpler substances, which is decomposition."
-                },
-                {
-                    q: "Why must chemical equations be balanced?",
-                    options: ["So that all reactions release energy", "So that the same number of atoms of each element appear on both sides", "So that reactants and products have the same state", "So that the reaction goes faster"],
-                    answer: 1,
-                    explain: "Atoms are not created or destroyed in a reaction (conservation of mass), so each element must balance on both sides."
-                },
-                {
-                    q: "Zn + CuSO₄ → ZnSO₄ + Cu is an example of which type of reaction?",
-                    options: ["Synthesis", "Decomposition", "Neutralisation", "Single displacement"],
-                    answer: 3,
-                    explain: "Zinc is more reactive than copper, so it takes the place of copper in the compound."
-                },
-                {
-                    q: "An acid reacts with a base. What are the products?",
-                    options: ["A salt and water", "A metal and hydrogen", "Two acids", "Carbon dioxide and water"],
-                    answer: 0,
-                    explain: "Neutralisation follows the pattern acid + base → salt + water."
-                },
-                {
-                    q: "What coefficient is needed in front of H₂ to balance N₂ + __H₂ → 2NH₃?",
-                    options: ["1", "2", "3", "6"],
-                    answer: 2,
-                    explain: "2NH₃ contains 6 hydrogen atoms, so 3H₂ is needed on the left side."
-                },
-                {
-                    q: "AgNO₃ + NaCl → AgCl + NaNO₃ forms a white solid, AgCl. What type of reaction is this?",
-                    options: ["Synthesis", "Decomposition", "Single displacement", "Double displacement (precipitation)"],
-                    answer: 3,
-                    explain: "The two compounds swap partners, and one of the new compounds is an insoluble solid (a precipitate)."
-                },
-                {
-                    q: "A reaction that releases heat to its surroundings is called:",
-                    options: ["Endothermic", "Exothermic", "Reversible", "Neutral"],
-                    answer: 1,
-                    explain: "Exothermic reactions give out energy, so the surroundings get warmer. Combustion is a common example."
-                }
-            ]
-        },
-        "profitability": {
-            title: "Profitability Analysis",
-            subject: "Accounting",
-            questions: [
-                {
-                    q: "How is gross profit calculated?",
-                    options: ["Sales − Operating expenses", "Cost of sales − Operating expenses", "Sales − Cost of sales", "Sales + Cost of sales"],
-                    answer: 2,
-                    explain: "Gross profit is what is left from sales after deducting the direct cost of the goods sold."
-                },
-                {
-                    q: "Which formula gives the gross profit margin?",
-                    options: ["Gross profit ÷ Sales × 100", "Gross profit ÷ Cost of sales × 100", "Net profit ÷ Sales × 100", "Sales ÷ Gross profit × 100"],
-                    answer: 0,
-                    explain: "Gross profit margin compares gross profit with sales: (Gross profit ÷ Sales) × 100."
-                },
-                {
-                    q: "A business has sales of R200 000 and cost of sales of R120 000. What is its gross profit margin?",
-                    options: ["30%", "66.7%", "60%", "40%"],
-                    answer: 3,
-                    explain: "Gross profit = 200 000 − 120 000 = R80 000. Margin = 80 000 ÷ 200 000 × 100 = 40%."
-                },
-                {
-                    q: "Using the same business (sales R200 000, cost of sales R120 000), what is the mark-up percentage?",
-                    options: ["40%", "66.7%", "60%", "150%"],
-                    answer: 1,
-                    explain: "Mark-up is calculated on cost of sales: 80 000 ÷ 120 000 × 100 = 66.7%."
-                },
-                {
-                    q: "Gross profit is R80 000, operating expenses are R50 000 and there is no other income. What is the net profit?",
-                    options: ["R30 000", "R80 000", "R50 000", "R130 000"],
-                    answer: 0,
-                    explain: "Net profit = Gross profit − Operating expenses = 80 000 − 50 000 = R30 000."
-                },
-                {
-                    q: "Net profit is R30 000 on sales of R200 000. What is the net profit margin?",
-                    options: ["6.7%", "30%", "15%", "40%"],
-                    answer: 2,
-                    explain: "Net profit margin = 30 000 ÷ 200 000 × 100 = 15%."
-                },
-                {
-                    q: "A business's net profit margin fell from 12% to 8% while its sales stayed the same. What is the most likely reason?",
-                    options: ["Its cost of sales decreased", "Its expenses increased", "Its prices increased", "Its expenses decreased"],
-                    answer: 1,
-                    explain: "With the same sales, a lower net margin means more of each rand is going out as costs and expenses."
-                },
-                {
-                    q: "A business has a gross profit margin of 40% but a net profit margin of only 5%. What does this suggest?",
-                    options: ["Its cost of sales is very high", "It sells its goods below cost", "It has no expenses", "Its operating expenses are very high"],
-                    answer: 3,
-                    explain: "A big gap between the two margins means operating expenses are using up most of the gross profit."
-                }
-            ]
-        }
-    };
-
-    /* =========================================================
-       DATA ACCESS  (replace these with backend calls)
-    ========================================================= */
-    var STORE_KEY = "eduquest.quizResults"; /* browser-only storage used for now */
-
-    function readStore() {
-        try {
-            return JSON.parse(localStorage.getItem(STORE_KEY)) || {};
-        } catch (e) {
-            return {};
-        }
-    }
-
-    /* Load one quiz: { title, subject, questions: [{ q, options, answer, explain }] }.
-       Resolve with null if the quiz does not exist. */
-    function fetchQuiz(id) {
-        var known = Object.prototype.hasOwnProperty.call(SAMPLE_QUIZZES, id);
-        return Promise.resolve(known ? SAMPLE_QUIZZES[id] : null);
-    }
-
-    /* Load the learner's latest saved result for a quiz, or null if there is none.
-       Shape: { score, correct, total, seconds, date, answers: [index|null, ...] } */
-    function fetchSavedResult(id) {
-        return Promise.resolve(readStore()[id] || null);
-    }
-
-    /* Save a finished attempt. Reject if saving fails.
-       If the server does the scoring, send only { answers, seconds } and
-       use the response to build the results screen. */
-    function submitResult(id, result) {
-        try {
-            var all = readStore();
-            all[id] = result;
-            localStorage.setItem(STORE_KEY, JSON.stringify(all));
-            return Promise.resolve(result);
-        } catch (e) {
-            return Promise.reject(e);
-        }
-    }
-
-    /* =========================================================
-       PAGE SETUP
-    ========================================================= */
-    var LETTERS = ["A", "B", "C", "D"];
-
-    var params = new URLSearchParams(window.location.search);
-    var quizId = params.get("id");
-    var wantsReview = params.get("review") === "1";
-    var quiz = null;
-
-    var root = document.getElementById("quiz-root");
-    var titleEl = document.getElementById("quiz-title");
-    var subjectEl = document.getElementById("quiz-subject");
-    var timerEl = document.getElementById("quiz-timer");
-
-    var state = {
-        current: 0,
-        answers: [],
-        startedAt: 0,
-        timerId: null
-    };
-
-    function esc(text) {
-        return String(text).replace(/[&<>"']/g, function (c) {
-            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c];
-        });
-    }
-
-    function formatTime(totalSeconds) {
-        var h = Math.floor(totalSeconds / 3600);
-        var m = Math.floor((totalSeconds % 3600) / 60);
-        var s = totalSeconds % 60;
-        var mm = (m < 10 ? "0" : "") + m;
-        var ss = (s < 10 ? "0" : "") + s;
-        return h > 0 ? h + ":" + mm + ":" + ss : mm + ":" + ss;
-    }
-
-    function elapsedSeconds() {
-        return Math.round((Date.now() - state.startedAt) / 1000);
-    }
-
-    function updateTimer() {
-        timerEl.textContent = "Time " + formatTime(elapsedSeconds());
-    }
-
-    function startTimer() {
-        stopTimer();
-        state.startedAt = Date.now();
-        timerEl.hidden = false;
-        updateTimer();
-        state.timerId = window.setInterval(updateTimer, 1000);
-    }
-
-    function stopTimer() {
-        if (state.timerId !== null) {
-            window.clearInterval(state.timerId);
-            state.timerId = null;
-        }
-    }
-
-    function answeredCount() {
-        return state.answers.filter(function (a) { return a !== null; }).length;
-    }
-
-    /* Replace the page content and move focus to the new heading so
-       keyboard and screen-reader users know the view changed. */
-    function show(html) {
-        root.innerHTML = html;
-        var target = root.querySelector("[data-focus]");
-        if (target) {
-            target.setAttribute("tabindex", "-1");
-            target.focus();
-        }
-    }
-
-    function on(selector, handler) {
-        var el = root.querySelector(selector);
-        if (el) { el.addEventListener("click", handler); }
-    }
-
-    function onAll(selector, handler) {
-        root.querySelectorAll(selector).forEach(function (el) {
-            el.addEventListener("click", function () { handler(el); });
-        });
-    }
-
-    /* =========================================================
-       VIEWS
-    ========================================================= */
-    function renderLoading() {
-        show('<p class="quiz-note" role="status">Loading quiz\u2026</p>');
-    }
-
-    function renderNotFound() {
-        titleEl.textContent = "Quiz not found";
-        subjectEl.textContent = "";
-        show(
-            '<section class="card quiz-card">' +
-            '<h2 data-focus>We couldn\u2019t find that quiz</h2>' +
-            '<p class="quiz-intro-meta">The link may be out of date. Head back to the quiz list and pick one from there.</p>' +
-            '<div class="quiz-actions"><a href="Quizzes.html" class="btn btn-primary">Back to quizzes</a></div>' +
-            '</section>'
-        );
-    }
-
-    function renderLoadError() {
-        show(
-            '<section class="card quiz-card">' +
-            '<h2 data-focus>We couldn\u2019t load this quiz</h2>' +
-            '<p class="quiz-intro-meta">Check your internet connection and try again.</p>' +
-            '<div class="quiz-actions">' +
-            '<a href="Quizzes.html" class="btn btn-outline">Back to quizzes</a>' +
-            '<button type="button" class="btn btn-primary" id="reload-btn">Try again</button>' +
-            '</div>' +
-            '</section>'
-        );
-        on("#reload-btn", function () { window.location.reload(); });
-    }
-
-    function renderIntro() {
-        var n = quiz.questions.length;
-        show(
-            '<section class="card quiz-card">' +
-            '<h2 data-focus>Ready to start?</h2>' +
-            '<p class="quiz-intro-meta">' + n + ' questions. There\u2019s no time limit, but your time is tracked so you can see how you did.</p>' +
-            '<ul class="quiz-tips">' +
-            '<li>Choose one answer for each question. You can change it until you submit.</li>' +
-            '<li>Use Previous and Next, or tap a question number, to move around.</li>' +
-            '<li>After you submit, you\u2019ll see the correct answers with a short explanation for each.</li>' +
-            '</ul>' +
-            '<div class="quiz-actions">' +
-            '<a href="Quizzes.html" class="btn btn-outline">Back to quizzes</a>' +
-            '<button type="button" class="btn btn-primary" id="start-btn">Start quiz</button>' +
-            '</div>' +
-            '</section>'
-        );
-        on("#start-btn", startAttempt);
-    }
-
-    function startAttempt() {
-        state.current = 0;
-        state.answers = quiz.questions.map(function () { return null; });
-        startTimer();
-        renderQuestion();
-    }
-
-    function renderQuestion() {
-        var n = quiz.questions.length;
-        var i = state.current;
-        var q = quiz.questions[i];
-        var isLast = i === n - 1;
-
-        var options = q.options.map(function (text, k) {
-            var selected = state.answers[i] === k;
-            return (
-                '<label class="quiz-option' + (selected ? " selected" : "") + '">' +
-                '<input type="radio" name="answer" value="' + k + '"' + (selected ? " checked" : "") + '>' +
-                '<span class="quiz-option-mark">' + LETTERS[k] + '</span>' +
-                '<span class="quiz-option-text">' + esc(text) + '</span>' +
-                '</label>'
-            );
-        }).join("");
-
-        var dots = quiz.questions.map(function (_, k) {
-            var answered = state.answers[k] !== null;
-            return (
-                '<button type="button" class="quiz-dot' + (k === i ? " current" : "") + (answered ? " answered" : "") + '"' +
-                ' data-goto="' + k + '"' +
-                ' aria-label="Question ' + (k + 1) + (answered ? ", answered" : ", not answered") + '"' +
-                (k === i ? ' aria-current="step"' : "") + '>' + (k + 1) + '</button>'
-            );
-        }).join("");
-
-        show(
-            '<section class="card quiz-card">' +
-            '<div class="quiz-progress-head"><span>Question ' + (i + 1) + ' of ' + n + '</span>' +
-            '<span id="answered-count">' + answeredCount() + ' answered</span></div>' +
-            '<div class="progress-bar"><div class="progress-fill" style="width:' + Math.round(((i + 1) / n) * 100) + '%"></div></div>' +
-            '<h2 class="quiz-question" data-focus>' + esc(q.q) + '</h2>' +
-            '<div class="quiz-options" role="radiogroup" aria-label="Answer options">' + options + '</div>' +
-            '<div class="quiz-actions">' +
-            '<button type="button" class="btn btn-outline" id="prev-btn"' + (i === 0 ? " disabled" : "") + '>Previous</button>' +
-            '<button type="button" class="btn btn-primary" id="next-btn">' + (isLast ? "Review answers" : "Next question") + '</button>' +
-            '</div>' +
-            '</section>' +
-            '<nav class="quiz-dots" aria-label="Question navigator">' + dots + '</nav>'
-        );
-
-        root.querySelectorAll('input[name="answer"]').forEach(function (input) {
-            input.addEventListener("change", function () {
-                state.answers[i] = parseInt(input.value, 10);
-                root.querySelectorAll(".quiz-option").forEach(function (label) {
-                    label.classList.toggle("selected", label.contains(input));
-                });
-                var dot = root.querySelector('.quiz-dot[data-goto="' + i + '"]');
-                dot.classList.add("answered");
-                dot.setAttribute("aria-label", "Question " + (i + 1) + ", answered");
-                root.querySelector("#answered-count").textContent = answeredCount() + " answered";
-            });
-        });
-
-        onAll("[data-goto]", function (el) {
-            state.current = parseInt(el.getAttribute("data-goto"), 10);
-            renderQuestion();
-        });
-
-        on("#prev-btn", function () {
-            if (state.current > 0) {
-                state.current -= 1;
-                renderQuestion();
+                const progress = history.find(item => Number(item.quizID) === quizId);
+                submittedAttemptsUsed = progress ? Number(progress.completedAttempts) || 0 : 0;
+                bestAttemptId = progress ? Number(progress.bestAttemptID || progress.quizAttemptID) : null;
+                attemptHistory = progress && Array.isArray(progress.attempts) ? progress.attempts : [];
+            } catch (error) {
+                submittedAttemptsUsed = null;
+                bestAttemptId = null;
+                attemptHistory = [];
+                console.warn("Could not verify remaining quiz attempts:", error);
             }
-        });
+        }
 
-        on("#next-btn", function () {
-            if (isLast) {
-                renderReview();
-            } else {
-                state.current += 1;
-                renderQuestion();
+        function escapeHtml(text) {
+            return String(text ?? "").replace(/[&<>"']/g, char => ({
+                "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+            })[char]);
+        }
+
+        // The formatter HTML-escapes ordinary text, while rendering $...$,
+        // $$...$$, \\( ... \\), \\[ ... \\] and common unwrapped TeX.
+        function math(text) {
+            return window.EduQuestMath && typeof window.EduQuestMath.toHtml === "function"
+                ? window.EduQuestMath.toHtml(text)
+                : escapeHtml(text);
+        }
+
+        function show(html) {
+            root.innerHTML = html;
+            const focus = root.querySelector("[data-focus]");
+            if (focus) {
+                focus.setAttribute("tabindex", "-1");
+                focus.focus();
             }
-        });
-    }
-
-    function renderReview() {
-        var n = quiz.questions.length;
-        var unanswered = n - answeredCount();
-
-        var rows = quiz.questions.map(function (_, k) {
-            var a = state.answers[k];
-            var answered = a !== null;
-            return (
-                '<li class="quiz-review-row">' +
-                '<span class="quiz-status-icon ' + (answered ? "done" : "pending") + '" aria-hidden="true">' + (answered ? "\u2713" : "\u2022") + '</span>' +
-                '<span class="quiz-review-text">Question ' + (k + 1) +
-                '<small>' + (answered ? "Your answer: " + LETTERS[a] : "Not answered") + '</small></span>' +
-                '<button type="button" class="btn btn-outline" data-goto="' + k + '">' + (answered ? "Change" : "Answer") + '</button>' +
-                '</li>'
-            );
-        }).join("");
-
-        var notice = unanswered > 0
-            ? '<div class="quiz-warning" role="status">You haven\u2019t answered ' + unanswered + (unanswered === 1 ? " question" : " questions") + '. Unanswered questions count as incorrect.</div>'
-            : '<p class="quiz-note">You\u2019ve answered all ' + n + ' questions. Submit when you\u2019re ready.</p>';
-
-        show(
-            '<section class="card quiz-card">' +
-            '<h2 data-focus>Review your answers</h2>' +
-            notice +
-            '<ul class="quiz-review-list">' + rows + '</ul>' +
-            '<div class="quiz-actions">' +
-            '<button type="button" class="btn btn-outline" id="back-btn">Back to questions</button>' +
-            '<button type="button" class="btn btn-primary" id="submit-btn">Submit quiz</button>' +
-            '</div>' +
-            '</section>'
-        );
-
-        onAll("[data-goto]", function (el) {
-            state.current = parseInt(el.getAttribute("data-goto"), 10);
-            renderQuestion();
-        });
-
-        on("#back-btn", function () {
-            var firstUnanswered = state.answers.indexOf(null);
-            state.current = firstUnanswered === -1 ? n - 1 : firstUnanswered;
-            renderQuestion();
-        });
-
-        on("#submit-btn", submitAttempt);
-    }
-
-    function submitAttempt() {
-        var submitBtn = root.querySelector("#submit-btn");
-        if (submitBtn) { submitBtn.disabled = true; }
-
-        stopTimer();
-        var total = quiz.questions.length;
-        var correct = 0;
-        quiz.questions.forEach(function (q, k) {
-            if (state.answers[k] === q.answer) { correct += 1; }
-        });
-
-        var result = {
-            score: Math.round((correct / total) * 100),
-            correct: correct,
-            total: total,
-            seconds: elapsedSeconds(),
-            date: new Date().toISOString(),
-            answers: state.answers.slice()
-        };
-
-        submitResult(quizId, result).then(function () {
-            renderResults(result, false, false);
-        }).catch(function () {
-            /* Still show the learner their score if saving failed. */
-            renderResults(result, false, true);
-        });
-    }
-
-    function renderResults(result, fromSaved, saveFailed) {
-        timerEl.hidden = true;
-
-        var message;
-        if (result.score >= 80) {
-            message = "Great work. You\u2019ve got a solid grip on this topic.";
-        } else if (result.score >= 50) {
-            message = "Good effort. Read the explanations below, then try again to improve your score.";
-        } else {
-            message = "This topic needs more practice. Read the explanations below, revisit the class notes, and try again.";
         }
 
-        var dateNote = "";
-        if (fromSaved && result.date) {
-            dateNote = " Your last attempt was on " + new Date(result.date).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) + ".";
+        function notify(message) {
+            show('<section class="card quiz-card"><p class="quiz-note" role="status">' +
+                escapeHtml(message) + '</p></section>');
         }
 
-        var saveWarning = saveFailed
-            ? '<div class="quiz-warning" role="status">We couldn\u2019t save this result, so it won\u2019t show on your quiz list. Check your connection and try the quiz again.</div>'
-            : "";
+        function errorPage(message, canRetry = false) {
+            show('<section class="card quiz-card">' +
+                '<h2 data-focus>Unable to load quiz</h2>' +
+                '<p class="quiz-intro-meta">' + escapeHtml(message) + '</p>' +
+                '<div class="quiz-actions">' +
+                '<a href="Quizzes.html" class="btn btn-outline">Back to quizzes</a>' +
+                (canRetry ? '<button class="btn btn-primary" type="button" id="reload-quiz">Try Again</button>' : '') +
+                '</div></section>');
+            document.getElementById("reload-quiz")?.addEventListener("click", () => location.reload());
+        }
 
-        var items = quiz.questions.map(function (q, k) {
-            var a = result.answers[k];
-            var ok = a === q.answer;
-            var yourLine = a === null || a === undefined
-                ? "You skipped this question."
-                : "Your answer: <strong>" + LETTERS[a] + ". " + esc(q.options[a]) + "</strong>";
-            var correctLine = ok
-                ? ""
-                : '<p class="quiz-result-line">Correct answer: <strong>' + LETTERS[q.answer] + ". " + esc(q.options[q.answer]) + "</strong></p>";
+        function timeSpanSeconds(value) {
+            if (typeof value !== "string") return 0;
+            const match = /^(?:(\d+)\.)?(\d{1,2}):(\d{2}):(\d{2})(?:\.\d+)?$/.exec(value);
+            if (!match) return 0;
+            return Number(match[1] || 0) * 86400 + Number(match[2]) * 3600 +
+                Number(match[3]) * 60 + Number(match[4]);
+        }
 
-            return (
-                '<li class="quiz-result-item">' +
-                '<div class="quiz-status-icon ' + (ok ? "done" : "wrong") + '" aria-hidden="true">' + (ok ? "\u2713" : "\u2715") + '</div>' +
-                '<div>' +
-                '<h4><span class="sr-only">' + (ok ? "Correct. " : "Incorrect. ") + '</span>' + (k + 1) + ". " + esc(q.q) + '</h4>' +
-                '<p class="quiz-result-line">' + yourLine + '</p>' +
-                correctLine +
-                '<p class="quiz-explain">' + esc(q.explain) + '</p>' +
+        function duration(seconds) {
+            seconds = Math.max(0, Math.floor(Number(seconds) || 0));
+            const hours = Math.floor(seconds / 3600);
+            const mins = String(Math.floor(seconds % 3600 / 60)).padStart(2, "0");
+            const secs = String(seconds % 60).padStart(2, "0");
+            return hours ? hours + ":" + mins + ":" + secs : mins + ":" + secs;
+        }
+
+        function stopTimer() {
+            if (timerHandle !== null) clearInterval(timerHandle);
+            timerHandle = null;
+        }
+
+        function refreshTimer() {
+            if (startedAt === null) return;
+            const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+            const limit = timeSpanSeconds(quiz.timeLimit);
+            const left = limit ? Math.max(0, limit - elapsed) : elapsed;
+            timer.textContent = (limit ? "Time remaining " : "Time ") + duration(left);
+            // The current API does NOT enforce a time limit on submission.
+            // We display it but don't invent an automatic 'timed out' grading action.
+            if (limit && left === 0) stopTimer();
+        }
+
+        function startTimer() {
+            stopTimer();
+            startedAt = Date.now();
+            timer.hidden = false;
+            refreshTimer();
+            timerHandle = setInterval(refreshTimer, 1000);
+        }
+
+        function answeredCount() {
+            return answers.filter(answer => answer !== null).length;
+        }
+
+        function findSavedId() {
+            try {
+                const id = Number(sessionStorage.getItem(lastAttemptKey));
+                return Number.isInteger(id) && id > 0 ? id : null;
+            } catch (_) {
+                return null;
+            }
+        }
+
+        function saveAttempt(id) {
+            try {
+                sessionStorage.setItem(lastAttemptKey, String(id));
+            } catch (_) {
+                // The explicit review link works independently of storage.
+            }
+        }
+
+        // Review buttons never depend on sessionStorage: IDs come from the database.
+        function reviewActions() {
+            if (attemptHistory.length) {
+                return attemptHistory.map((item, index) => {
+                    const id = Number(item.attemptID);
+                    if (!Number.isInteger(id) || id <= 0) return "";
+                    return '<a class="btn btn-outline" href="quiz.html?id=' + quizId +
+                        '&review=1&attempt=' + id + '">Review Attempt ' + (index + 1) + '</a>';
+                }).join("");
+            }
+            return Number.isInteger(bestAttemptId) && bestAttemptId > 0
+                ? '<a class="btn btn-outline" href="quiz.html?id=' + quizId +
+                    '&review=1&attempt=' + bestAttemptId + '">Review Results</a>'
+                : "";
+        }
+
+        // When an attempt is blocked, display review rather than a useless reload.
+        async function showAttemptLimit(message) {
+            await refreshAttemptUsage();
+            stopTimer();
+            timer.hidden = true;
+            show('<section class="card quiz-card">' +
+                '<h2 data-focus>Quiz attempts completed</h2>' +
+                '<p class="quiz-intro-meta">' + escapeHtml(message) + '</p>' +
+                '<div class="quiz-actions">' +
+                '<a class="btn btn-outline" href="Quizzes.html">Back to quizzes</a>' +
+                reviewActions() +
                 '</div>' +
-                '</li>'
-            );
-        }).join("");
-
-        show(
-            '<section class="card quiz-card quiz-result-head">' +
-            '<h2 data-focus>You scored ' + result.score + '%</h2>' +
-            '<p>' + message + dateNote + '</p>' +
-            saveWarning +
-            '</section>' +
-            '<div class="profile-stats" style="margin-top:18px">' +
-            '<div class="profile-stat"><div class="stat-number">' + result.score + '%</div><div class="stat-text">Score</div></div>' +
-            '<div class="profile-stat"><div class="stat-number">' + result.correct + ' / ' + result.total + '</div><div class="stat-text">Correct</div></div>' +
-            '<div class="profile-stat"><div class="stat-number">' + formatTime(result.seconds) + '</div><div class="stat-text">Time taken</div></div>' +
-            '</div>' +
-            '<section class="card quiz-card">' +
-            '<h3 class="dashboard-section-title">Your answers</h3>' +
-            '<ul class="quiz-result-list">' + items + '</ul>' +
-            '<div class="quiz-actions">' +
-            '<a href="Quizzes.html" class="btn btn-outline">Back to quizzes</a>' +
-            '<button type="button" class="btn btn-primary" id="retry-btn">Try again</button>' +
-            '</div>' +
-            '</section>'
-        );
-
-        on("#retry-btn", startAttempt);
-    }
-
-    /* =========================================================
-       START
-    ========================================================= */
-    renderLoading();
-
-    fetchQuiz(quizId).then(function (loaded) {
-        if (!loaded) {
-            renderNotFound();
-            return null;
+                (!reviewActions() ? '<p class="quiz-note">Your attempts were blocked, but the progress API did not return review IDs. Check GET /api/learner-quiz-progress in Swagger.</p>' : '') +
+                '</section>');
         }
 
-        quiz = loaded;
-        document.title = "EduQuest | " + quiz.title;
-        titleEl.textContent = quiz.title;
-        subjectEl.textContent = quiz.subject;
+        function intro() {
+            stopTimer();
+            timer.hidden = true;
+            const limit = timeSpanSeconds(quiz.timeLimit);
+            const triesKnown = submittedAttemptsUsed !== null;
+            const used = triesKnown ? Math.max(0, submittedAttemptsUsed) : 0;
+            const maxUsed = triesKnown && used >= 2;
+            const label = triesKnown
+                ? used + " of 2 submitted attempts used"
+                : "Two submissions permitted (usage unavailable)";
+            const reviewLinks = reviewActions();
+            show('<section class="card quiz-card">' +
+                '<h2 data-focus>' + (maxUsed ? 'Quiz attempts completed' : 'Ready to start?') + '</h2>' +
+                '<p class="quiz-intro-meta">' + math(quiz.quizTitle) + '</p>' +
+                '<ul class="quiz-tips">' +
+                '<li>Difficulty: ' + escapeHtml(quiz.difficulty) + '</li>' +
+                '<li>10 randomly selected approved questions</li>' +
+                '<li>Time limit: ' + (limit ? duration(limit) : "Not specified") + '</li>' +
+                '<li>' + escapeHtml(label) + '</li>' +
+                '<li>Only successfully submitted quizzes count as attempts; unfinished quizzes resume.</li>' +
+                '<li>Your best score across the two submissions counts toward your average.</li>' +
+                '<li>Choose one answer per question. You can review answers before submitting.</li>' +
+                '</ul><div class="quiz-actions">' +
+                '<a class="btn btn-outline" href="Quizzes.html">Back to quizzes</a>' +
+                reviewLinks +
+                (maxUsed ? '' : '<button class="btn btn-primary" type="button" id="start-quiz">' +
+                    (used > 0 ? 'Start Final Attempt' : 'Start Quiz') + '</button>') +
+                '</div></section>');
+            document.getElementById("start-quiz")?.addEventListener("click", startQuiz);
+        }
 
-        /* A missing saved result should never stop the quiz from opening. */
-        return fetchSavedResult(quizId).catch(function () { return null; }).then(function (saved) {
-            if (wantsReview && saved && Array.isArray(saved.answers)) {
-                renderResults(saved, true, false);
-            } else {
-                renderIntro();
+        async function startQuiz() {
+            if (sending) return;
+            notify("Preparing your quiz questions…");
+            try {
+                const response = await api.post("/quizzes/" + quizId + "/start", {});
+                if (!response || !Number.isInteger(Number(response.quizAttemptID)) ||
+                    !Array.isArray(response.questions) || !response.questions.length) {
+                    throw new Error("The API did not return a valid quiz attempt.");
+                }
+                const loaded = response.questions.slice().sort(
+                    (a, b) => Number(a.questionOrder) - Number(b.questionOrder)
+                );
+                for (const question of loaded) {
+                    if (!Number.isInteger(Number(question.quizAttemptQuestionID)) ||
+                        !Array.isArray(question.options) || question.options.length < 2) {
+                        throw new Error("The quiz contains incomplete question information.");
+                    }
+                }
+                attemptId = Number(response.quizAttemptID);
+                questions = loaded;
+                quiz.timeLimit = response.timeLimit || quiz.timeLimit;
+                answers = questions.map(() => null);
+                current = 0;
+                startTimer();
+                showQuestion();
+            } catch (error) {
+                console.error("Unable to start quiz:", error);
+                if (/both attempts|used both|attempt limit|already used/i.test(error.message || "")) {
+                    await showAttemptLimit(error.message);
+                } else {
+                    errorPage(error.message || "Could not start the quiz.", true);
+                }
             }
-        });
-    }).catch(function () {
-        renderLoadError();
+
+        }
+
+        function showQuestion() {
+            const question = questions[current];
+            const last = current === questions.length - 1;
+            const options = question.options.map((option, index) => {
+                const selected = Number(answers[current]) === Number(option.quizOptionID);
+                return '<label class="quiz-option ' + (selected ? 'selected' : '') + '">' +
+                    '<input type="radio" name="answer" value="' + Number(option.quizOptionID) + '" ' +
+                    (selected ? 'checked' : '') + '>' +
+                    '<span class="quiz-option-mark">' + (LETTERS[index] || String(index + 1)) + '</span>' +
+                    '<span class="quiz-option-text">' + math(option.optionText) + '</span>' +
+                    '</label>';
+            }).join("");
+            const dots = questions.map((_, index) =>
+                '<button type="button" class="quiz-dot ' +
+                (index === current ? 'current ' : '') + (answers[index] !== null ? 'answered' : '') +
+                '" data-go="' + index + '" aria-label="Question ' + (index + 1) +
+                (answers[index] !== null ? ' answered' : ' unanswered') + '">' + (index + 1) + '</button>'
+            ).join("");
+
+            show('<section class="card quiz-card">' +
+                '<div class="quiz-progress-head"><span>Question ' + (current + 1) +
+                ' of ' + questions.length + '</span><span>' + answeredCount() + ' answered</span></div>' +
+                '<div class="progress-bar"><div class="progress-fill" style="width:' +
+                Math.round((current + 1) / questions.length * 100) + '%"></div></div>' +
+                '<h2 class="quiz-question" data-focus>' + math(question.questionText) + '</h2>' +
+                '<div class="quiz-options" role="radiogroup" aria-label="Answer choices">' + options + '</div>' +
+                '<div class="quiz-actions">' +
+                '<button type="button" class="btn btn-outline" id="prev" ' +
+                (current === 0 ? 'disabled' : '') + '>Previous</button>' +
+                '<button type="button" class="btn btn-primary" id="next">' +
+                (last ? 'Review Answers' : 'Next Question') + '</button></div></section>' +
+                '<nav class="quiz-dots" aria-label="Question navigation">' + dots + '</nav>');
+
+            root.querySelectorAll('input[name="answer"]').forEach(input => {
+                input.addEventListener("change", () => {
+                    answers[current] = Number(input.value);
+                    // Redraw to update the question dots and selected styling.
+                    showQuestion();
+                });
+            });
+            root.querySelectorAll("[data-go]").forEach(button => {
+                button.addEventListener("click", () => {
+                    current = Number(button.dataset.go);
+                    showQuestion();
+                });
+            });
+            document.getElementById("prev").addEventListener("click", () => {
+                if (current > 0) { current--; showQuestion(); }
+            });
+            document.getElementById("next").addEventListener("click", () => {
+                if (last) showReview();
+                else { current++; showQuestion(); }
+            });
+        }
+
+        function showReview() {
+            const missing = questions.length - answeredCount();
+            const rows = questions.map((question, index) => {
+                const picked = question.options.find(o => Number(o.quizOptionID) === answers[index]);
+                return '<li class="quiz-review-row">' +
+                    '<span class="quiz-status-icon ' + (picked ? 'done' : 'pending') + '">' +
+                    (picked ? '✓' : '•') + '</span>' +
+                    '<span class="quiz-review-text">Question ' + (index + 1) +
+                    '<small>' + (picked ? 'Your answer: ' + math(picked.optionText) : 'Not answered') + '</small></span>' +
+                    '<button type="button" class="btn btn-outline" data-edit="' + index + '">' +
+                    (picked ? 'Change' : 'Answer') + '</button></li>';
+            }).join("");
+            show('<section class="card quiz-card"><h2 data-focus>Review Your Answers</h2>' +
+                '<p class="quiz-intro-meta">You answered ' + answeredCount() + ' of ' +
+                questions.length + ' questions.</p>' +
+                (missing ? '<p class="quiz-note" role="status">Please answer the remaining ' +
+                    missing + ' question(s) before submitting.</p>' :
+                    '<p class="quiz-note">All questions are answered. You can submit now.</p>') +
+                '<ul class="quiz-review-list">' + rows + '</ul>' +
+                '<div class="quiz-actions">' +
+                '<button class="btn btn-outline" id="back" type="button">Back to Questions</button>' +
+                '<button class="btn btn-primary" id="submit" type="button" ' +
+                (missing ? 'disabled' : '') + '>Submit Quiz</button></div>' +
+                '<p id="submit-error" role="alert"></p></section>');
+            root.querySelectorAll("[data-edit]").forEach(button => {
+                button.addEventListener("click", () => {
+                    current = Number(button.dataset.edit);
+                    showQuestion();
+                });
+            });
+            document.getElementById("back").addEventListener("click", () => {
+                current = Math.max(0, answers.indexOf(null));
+                showQuestion();
+            });
+            document.getElementById("submit").addEventListener("click", submit);
+        }
+
+        async function submit() {
+            if (sending || answeredCount() !== questions.length) return;
+            sending = true;
+            const button = document.getElementById("submit");
+            button.disabled = true;
+            button.textContent = "Submitting…";
+            try {
+                await api.post("/quizattempts/" + attemptId + "/submit", {
+                    answers: questions.map((question, index) => ({
+                        quizAttemptQuestionID: Number(question.quizAttemptQuestionID),
+                        quizOptionID: Number(answers[index])
+                    }))
+                });
+                stopTimer();
+                saveAttempt(attemptId);
+                // The database is the source of truth; immediately retrieve
+                // the grade and explanations returned by the server.
+                await loadResult(attemptId);
+            } catch (error) {
+                console.error("Quiz submission or result retrieval failed:", error);
+                const notice = document.getElementById("submit-error");
+                if (notice) notice.textContent = error.message || "Submission failed. Please try again.";
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = "Submit Quiz";
+                }
+            } finally {
+                sending = false;
+            }
+        }
+
+        async function loadResult(id) {
+            notify("Loading your marked quiz…");
+            try {
+                const result = await api.get("/quizattempts/" + id + "/result");
+                if (!result || Number(result.quizID) !== quizId) {
+                    throw new Error("These results don't belong to the selected quiz.");
+                }
+                stopTimer();
+                timer.hidden = true;
+                saveAttempt(id);
+                await refreshAttemptUsage();
+                showResult(result);
+            } catch (error) {
+                console.error("Could not load quiz results:", error);
+                errorPage(error.message || "Unable to retrieve results.", true);
+            }
+        }
+
+        function showResult(result) {
+            const percent = Number(result.percentage) || 0;
+            const score = Number(result.score) || 0;
+            const total = Number(result.totalQuestions) || 0;
+            const msg = percent >= 80
+                ? "Excellent work!"
+                : percent >= 50 ? "Good effort! Review the explanations and keep practising."
+                    : "Keep practising. Review the explanations and try again.";
+            const items = (result.questions || []).slice()
+                .sort((a, b) => Number(a.questionOrder) - Number(b.questionOrder))
+                .map((question, i) =>
+                    '<li class="quiz-result-item">' +
+                    '<div class="quiz-status-icon ' + (question.isCorrect ? 'done' : 'wrong') + '">' +
+                    (question.isCorrect ? '✓' : '✕') + '</div>' +
+                    '<div><h4>' + (i + 1) + '. ' + math(question.questionText) + '</h4>' +
+                    '<p class="quiz-result-line">Your answer: <strong>' + math(question.selectedAnswer) + '</strong></p>' +
+                    (!question.isCorrect ? '<p class="quiz-result-line">Correct answer: <strong>' +
+                        math(question.correctAnswer) + '</strong></p>' : '') +
+                    (question.explanation ? '<p class="quiz-explain">' + math(question.explanation) + '</p>' : '') +
+                    '</div></li>'
+                ).join("");
+            show('<section class="card quiz-card quiz-result-head">' +
+                '<h2 data-focus>You scored ' + Math.round(percent) + '%</h2><p>' + msg + '</p></section>' +
+                '<div class="profile-stats" style="margin-top:18px">' +
+                '<div class="profile-stat"><div class="stat-number">' + Math.round(percent) +
+                '%</div><div class="stat-text">Score</div></div>' +
+                '<div class="profile-stat"><div class="stat-number">' + score + ' / ' + total +
+                '</div><div class="stat-text">Correct</div></div>' +
+                '</div>' +
+                '<section class="card quiz-card"><h3 class="dashboard-section-title">Your Answers</h3>' +
+                '<ul class="quiz-result-list">' + items + '</ul><div class="quiz-actions">' +
+                '<a href="Quizzes.html" class="btn btn-outline">Back to quizzes</a>' +
+                reviewActions() +
+                (submittedAttemptsUsed !== null && submittedAttemptsUsed < 2
+                    ? '<button id="retry" type="button" class="btn btn-primary">' +
+                      'Try Again (' + Math.max(0, 2 - submittedAttemptsUsed) + ' remaining)</button>'
+                    : '') +
+                '</div></section>');
+            document.getElementById("retry")?.addEventListener("click", () => {
+                attemptId = null;
+                questions = [];
+                answers = [];
+                current = 0;
+                startedAt = null;
+                intro();
+            });
+        }
+
+        if (!Number.isInteger(quizId) || quizId <= 0) {
+            errorPage("The quiz link is invalid. Open a quiz from the quiz list.");
+            return;
+        }
+        try {
+            notify("Loading quiz…");
+            quiz = await api.get("/quizzes/" + quizId);
+            if (!quiz || !quiz.isPublished) {
+                errorPage("The quiz could not be found or is not published.");
+                return;
+            }
+            pageTitle.textContent = quiz.quizTitle;
+            pageSubtitle.textContent = (quiz.difficulty || "") + " Quiz";
+            document.title = "EduQuest | " + quiz.quizTitle;
+            await refreshAttemptUsage();
+            if (review) {
+                const id = Number.isInteger(requestedAttemptId) && requestedAttemptId > 0
+                    ? requestedAttemptId : (bestAttemptId || findSavedId());
+                if (id) await loadResult(id);
+                else errorPage("Please open a completed quiz from the Quizzes page to review its results.");
+            } else {
+                intro();
+            }
+        } catch (error) {
+            console.error("Quiz initialization failed:", error);
+            errorPage(error.message || "The quiz could not be loaded.", true);
+        }
     });
 })();

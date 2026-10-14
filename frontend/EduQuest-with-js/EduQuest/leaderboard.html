@@ -3,82 +3,180 @@
 
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>EduQuest | Leaderboard</title>
+    <title>Manage Leaderboard | EduQuest</title>
 
-    <!-- Existing EduQuest stylesheet -->
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/theme-unified.css">
+    <!-- Existing admin stylesheet -->
+    <link rel="stylesheet" href="../../css/style.css">
+<link rel="stylesheet" href="../../css/admin-theme.css">
 </head>
 
 <body>
 
+    <!-- ==========================================
+         TOP BAR
+         ========================================== -->
+
+    <header class="topbar">
+
+        <div class="topbar-search">
+            <input type="search"
+                   placeholder="Search EduQuest...">
+        </div>
+
+        <div class="topbar-actions">
+            <button class="notification-btn"
+                    type="button">🔔</button>
+
+            <button class="profile-btn"
+                    type="button">👤 Admin</button>
+        </div>
+
+    </header>
+
+    <!-- ==========================================
+         DASHBOARD LAYOUT
+         ========================================== -->
+
     <div class="app">
 
-        <!-- ======================================
-             LEARNER SIDEBAR
-             ====================================== -->
+        <!-- SIDEBAR -->
 
-        <aside class="sidebar">
+        <aside class="sidebar"><div><div class="brand"><img src="../../EduQuest-with-js/EduQuest/images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo"></div><nav class="sidebar-nav" aria-label="Admin navigation"><a href="dashboard.html" class="nav-link">Home</a>
+<a href="users.html" class="nav-link">Users</a>
+<a href="quiz.html" class="nav-link">Quizzes</a>
+<a href="resources.html" class="nav-link">Resources</a>
+<a href="competition.html" class="nav-link">Competitions</a>
+<a href="leaderboard.html" class="nav-link active">Leaderboard</a>
+<a href="reports.html" class="nav-link">Reports</a><button type="button" class="nav-link" id="adminLogout">Log Out</button></nav></div><div class="sidebar-social"><a href="#">Instagram</a><a href="#">Facebook</a></div></aside>
 
-            <div>
+        <!-- ==========================================
+             MAIN CONTENT
+             ========================================== -->
 
-                <div class="brand">
-                    <img src="images/eduquest-logo.png"
-                         alt="EduQuest Logo"
-                         class="brand-logo">
+        <main class="main">
+
+            <section class="home-content">
+
+                <div class="page-header">
+
+                    <h1>Learner Leaderboard</h1>
+
+                    <p>
+                        National and Provincial Rankings
+                    </p>
+
                 </div>
 
-                <nav class="sidebar-nav">
+                <section class="leaderboard-page">
 
-                    <a href="dashboard.html"
-                       class="nav-link">
-                        Home
-                    </a>
+                    <!-- ==================================
+                         FILTERS
 
-                    <a href="classes.html"
-                       class="nav-link">
-                        Classes
-                    </a>
+                         CHANGED:
+                         Subject tabs and province options
+                         come from the backend.
+                         ================================== -->
 
-                    <a href="Quizzes.html"
-                       class="nav-link">
-                        Quizzes
-                    </a>
+                    <div class="leaderboard-filters">
 
-                    <a href="resources.html"
-                       class="nav-link">
-                        Resources
-                    </a>
+                        <div class="subject-tabs"
+                             id="subjectTabs">
+                        </div>
 
-                    <a href="leaderboard.html"
-                       class="nav-link active">
-                        Leaderboard
-                    </a>
+                        <select id="regionFilter"
+                                class="region-filter">
 
-                    <a href="profile.html"
-                       class="nav-link">
-                        Profile
-                    </a>
+                            <option value="">
+                                All provinces
+                            </option>
 
-                    <a href="#"
-                       class="nav-link">
-                        Help &amp; Support
-                    </a>
+                        </select>
 
-                </nav>
+                    </div>
 
-            </div>
+                    <!-- ==================================
+                         NEW: LOADING / ERROR STATUS
+                         ================================== -->
 
-            <div class="sidebar-social">
-                <a href="#">Instagram</a>
-                <a href="#">Facebook</a>
-            </div>
+                    <p id="leaderboardStatus"
+                       role="status"
+                       aria-live="polite">
+                        Loading leaderboard...
+                    </p>
 
-        </aside>
+                    <!-- ==================================
+                         NATIONAL / PROVINCIAL TOP THREE
+                         ================================== -->
 
-        <!-- ======================================
-             MAIN LEADERBOARD CONTENT
-             ================
+                    <div class="section-heading">
+
+                        <h2>
+                            Top learners
+                            <span id="rankingTitle">
+                                nationally
+                            </span>
+                        </h2>
+
+                        <p id="rankingDescription">
+                            Overall ranking, all provinces
+                        </p>
+
+                    </div>
+
+                    <!-- CHANGED:
+                         No dummy learners.
+                         JavaScript adds real rankings. -->
+
+                    <div class="top-learners"
+                         id="topLearners">
+                    </div>
+
+                    <!-- ==================================
+                         REGIONAL LEADERS
+                         ================================== -->
+
+                    <div class="section-heading regional-heading">
+
+                        <h2>
+                            Top learner by province
+                        </h2>
+
+                        <p>
+                            Highest scorer in each province
+                        </p>
+
+                    </div>
+
+                    <!-- CHANGED:
+                         No hardcoded regional leaders. -->
+
+                    <div class="regional-leaders"
+                         id="regionalLeaders">
+                    </div>
+
+                </section>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- ==========================================
+         JAVASCRIPT
+
+         IMPORTANT:
+         These paths match your existing admin HTML.
+         ========================================== -->
+
+    <script src="../../js/api.js"></script>
+
+    <script src="../../js/leaderboard.js"></script>
+
+<script src="../../js/admin-shell.js"></script>
+</body>
+</html>
