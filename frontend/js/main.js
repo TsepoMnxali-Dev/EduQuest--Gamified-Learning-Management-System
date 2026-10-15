@@ -9,6 +9,7 @@
    - Create users
    - Edit users
    - Deactivate users
+   - Reactivate users (ADDED)
    - Populate role dropdowns from backend user data
    - Display API validation errors
 
@@ -402,6 +403,17 @@ function displayUsers(userList = users) {
                     }
                 )
             );
+        } else {
+            // ADDED: an inactive user can be switched back on.
+            actions.appendChild(
+                createActionButton(
+                    "Activate",
+                    "btn btn-primary",
+                    function () {
+                        activateUser(user.id);
+                    }
+                )
+            );
         }
 
         actionsCell.appendChild(actions);
@@ -735,6 +747,40 @@ async function deactivateUser(userId) {
 
         window.alert(
             error.message || "Unable to deactivate user."
+        );
+    }
+}
+
+
+// ============================================================
+// ACTIVATE USER (ADDED)
+// ============================================================
+
+async function activateUser(userId) {
+    const user = users.find(function (item) {
+        return String(item.id) === String(userId);
+    });
+
+    if (!user) return;
+
+    const confirmed = window.confirm(
+        `Activate ${getFullName(user)}?\n\n` +
+        "They will be able to sign in again."
+    );
+
+    if (!confirmed) return;
+
+    try {
+        // Backend sets IsActive = true.
+        await api.post(`/Users/${userId}/activate`, {});
+
+        await loadUsers();
+
+    } catch (error) {
+        console.error("Error activating user:", error);
+
+        window.alert(
+            error.message || "Unable to activate user."
         );
     }
 }

@@ -1,17 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard | EduQuest</title>
 
-    <!-- EXISTING: Main EduQuest stylesheet -->
     <link rel="stylesheet" href="../../css/style.css">
 
-    <!-- NEW: Minimalist admin dashboard theme -->
     <style>
         :root {
             --admin-navy: #123b61;
@@ -22,11 +17,8 @@
             --admin-muted: #64748b;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
-        /* CHANGED: Consistent page appearance */
         body {
             margin: 0;
             background: var(--admin-background);
@@ -34,11 +26,8 @@
             font-family: Arial, Helvetica, sans-serif;
         }
 
-        .app {
-            min-height: 100vh;
-        }
+        .app { min-height: 100vh; }
 
-        /* CHANGED: Learner-inspired sidebar */
         .sidebar {
             background: var(--admin-white);
             border-right: 1px solid var(--admin-border);
@@ -98,7 +87,6 @@
             color: #fff;
         }
 
-        /* CHANGED: Logout looks like navigation */
         .sidebar-nav .admin-logout {
             width: 100%;
             font-family: inherit;
@@ -117,11 +105,8 @@
             line-height: 1.5;
         }
 
-        .sidebar-footer p {
-            margin: 0 0 5px;
-        }
+        .sidebar-footer p { margin: 0 0 5px; }
 
-        /* CHANGED: Main content */
         .main {
             min-width: 0;
             background: var(--admin-background);
@@ -133,7 +118,6 @@
             padding: 36px;
         }
 
-        /* CHANGED: Welcome and profile */
         .admin-topbar {
             display: flex;
             align-items: center;
@@ -178,7 +162,6 @@
             font-weight: 700;
         }
 
-        /* CHANGED: Real statistics */
         .admin-stats {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -215,7 +198,6 @@
             line-height: 1.5;
         }
 
-        /* CHANGED: Quick actions and status */
         .admin-content-grid {
             display: grid;
             grid-template-columns: 1.25fr 1fr;
@@ -275,14 +257,12 @@
             line-height: 1.7;
         }
 
-        /* NEW: Keyboard accessibility */
         a:focus-visible,
         button:focus-visible {
             outline: 2px solid var(--admin-teal);
             outline-offset: 3px;
         }
 
-        /* NEW: Responsive layout */
         @media (max-width: 1100px) {
             .admin-stats {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -290,14 +270,8 @@
         }
 
         @media (max-width: 850px) {
-            .admin-dashboard {
-                padding: 24px;
-            }
-
-            .admin-content-grid {
-                grid-template-columns: 1fr;
-            }
-
+            .admin-dashboard { padding: 24px; }
+            .admin-content-grid { grid-template-columns: 1fr; }
             .admin-topbar {
                 align-items: flex-start;
                 flex-direction: column;
@@ -305,35 +279,28 @@
         }
 
         @media (max-width: 560px) {
-            .admin-dashboard {
-                padding: 16px;
-            }
-
-            .admin-stats {
-                grid-template-columns: 1fr;
-            }
-
+            .admin-dashboard { padding: 16px; }
+            .admin-stats { grid-template-columns: 1fr; }
             .admin-stat-card,
-            .admin-panel {
-                padding: 20px;
-            }
+            .admin-panel { padding: 20px; }
         }
     </style>
+
     <link rel="stylesheet" href="../../css/admin-theme.css">
 </head>
 
 <body>
-
 <div class="app">
 
-    <!-- ======================================
-         SIDEBAR EduQuest
-         ====================================== -->
+    <!-- ADMIN SIDEBAR -->
     <aside class="sidebar">
         <div>
             <div class="brand">
-                <img src="../../images/EduQuestLogo.png" alt="EduQuest logo" class="brand-logo">
+                <img src="../../images/eduquest-logo.png"
+                     alt="EduQuest logo"
+                     class="brand-logo">
             </div>
+
             <nav class="sidebar-nav" aria-label="Admin navigation">
                 <a href="dashboard.html" class="nav-link active">Home</a>
                 <a href="users.html" class="nav-link">Users</a>
@@ -342,110 +309,74 @@
                 <a href="competition.html" class="nav-link">Competitions</a>
                 <a href="leaderboard.html" class="nav-link">Leaderboard</a>
                 <a href="reports.html" class="nav-link">Reports</a>
-                <button type="button" class="nav-link" id="adminLogout" style="width:100%; text-align:center;">Log Out</button>
+                <a href="profile.html" class="nav-link">Profile</a>
+
+                <button type="button"
+                        class="nav-link"
+                        id="adminLogout"
+                        style="width:100%; text-align:center;">
+                    Log Out
+                </button>
             </nav>
         </div>
+
         <div class="sidebar-social">
             <a href="#">Instagram</a>
             <a href="#">Facebook</a>
         </div>
     </aside>
 
-    <!-- ======================================
-         MAIN CONTENT
-         ====================================== -->
+    <!-- MAIN DASHBOARD -->
     <main class="main">
-
         <div class="admin-dashboard">
 
-            <!-- WELCOME -->
+            <!-- WELCOME HEADER -->
             <header class="admin-topbar">
-
                 <div>
-                    <!-- EXISTING: JS updates heading -->
-                    <h1 id="adminWelcome">
-                        Welcome back, Admin!
-                    </h1>
-
+                    <h1 id="adminWelcome">Welcome back, Admin!</h1>
                     <p>
                         Monitor activity and manage
                         the EduQuest learning platform.
                     </p>
                 </div>
 
-                <!-- EXISTING: Profile IDs preserved -->
                 <div class="admin-profile">
-
-                    <div class="admin-avatar"
-                         id="adminAvatar">
-                        A
-                    </div>
-
-                    <span id="adminProfileName">
-                        Administrator
-                    </span>
-
+                    <div class="admin-avatar" id="adminAvatar">A</div>
+                    <span id="adminProfileName">Administrator</span>
                 </div>
-
             </header>
 
-            <!-- ==================================
-                 REAL BACKEND STATISTICS
-                 All existing IDs preserved
-                 ================================== -->
-            <section class="admin-stats"
-                     aria-label="Platform statistics">
+            <!-- PLATFORM STATISTICS -->
+            <section class="admin-stats" aria-label="Platform statistics">
 
                 <article class="admin-stat-card">
                     <h3>Total Learners</h3>
-
-                    <div class="admin-stat-number"
-                         id="totalLearners">—</div>
-
-                    <p class="admin-stat-note">
-                        Registered learner accounts
-                    </p>
+                    <div class="admin-stat-number" id="totalLearners">—</div>
+                    <p class="admin-stat-note">Registered learner accounts</p>
                 </article>
 
                 <article class="admin-stat-card">
                     <h3>Active Learners</h3>
-
-                    <div class="admin-stat-number"
-                         id="activeLearners">—</div>
-
-                    <p class="admin-stat-note">
-                        Currently active accounts
-                    </p>
+                    <div class="admin-stat-number" id="activeLearners">—</div>
+                    <p class="admin-stat-note">Currently active accounts</p>
                 </article>
 
                 <article class="admin-stat-card">
                     <h3>Inactive Learners</h3>
-
-                    <div class="admin-stat-number"
-                         id="inactiveLearners">—</div>
-
-                    <p class="admin-stat-note">
-                        Currently inactive accounts
-                    </p>
+                    <div class="admin-stat-number" id="inactiveLearners">—</div>
+                    <p class="admin-stat-note">Currently inactive accounts</p>
                 </article>
 
                 <article class="admin-stat-card">
                     <h3>Quiz Attempts</h3>
-
-                    <div class="admin-stat-number"
-                         id="totalQuizAttempts">—</div>
-
-                    <p class="admin-stat-note">
-                        Recorded quiz attempts
-                    </p>
+                    <div class="admin-stat-number" id="totalQuizAttempts">—</div>
+                    <p class="admin-stat-note">Recorded quiz attempts</p>
                 </article>
 
                 <article class="admin-stat-card">
                     <h3>Competition Participants</h3>
-
                     <div class="admin-stat-number"
                          id="totalCompetitionParticipants">—</div>
-
                     <p class="admin-stat-note">
                         Recorded competition participants
                     </p>
@@ -453,85 +384,62 @@
 
                 <article class="admin-stat-card">
                     <h3>Achievements Earned</h3>
-
                     <div class="admin-stat-number"
                          id="totalAchievementsEarned">—</div>
-
-                    <p class="admin-stat-note">
-                        Achievements awarded
-                    </p>
+                    <p class="admin-stat-note">Achievements awarded</p>
                 </article>
 
             </section>
 
-            <!-- ==================================
-                 LOWER DASHBOARD
-                 ================================== -->
+            <!-- QUICK ACTIONS AND STATUS -->
             <div class="admin-content-grid">
 
-                <!-- QUICK ACTIONS -->
                 <section class="admin-panel">
-
                     <h2>Quick Actions</h2>
 
                     <div class="admin-actions-list">
-
-                        <a href="quiz.html"
-                           class="admin-action">
+                        <a href="quiz.html" class="admin-action">
                             <span>Create a Quiz</span>
                             <span class="admin-action-arrow"
                                   aria-hidden="true">&rarr;</span>
                         </a>
 
-                        <a href="resources.html"
-                           class="admin-action">
+                        <a href="resources.html" class="admin-action">
                             <span>Upload Study Material</span>
                             <span class="admin-action-arrow"
                                   aria-hidden="true">&rarr;</span>
                         </a>
 
-                        <a href="users.html"
-                           class="admin-action">
+                        <a href="users.html" class="admin-action">
                             <span>Manage Learners</span>
                             <span class="admin-action-arrow"
                                   aria-hidden="true">&rarr;</span>
                         </a>
 
-                        <a href="competition.html"
-                           class="admin-action">
+                        <a href="competition.html" class="admin-action">
                             <span>Manage Competitions</span>
                             <span class="admin-action-arrow"
                                   aria-hidden="true">&rarr;</span>
                         </a>
-
                     </div>
-
                 </section>
 
-                <!-- DASHBOARD STATUS -->
                 <section class="admin-panel">
-
                     <h2>Dashboard Status</h2>
-
-                    <!-- EXISTING: JS updates status -->
                     <p class="admin-status"
                        id="adminActivity"
                        role="status"
                        aria-live="polite">
                         Loading statistics...
                     </p>
-
                 </section>
 
             </div>
-
         </div>
-
     </main>
-
 </div>
 
-<!-- EXISTING: Authentication and statistics -->
+<!-- EXISTING JAVASCRIPT CONNECTIONS -->
 <script src="../../js/api.js"></script>
 <script src="../../js/admin-guard.js"></script>
 <script src="../../js/admin-dashboard.js"></script>

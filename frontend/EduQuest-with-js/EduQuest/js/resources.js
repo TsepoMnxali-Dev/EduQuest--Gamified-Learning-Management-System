@@ -1,20 +1,24 @@
+
 /*
 ========================================================
 EduQuest - Learner Resources
+========================================================
 
 Learners can:
-1. View resources uploaded by the admin.
-2. Filter resources by subject.
-3. Open external learning links.
-4. View or download uploaded documents.
+1. View resources uploaded by administrators.
+2. Search resources by title, subject or topic.
+3. Filter resources by grade, subject and type.
+4. Browse resources grouped by grade, subject and topic.
+5. Open external educational links.
+6. View and download uploaded documents.
 
 Learners cannot:
 1. Add resources.
 2. Edit resources.
 3. Delete resources.
 
-Resources come from the database. The name and grade in the
-top corner come from GET /api/learner/me.
+Resources are loaded from GET /studymaterials.
+Learner information is loaded from GET /learner/me.
 ========================================================
 */
 
@@ -32,42 +36,23 @@ top corner come from GET /api/learner/me.
     }
 
     // ==============================================
-    // TEMPORARILY DISABLED: LEARNER ROLE REDIRECT
-    // ==============================================
-
-    // DEBUGGING:
-    // This section may have been redirecting
-    // authenticated learners back to dashboard.html.
-    //
-    // We are commenting it out temporarily to
-    // check whether the Resources page opens.
-    //
-    // Backend authorization remains enabled.
-
-    /*
-    const user = EduQuestAPI.getCurrentUser();
-
-    if (!user || user.role !== "Learner") {
-        window.location.href = "dashboard.html";
-        return;
-    }
-    */
-
-    // ==============================================
     // HTML ELEMENTS
     // ==============================================
 
-    const resourcesGrid =
-        document.getElementById("resourcesGrid");
+    const byId = id => document.getElementById(id);
 
-    const emptyResources =
-        document.getElementById("emptyResources");
+    const grid = byId("resourcesGrid");
+    const status = byId("resourcesStatus");
+    const empty = byId("emptyResources");
+    const filters = byId("resourceFilters");
 
-    const resourcesStatus =
-        document.getElementById("resourcesStatus");
+    const gradeFilter = byId("resourceGradeFilter");
+    const typeFilter = byId("resourceTypeFilter");
+    const search = byId("resourceSearch");
 
-    const resourceFilters =
-        document.getElementById("resourceFilters");
+    const totalElement = byId("resourceTotal");
+    const subjectsElement = byId("resourceSubjects");
+    const documentsElement = byId("resourceDocuments");
 
     let materials = [];
     let selectedSubject = "all";
@@ -76,77 +61,84 @@ top corner come from GET /api/learner/me.
     // HELPER FUNCTIONS
     // ==============================================
 
-    function createElement(tag, className, text) {
-
-        const element = document.createElement(tag);
+    function el(tag, className, content) {
+        const node = document.createElement(tag);
 
         if (className) {
-            element.className = className;
+            node.className = className;
         }
 
-        if (text !== undefined) {
-            element.textContent = text;
+        if (content !== undefined) {
+            node.textContent = content;
         }
 
-        return element;
+        return node;
     }
 
     function showStatus(message) {
-        resourcesStatus.textContent = message;
-        resourcesStatus.style.display =
-            message ? "block" : "none";
+        if (!status) {
+            return;
+        }
+
+        status.textContent = message;
+        status.style.display = message ? "block" : "none";
     }
 
-    // Only permit HTTP/HTTPS resource links.
-    function isSafeUrl(url) {
-
+    function safeUrl(url) {
         try {
             const parsed = new URL(url);
 
-            return parsed.protocol === "http:" ||
-                   parsed.protocol === "https:";
+            return (
+                parsed.protocol === "http:" ||
+                parsed.protocol === "https:"
+            );
         } catch {
             return false;
         }
     }
 
-    // ==============================================
-    // LEARNER NAME AND GRADE (TOP CORNER)
-    // ==============================================
+    function groupBy(items, key) {
+        const groups = new Map();
 
-    // The corner label: tries the known ids, then the profile-mini block.
-    function cornerLabel() {
+        items.forEach(item => {
+            const label = key(item);
 
-        return document.getElementById("profileLabel") ||
-               document.getElementById("profileGrade") ||
-               document.getElementById("profileName") ||
-               document.querySelector(".profile-mini span");
+            if (!groups.has(label)) {
+                groups.set(label, []);
+            }
+
+            groups.get(label).push(item);
+        });
+
+        return groups;
     }
 
-    function cornerAvatar() {
+    // ==============================================
+    // LOAD LEARNER NAME AND GRADE
+    // ==============================================
 
-        return document.getElementById("profileAvatar") ||
-               document.querySelector(".profile-mini .profile-avatar");
-    }
-
-    // Shows the first name and grade, e.g. "Ben · Grade 12".
     async function loadIdentity() {
-
         try {
-
             const me = await EduQuestAPI.get("/learner/me");
 
             const firstName =
                 String(me.firstName || "").trim() || "Learner";
 
-            const gradeName =
-                me.gradeName ? " \u00b7 " + me.gradeName : "";
+            const gradeName = me.gradeName
+                ? " · " + me.gradeName
+                : "";
 
-            const avatar = cornerAvatar();
-            const label = cornerLabel();
+            const avatar = document.querySelector(
+                ".profile-mini .profile-avatar"
+            );
+
+            const label = document.querySelector(
+                ".profile-mini span"
+            );
 
             if (avatar) {
-                avatar.textContent = firstName.charAt(0).toUpperCase();
+                avatar.textContent =
+                    firstName.charAt(0).toUpperCase();
             }
 
             if (label) {
@@ -154,33 +146,111 @@ top corner come from GET /api/learner/me.
             }
 
         } catch (error) {
-
-            // The page still works without it.
-            console.error("Learner name failed to load:", error);
+            console.error(
+                "Learner identity failed to load:",
+                error
+            );
         }
     }
 
     // ==============================================
-    // FETCH FILE USING AUTHENTICATION TOKEN
+    // YOUTUBE THUMBNAILS
     // ==============================================
 
-    async function fetchResourceFile(id) {
+    function youtubeThumbnail(url) {
+        if (!safeUrl(url)) {
+            return null;
+        }
 
-        const response = await fetch(
-            EduQuestAPI.BASE_URL +
-            "/studymaterials/" + id + "/file",
-            {
-                headers: {
-                    Authorization:
-                        "Bearer " + EduQuestAPI.getToken()
+        try {
+            const parsed = new URL(url);
+            const host = parsed.hostname.toLowerCase();
+
+            let videoId = null;
+
+            if (
+                host === "youtu.be" ||
+                host === "www.youtu.be"
+            ) {
+                videoId = parsed.pathname.split("/")[1];
+            }
+
+            else if (
+                [
+                    "youtube.com",
+                    "www.youtube.com",
+                    "m.youtube.com",
+                    "youtube-nocookie.com",
+                    "www.youtube-nocookie.com"
+                ].includes(host)
+            ) {
+                if (parsed.pathname === "/watch") {
+                    videoId = parsed.searchParams.get("v");
+                }
+
+                else if (
+                    /^\/(shorts|embed)\//.test(parsed.pathname)
+                ) {
+                    videoId = parsed.pathname.split("/")[2];
                 }
             }
-        );
+
+            if (/^[\w-]{11}$/.test(videoId || "")) {
+                return (
+                    "https://img.youtube.com/vi/" +
+                    videoId +
+                    "/hqdefault.jpg"
+                );
+            }
+
+            return null;
+
+        } catch {
+            return null;
+        }
+    }
+
+    // ==============================================
+    // FETCH DOCUMENT WITH AUTHENTICATION
+    // ==============================================
+
+    async function fetchFile(material) {
+        const token = EduQuestAPI.getToken();
+
+        if (!token) {
+            throw new Error(
+                "Your session has expired. Please sign in again."
+            );
+        }
+
+        const endpoint =
+            EduQuestAPI.BASE_URL +
+            "/studymaterials/" +
+            encodeURIComponent(material.studyMaterialID) +
+            "/file";
+
+        const response = await fetch(endpoint, {
+            headers: {
+                Authorization: "Bearer " + token
+            }
+        });
 
         if (!response.ok) {
             if (response.status === 401) {
                 throw new Error(
                     "Your session has expired. Please sign in again."
+                );
+            }
+
+            if (response.status === 403) {
+                throw new Error(
+                    "You do not have permission to access this document."
+                );
+            }
+
+            if (response.status === 404) {
+                throw new Error(
+                    "This document could not be found."
                 );
             }
 
@@ -193,252 +263,250 @@ top corner come from GET /api/learner/me.
     }
 
     // ==============================================
-    // DOWNLOAD DOCUMENT
+    // VIEW OR DOWNLOAD DOCUMENT
     // ==============================================
 
-    async function downloadMaterial(material) {
+    async function openFile(material, download) {
+        const tab = download
+            ? null
+            : window.open("", "_blank");
 
-        showStatus("Preparing download...");
-
-        try {
-
-            const blob = await fetchResourceFile(
-                material.studyMaterialID
-            );
-
-            const fileUrl = URL.createObjectURL(blob);
-
-            const link = document.createElement("a");
-
-            link.href = fileUrl;
-            link.download =
-                material.fileName || "study-material";
-
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-
-            setTimeout(function () {
-                URL.revokeObjectURL(fileUrl);
-            }, 60000);
-
-            showStatus("");
-
-        } catch (error) {
-            showStatus(error.message);
-        }
-    }
-
-    // ==============================================
-    // VIEW DOCUMENT OR RESOURCE LINK
-    // ==============================================
-
-    async function viewMaterial(material) {
-
-        if (material.fileURL) {
-
-            if (!isSafeUrl(material.fileURL)) {
-                showStatus("Invalid resource link.");
-                return;
-            }
-
-            window.open(
-                material.fileURL,
-                "_blank",
-                "noopener,noreferrer"
-            );
-
-            return;
-        }
-
-        const newTab = window.open("", "_blank");
-
-        if (!newTab) {
+        if (!download && !tab) {
             showStatus(
                 "Please allow popups to view this document."
             );
             return;
         }
 
-        showStatus("Opening document...");
-
         try {
-
-            const blob = await fetchResourceFile(
-                material.studyMaterialID
+            showStatus(
+                download
+                    ? "Preparing download..."
+                    : "Opening document..."
             );
 
+            const blob = await fetchFile(material);
             const fileUrl = URL.createObjectURL(blob);
 
-            newTab.location.href = fileUrl;
+            if (download) {
+                const link = document.createElement("a");
 
-            setTimeout(function () {
+                link.href = fileUrl;
+                link.download =
+                    material.fileName || "study-material";
+
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+
+            } else {
+                tab.opener = null;
+                tab.location.href = fileUrl;
+            }
+
+            setTimeout(() => {
                 URL.revokeObjectURL(fileUrl);
             }, 60000);
 
             showStatus("");
 
         } catch (error) {
+            if (tab) {
+                tab.close();
+            }
 
-            newTab.close();
-            showStatus(error.message);
+            showStatus(
+                error.message ||
+                "Unable to retrieve this document."
+            );
         }
+    }
+
+    // ==============================================
+    // VIEW RESOURCE
+    // ==============================================
+
+    function viewMaterial(material) {
+        if (material.fileName) {
+            openFile(material, false);
+            return;
+        }
+
+        if (!safeUrl(material.fileURL)) {
+            showStatus(
+                "This resource does not have a valid link."
+            );
+            return;
+        }
+
+        window.open(
+            material.fileURL,
+            "_blank",
+            "noopener,noreferrer"
+        );
     }
 
     // ==============================================
     // CREATE RESOURCE CARD
     // ==============================================
 
-    function createResourceCard(material) {
+    function resourceCard(material) {
+        const card = el("article", "lr-card");
+        const preview = el("div", "lr-preview");
 
-        const card = createElement(
-            "article", "resource-card"
-        );
+        const thumbnail = !material.fileName
+            ? youtubeThumbnail(material.fileURL)
+            : null;
 
-        const type = createElement(
-            "span",
-            "resource-type",
-            material.resourceType || "Study Material"
-        );
+        if (thumbnail) {
+            const img = el("img", "lr-thumbnail");
 
-        card.appendChild(type);
+            img.src = thumbnail;
+            img.alt = "Video thumbnail";
+            img.loading = "lazy";
+            img.referrerPolicy = "no-referrer";
 
-        const title = createElement(
-            "h3",
-            "",
-            material.title || "Untitled Resource"
-        );
+            img.addEventListener("error", () => {
+                img.replaceWith(
+                    el("span", "lr-preview-icon", "▶")
+                );
+            });
 
-        card.appendChild(title);
+            preview.appendChild(img);
 
-        const description = createElement(
-            "p",
-            "",
-            material.description ||
-            "Study material provided by the administrator."
-        );
+        } else {
+            const extension = (
+                material.fileName || ""
+            ).split(".").pop().toLowerCase();
 
-        card.appendChild(description);
+            let symbol = "LINK";
 
-        const meta = createElement(
-            "div", "resource-meta"
-        );
+            if (extension === "pdf") {
+                symbol = "PDF";
+            }
 
-        const subject = createElement(
-            "span",
-            "",
-            material.subjectName || "General"
-        );
+            else if (
+                extension === "doc" ||
+                extension === "docx"
+            ) {
+                symbol = "DOC";
+            }
 
-        const grade = createElement(
-            "span",
-            "",
-            material.gradeLevel || ""
-        );
+            else if (
+                extension === "ppt" ||
+                extension === "pptx"
+            ) {
+                symbol = "PPT";
+            }
 
-        meta.appendChild(subject);
-        meta.appendChild(grade);
+            else if (material.fileName) {
+                symbol = "FILE";
+            }
 
-        card.appendChild(meta);
-
-        if (material.topicName) {
-
-            const topic = createElement(
-                "p",
-                "",
-                "Topic: " + material.topicName
+            preview.appendChild(
+                el("span", "lr-preview-icon", symbol)
             );
+        }
 
-            card.appendChild(topic);
+        card.appendChild(preview);
+
+        const body = el("div", "lr-card-body");
+
+        body.appendChild(
+            el(
+                "span",
+                "lr-type",
+                material.resourceType || "Resource"
+            )
+        );
+
+        body.appendChild(
+            el(
+                "h5",
+                "lr-card-title",
+                material.title || "Untitled resource"
+            )
+        );
+
+        if (material.description) {
+            body.appendChild(
+                el(
+                    "p",
+                    "lr-description",
+                    material.description
+                )
+            );
         }
 
         // ==========================================
-        // LEARNER ACTIONS
+        // RESOURCE ACTIONS
         // ==========================================
 
-        const actions = createElement(
-            "div", "resource-actions"
-        );
+        const actions = el("div", "lr-actions");
 
-        const viewButton = createElement(
-            "button", "btn btn-primary", "View"
+        const viewButton = el(
+            "button",
+            "lr-btn lr-btn-primary",
+            "View"
         );
 
         viewButton.type = "button";
 
-        viewButton.addEventListener("click", function () {
+        viewButton.addEventListener("click", () => {
             viewMaterial(material);
         });
 
         actions.appendChild(viewButton);
 
-        // Download only for uploaded documents.
-        if (material.fileName) {
+        // Only uploaded documents can be downloaded.
 
-            const downloadButton = createElement(
+        if (material.fileName) {
+            const downloadButton = el(
                 "button",
-                "btn btn-outline",
+                "lr-btn lr-btn-secondary",
                 "Download"
             );
 
             downloadButton.type = "button";
 
-            downloadButton.addEventListener(
-                "click",
-                function () {
-                    downloadMaterial(material);
-                }
-            );
+            downloadButton.addEventListener("click", () => {
+                openFile(material, true);
+            });
 
             actions.appendChild(downloadButton);
         }
 
-        card.appendChild(actions);
+        body.appendChild(actions);
+        card.appendChild(body);
 
         return card;
     }
 
     // ==============================================
-    // DISPLAY RESOURCE CARDS
+    // UPDATE RESOURCE STATISTICS
     // ==============================================
 
-    function renderResources() {
-
-        resourcesGrid.innerHTML = "";
-
-        if (materials.length === 0) {
-
-            emptyResources.style.display = "block";
-            return;
+    function updateStats() {
+        if (totalElement) {
+            totalElement.textContent = materials.length;
         }
 
-        emptyResources.style.display = "none";
-
-        const filtered = materials.filter(function (m) {
-
-            return (
-                selectedSubject === "all" ||
-                m.subjectName === selectedSubject
-            );
-        });
-
-        if (filtered.length === 0) {
-
-            showStatus(
-                "No study materials available for this subject yet."
+        if (subjectsElement) {
+            const subjects = new Set(
+                materials.map(material =>
+                    `${material.gradeLevel || ""}|${material.subjectID || material.subjectName || ""}`
+                )
             );
 
-            return;
+            subjectsElement.textContent = subjects.size;
         }
 
-        showStatus("");
-
-        filtered.forEach(function (material) {
-
-            const card = createResourceCard(material);
-
-            resourcesGrid.appendChild(card);
-        });
+        if (documentsElement) {
+            documentsElement.textContent =
+                materials.filter(material =>
+                    Boolean(material.fileName)
+                ).length;
+        }
     }
 
     // ==============================================
@@ -446,69 +514,268 @@ top corner come from GET /api/learner/me.
     // ==============================================
 
     function renderSubjectFilters() {
+        filters.replaceChildren();
 
-        resourceFilters.innerHTML = "";
+        const names = [
+            ...new Set(
+                materials
+                    .filter(material =>
+                        gradeFilter.value === "all" ||
+                        material.gradeLevel === gradeFilter.value
+                    )
+                    .map(material => material.subjectName)
+                    .filter(Boolean)
+            )
+        ].sort();
 
-        const subjects = new Set();
-
-        materials.forEach(function (material) {
-
-            if (material.subjectName) {
-                subjects.add(material.subjectName);
-            }
-        });
-
-        const allButton = createElement(
-            "button",
-            "leaderboard-tab",
-            "All"
-        );
-
-        allButton.type = "button";
-
-        if (selectedSubject === "all") {
-            allButton.classList.add("active");
+        if (
+            selectedSubject !== "all" &&
+            !names.includes(selectedSubject)
+        ) {
+            selectedSubject = "all";
         }
 
-        allButton.addEventListener("click", function () {
+        ["all", ...names].forEach(name => {
+            const button = el(
+                "button",
+                "lr-subject-chip" +
+                (selectedSubject === name ? " active" : ""),
+                name === "all" ? "All subjects" : name
+            );
 
-            selectedSubject = "all";
+            button.type = "button";
 
-            renderSubjectFilters();
-            renderResources();
+            button.setAttribute(
+                "aria-pressed",
+                String(selectedSubject === name)
+            );
+
+            button.addEventListener("click", () => {
+                selectedSubject = name;
+
+                renderSubjectFilters();
+                renderResources();
+            });
+
+            filters.appendChild(button);
+        });
+    }
+
+    // ==============================================
+    // DISPLAY RESOURCES
+    // ==============================================
+
+    function renderResources() {
+        grid.replaceChildren();
+
+        updateStats();
+
+        if (!materials.length) {
+            empty.style.display = "block";
+            showStatus("");
+            return;
+        }
+
+        empty.style.display = "none";
+
+        const query = search.value.trim().toLowerCase();
+
+        const selected = materials.filter(material => {
+            const searchableText = [
+                material.title,
+                material.subjectName,
+                material.topicName,
+                material.description
+            ]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase();
+
+            const matchesSearch =
+                !query || searchableText.includes(query);
+
+            const matchesGrade =
+                gradeFilter.value === "all" ||
+                material.gradeLevel === gradeFilter.value;
+
+            const matchesSubject =
+                selectedSubject === "all" ||
+                material.subjectName === selectedSubject;
+
+            const matchesType =
+                typeFilter.value === "all" ||
+                material.resourceType === typeFilter.value;
+
+            return (
+                matchesSearch &&
+                matchesGrade &&
+                matchesSubject &&
+                matchesType
+            );
         });
 
-        resourceFilters.appendChild(allButton);
+        if (!selected.length) {
+            showStatus("No resources match your filters.");
+            return;
+        }
 
-        Array.from(subjects)
-            .sort()
-            .forEach(function (subjectName) {
+        showStatus("");
 
-                const button = createElement(
-                    "button",
-                    "leaderboard-tab",
-                    subjectName
+        // ==========================================
+        // GROUP BY GRADE
+        // ==========================================
+
+        const gradeGroups = groupBy(
+            selected,
+            material => material.gradeLevel || "Other grades"
+        );
+
+        const sortedGrades = [
+            ...gradeGroups.keys()
+        ].sort((a, b) =>
+            a.localeCompare(b, undefined, {
+                numeric: true
+            })
+        );
+
+        sortedGrades.forEach(grade => {
+            const section = el("section", "lr-grade");
+
+            section.appendChild(
+                el("h3", "lr-grade-heading", grade)
+            );
+
+            // ======================================
+            // GROUP BY SUBJECT
+            // ======================================
+
+            const subjectGroups = groupBy(
+                gradeGroups.get(grade),
+                material =>
+                    material.subjectName || "Other subjects"
+            );
+
+            const sortedSubjects = [
+                ...subjectGroups.keys()
+            ].sort();
+
+            sortedSubjects.forEach(subject => {
+                const details = el(
+                    "details",
+                    "lr-subject"
                 );
 
-                button.type = "button";
+                details.open =
+                    Boolean(query) ||
+                    selectedSubject !== "all" ||
+                    gradeFilter.value !== "all";
 
-                if (selectedSubject === subjectName) {
-                    button.classList.add("active");
-                }
-
-                button.addEventListener(
-                    "click",
-                    function () {
-
-                        selectedSubject = subjectName;
-
-                        renderSubjectFilters();
-                        renderResources();
-                    }
+                const summary = el(
+                    "summary",
+                    "lr-subject-summary"
                 );
 
-                resourceFilters.appendChild(button);
+                summary.appendChild(
+                    el("span", "", subject)
+                );
+
+                const count =
+                    subjectGroups.get(subject).length;
+
+                summary.appendChild(
+                    el(
+                        "span",
+                        "lr-count",
+                        `${count} resources`
+                    )
+                );
+
+                details.appendChild(summary);
+
+                // ==================================
+                // GROUP BY TOPIC
+                // ==================================
+
+                const topics = groupBy(
+                    subjectGroups.get(subject),
+                    material =>
+                        material.topicName || "General resources"
+                );
+
+                const sortedTopics = [
+                    ...topics.keys()
+                ].sort();
+
+                sortedTopics.forEach(topic => {
+                    const topicSection = el(
+                        "section",
+                        "lr-topic"
+                    );
+
+                    topicSection.appendChild(
+                        el(
+                            "h4",
+                            "lr-topic-heading",
+                            topic
+                        )
+                    );
+
+                    const cards = el(
+                        "div",
+                        "lr-cards"
+                    );
+
+                    topics.get(topic).forEach(material => {
+                        cards.appendChild(
+                            resourceCard(material)
+                        );
+                    });
+
+                    topicSection.appendChild(cards);
+                    details.appendChild(topicSection);
+                });
+
+                section.appendChild(details);
             });
+
+            grid.appendChild(section);
+        });
+    }
+
+    // ==============================================
+    // LOAD GRADE OPTIONS
+    // ==============================================
+
+    function renderGradeFilters() {
+        gradeFilter.replaceChildren();
+
+        const allOption = el(
+            "option",
+            "",
+            "All grades"
+        );
+
+        allOption.value = "all";
+        gradeFilter.appendChild(allOption);
+
+        const grades = [
+            ...new Set(
+                materials
+                    .map(material => material.gradeLevel)
+                    .filter(Boolean)
+            )
+        ].sort((a, b) =>
+            a.localeCompare(b, undefined, {
+                numeric: true
+            })
+        );
+
+        grades.forEach(grade => {
+            const option = el("option", "", grade);
+
+            option.value = grade;
+            gradeFilter.appendChild(option);
+        });
     }
 
     // ==============================================
@@ -516,34 +783,57 @@ top corner come from GET /api/learner/me.
     // ==============================================
 
     async function loadResources() {
-
         showStatus("Loading study materials...");
 
-        emptyResources.style.display = "none";
+        empty.style.display = "none";
 
         try {
-
             const data = await EduQuestAPI.get(
                 "/studymaterials"
             );
 
-            materials = Array.isArray(data) ? data : [];
+            materials = Array.isArray(data)
+                ? data
+                : [];
 
+            renderGradeFilters();
             renderSubjectFilters();
             renderResources();
 
         } catch (error) {
+            materials = [];
 
-            resourcesGrid.innerHTML = "";
+            grid.replaceChildren();
 
-            emptyResources.style.display = "none";
+            empty.style.display = "none";
+
+            updateStats();
 
             showStatus(
                 "Unable to load study materials: " +
-                error.message
+                (error.message || "Unknown error")
             );
         }
     }
+
+    // ==============================================
+    // FILTER EVENTS
+    // ==============================================
+
+    gradeFilter.addEventListener("change", () => {
+        renderSubjectFilters();
+        renderResources();
+    });
+
+    typeFilter.addEventListener(
+        "change",
+        renderResources
+    );
+
+    search.addEventListener(
+        "input",
+        renderResources
+    );
 
     // ==============================================
     // INITIAL PAGE LOAD
