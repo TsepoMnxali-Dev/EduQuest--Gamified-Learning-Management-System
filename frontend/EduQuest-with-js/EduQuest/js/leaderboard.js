@@ -1,672 +1,607 @@
+
 /*
 ========================================================
-EduQuest - Admin Leaderboard
+EduQuest - LEARNER LEADERBOARD
 
-CHANGED:
-- No dummy learners or scores.
-- Rankings are retrieved from the backend.
-- Only learners with points above zero appear.
-- Supports subject filtering.
-- Supports province filtering.
-- Displays the top three learners.
-- Displays the top learner per province.
-- Shows an empty state when nobody has points.
+- Uses real backend rankings
+- Displays top 3 learners
+- Displays remaining learners
+- Supports weekly, monthly and all-time rankings
+- Shows current learner
+- Handles empty rankings and API errors
 
-Backend endpoints:
-
-GET /api/subjects
-GET /api/provinces
-GET /api/leaderboards/rankings
-
+API:
+GET /api/leaderboards/rankings?period=all
 ========================================================
 */
 
 (function () {
-
     "use strict";
 
-    // ==============================================
-    // AUTHENTICATION
-    // ==============================================
-
-    const LOGIN_URL =
-        "../../EduQuest-with-js/EduQuest/login.html";
-
-    const user = EduQuestAPI.getCurrentUser();
-
-    if (
-        !EduQuestAPI.getToken() ||
-        !user ||
-        user.role !== "Admin"
-    ) {
-        window.location.href = LOGIN_URL;
-        return;
-    }
-
-    // ==============================================
-    // HTML ELEMENTS
-    // ==============================================
-
-    const topLearnersContainer =
-        document.getElementById("topLearners");
-
-    const regionalLeadersContainer =
-        document.getElementById("regionalLeaders");
-
-    const regionFilter =
-        document.getElementById("regionFilter");
-
-    const rankingTitle =
-        document.getElementById("rankingTitle");
-
-    const rankingDescription =
-        document.getElementById("rankingDescription");
-
-    const subjectTabsContainer =
-        document.getElementById("subjectTabs");
-
-    const leaderboardStatus =
-        document.getElementById("leaderboardStatus");
-
-    // ==============================================
-    // DATA
-    // ==============================================
-
-    let provinces = [];
-
-    let entries = [];
-
-    let currentSubjectId = null;
-
-    let currentSubjectName = "Overall";
-
-    // NEW:
-    // Prevent older API responses from replacing
-    // newer selections when tabs are clicked quickly.
-    let requestNumber = 0;
-
-    // ==============================================
-    // CREATE HTML ELEMENT
-    // ==============================================
-
-    function el(tag, className, text) {
-
-        const node = document.createElement(tag);
-
-        if (className) {
-            node.className = className;
-        }
-
-        if (text !== undefined) {
-            node.textContent = text;
-        }
-
-        return node;
-    }
-
-    // ==============================================
-    // LEARNER INITIALS
-    // ==============================================
-
-    function initials(name) {
-
-        if (!name) {
-            return "L";
-        }
-
-        return name
-            .split(" ")
-            .filter(Boolean)
-            .map(function (part) {
-                return part.charAt(0);
-            })
-            .join("")
-            .substring(0, 2)
-            .toUpperCase();
-    }
-
-    // ==============================================
-    // STATUS MESSAGE
-    // ==============================================
-
-    function showStatus(message) {
-
-        leaderboardStatus.textContent = message;
-
-        leaderboardStatus.style.display =
-            message ? "block" : "none";
-    }
-
-    // ==============================================
-    // EMPTY STATE
-    // ==============================================
-
-    function emptyNote(container, message) {
-
-        container.innerHTML = "";
-
-        const note = el(
-            "p",
-            "leaderboard-empty",
-            message
-        );
-
-        container.appendChild(note);
-    }
-
-    // ==============================================
-    // NEW: QUALIFYING LEARNERS
-    // ==============================================
-
-    function getQualifiedEntries() {
-
-        // Backend already excludes zero-point learners.
-        // This is an additional frontend safeguard.
-
-        return entries.filter(function (learner) {
-
-            return Number(learner.points) > 0;
-        });
-    }
-
-    // ==============================================
-    // NATIONAL / PROVINCIAL TOP THREE
-    // ==============================================
-
-    function displayTopLearners() {
-
-        const provinceId = regionFilter.value;
-
-        const qualifiedEntries = getQualifiedEntries();
-
-        // Apply the selected province filter.
-        const rows = qualifiedEntries.filter(
-            function (learner) {
-
-                return (
-                    !provinceId ||
-                    String(learner.provinceID) ===
-                    provinceId
-                );
-            }
-        );
-
-        topLearnersContainer.innerHTML = "";
+    document.addEventListener("DOMContentLoaded", function () {
 
         // ==========================================
-        // NEW: EMPTY STATE
+        // AUTHENTICATION
         // ==========================================
 
-        if (rows.length === 0) {
-
-            emptyNote(
-                topLearnersContainer,
-                "No learners have earned points " +
-                "for this selection yet."
-            );
-
+        if (!window.EduQuestAPI) {
+            console.error("EduQuestAPI is not loaded.");
             return;
         }
 
-        // Backend already sorts learners by points.
-        // Take the first three qualifying learners.
+        if (!EduQuestAPI.requireLearner()) {
+            return;
+        }
 
-        rows.slice(0, 3).forEach(
-            function (learner, index) {
+        // ==========================================
+        // HTML ELEMENTS
+        // ==========================================
 
-                // NEW:
-                // Ranking within the selected region.
-                const rank = index + 1;
+        const podium = document.getElementById(
+            "leaderboardPodium"
+        );
 
-                let rankClass = "";
+        const leaderboardList = document.getElementById(
+            "leaderboardList"
+        );
+
+        const leaderboardStatus = document.getElementById(
+            "leaderboardStatus"
+        );
+
+        const emptyLeaderboard = document.getElementById(
+            "emptyLeaderboard"
+        );
+
+        const rankingsSection = document.getElementById(
+            "leaderboardRankingsSection"
+        );
+
+        const periodButtons = document.querySelectorAll(
+            "[data-period]"
+        );
+
+        if (
+            !podium ||
+            !leaderboardList ||
+            !leaderboardStatus ||
+            !emptyLeaderboard ||
+            !rankingsSection
+        ) {
+            console.error(
+                "Learner leaderboard HTML elements are missing."
+            );
+            return;
+        }
+
+        // ==========================================
+        // STATE
+        // ==========================================
+
+        let currentPeriod = "all";
+        let requestNumber = 0;
+
+        // ==========================================
+        // HELPERS
+        // ==========================================
+
+        function createElement(tag, className, text) {
+            const element = document.createElement(tag);
+
+            if (className) {
+                element.className = className;
+            }
+
+            if (text !== undefined && text !== null) {
+                element.textContent = String(text);
+            }
+
+            return element;
+        }
+
+        function getInitials(name) {
+            if (!name) return "L";
+
+            return name
+                .trim()
+                .split(/\s+/)
+                .map(part => part.charAt(0))
+                .join("")
+                .substring(0, 2)
+                .toUpperCase();
+        }
+
+        function getName(learner) {
+            return learner.displayName ||
+                   learner.learnerName ||
+                   "Learner";
+        }
+
+        function getPoints(learner) {
+            return Number(learner.points) || 0;
+        }
+
+        function getQuizzesTaken(learner) {
+            return Number(learner.quizzesTaken) || 0;
+        }
+
+        function getRank(learner, index) {
+            return Number(learner.rank) || index + 1;
+        }
+
+        function getAverage(learner) {
+            const value = Number(learner.averagePercent);
+
+            return Number.isFinite(value)
+                ? value.toFixed(1) + "%"
+                : null;
+        }
+
+        function isCurrentLearner(learner) {
+            return learner.isCurrentUser === true;
+        }
+
+        // ==========================================
+        // STATUS AND EMPTY STATE
+        // ==========================================
+
+        function showStatus(message) {
+            leaderboardStatus.textContent = message;
+            leaderboardStatus.style.display =
+                message ? "block" : "none";
+        }
+
+        function showEmpty() {
+            podium.innerHTML = "";
+            leaderboardList.innerHTML = "";
+
+            podium.style.display = "none";
+            rankingsSection.style.display = "none";
+
+            emptyLeaderboard.style.display = "block";
+        }
+
+        function showRankings() {
+            emptyLeaderboard.style.display = "none";
+            podium.style.display = "";
+            rankingsSection.style.display = "";
+        }
+
+        function clearRankings() {
+            podium.innerHTML = "";
+            leaderboardList.innerHTML = "";
+        }
+
+        // ==========================================
+        // ACHIEVEMENT BADGES
+        // ==========================================
+
+        function getAchievement(rank) {
+            if (rank === 1) {
+                return {
+                    label: "Champion",
+                    icon: "🏆"
+                };
+            }
+
+            if (rank === 2) {
+                return {
+                    label: "Silver Achiever",
+                    icon: "🥈"
+                };
+            }
+
+            if (rank === 3) {
+                return {
+                    label: "Bronze Achiever",
+                    icon: "🥉"
+                };
+            }
+
+            return null;
+        }
+
+        function createAchievementBadge(rank) {
+            const achievement = getAchievement(rank);
+
+            if (!achievement) return null;
+
+            const badge = createElement(
+                "span",
+                "learner-achievement-badge"
+            );
+
+            badge.textContent =
+                achievement.icon + " " + achievement.label;
+
+            badge.style.display = "inline-block";
+            badge.style.padding = "5px 10px";
+            badge.style.marginTop = "8px";
+            badge.style.borderRadius = "20px";
+            badge.style.background = "#e8f4f3";
+            badge.style.color = "#146c69";
+            badge.style.fontSize = "12px";
+            badge.style.fontWeight = "600";
+
+            return badge;
+        }
+
+        // ==========================================
+        // TOP THREE PODIUM
+        // ==========================================
+
+        function renderPodium(learners) {
+            podium.innerHTML = "";
+
+            const topThree = learners.slice(0, 3);
+
+            topThree.forEach(function (learner, index) {
+                const rank = getRank(learner, index);
+                const name = getName(learner);
+
+                const card = createElement(
+                    "div",
+                    "leaderboard-podium-card"
+                );
+
+                card.style.background = "#ffffff";
+                card.style.border = "1px solid #e2e8f0";
+                card.style.borderRadius = "14px";
+                card.style.padding = "20px";
+                card.style.textAlign = "center";
+                card.style.flex = "1";
+                card.style.minWidth = "180px";
+                card.style.boxShadow =
+                    "0 4px 12px rgba(0,0,0,0.05)";
 
                 if (rank === 1) {
-                    rankClass = "rank-one";
-                }
-                else if (rank === 2) {
-                    rankClass = "rank-two";
-                }
-                else {
-                    rankClass = "rank-three";
+                    card.style.border = "2px solid #eab308";
                 }
 
-                const card = el(
+                if (isCurrentLearner(learner)) {
+                    card.style.background = "#effcf9";
+                }
+
+                const rankIcon =
+                    rank === 1 ? "🥇" :
+                    rank === 2 ? "🥈" : "🥉";
+
+                const medal = createElement(
                     "div",
-                    "top-learner-card" +
-                    (rank === 1 ? " first-place" : "")
+                    "leaderboard-medal",
+                    rankIcon
                 );
 
-                // Rank number.
-                const rankCircle = el(
+                medal.style.fontSize = "36px";
+
+                const avatar = createElement(
                     "div",
-                    "rank-circle " + rankClass,
-                    String(rank)
+                    "leaderboard-avatar",
+                    getInitials(name)
                 );
 
-                // Learner name.
-                const learnerName = el(
+                avatar.style.width = "55px";
+                avatar.style.height = "55px";
+                avatar.style.borderRadius = "50%";
+                avatar.style.background = "#123b61";
+                avatar.style.color = "#ffffff";
+                avatar.style.display = "flex";
+                avatar.style.alignItems = "center";
+                avatar.style.justifyContent = "center";
+                avatar.style.margin = "12px auto";
+                avatar.style.fontWeight = "700";
+
+                const learnerName = createElement(
                     "h3",
-                    "learner-name",
-                    learner.displayName
+                    "leaderboard-learner-name",
+                    name + (
+                        isCurrentLearner(learner)
+                            ? " (You)"
+                            : ""
+                    )
                 );
 
-                // School and province.
-                const school = el(
+                const school = createElement(
                     "p",
-                    "learner-school",
-                    (learner.schoolName || "School unavailable") +
-                    " \u00B7 " +
-                    (learner.provinceName || "Province unavailable")
+                    "leaderboard-school",
+                    learner.schoolName || ""
                 );
 
-                // Points and quizzes completed.
-                const score = el(
+                const points = createElement(
                     "p",
-                    "learner-score",
-                    learner.points +
-                    " pts \u00B7 " +
-                    learner.quizzesTaken +
-                    " quizzes"
+                    "leaderboard-points",
+                    getPoints(learner) + " points"
                 );
 
-                card.appendChild(rankCircle);
+                points.style.fontWeight = "700";
+                points.style.color = "#123b61";
+
+                const quizzes = createElement(
+                    "p",
+                    "leaderboard-quizzes",
+                    getQuizzesTaken(learner) +
+                    " quizzes completed"
+                );
+
+                card.appendChild(medal);
+                card.appendChild(avatar);
                 card.appendChild(learnerName);
-                card.appendChild(school);
-                card.appendChild(score);
 
-                topLearnersContainer.appendChild(card);
-            }
-        );
-    }
-
-    // ==============================================
-    // TOP LEARNER PER PROVINCE
-    // ==============================================
-
-    function displayRegionalLeaders() {
-
-        regionalLeadersContainer.innerHTML = "";
-
-        const qualifiedEntries = getQualifiedEntries();
-
-        let any = false;
-
-        provinces.forEach(function (province) {
-
-            // Backend results are already ordered.
-            // Find the first learner in this province.
-
-            const topLearner = qualifiedEntries.find(
-                function (learner) {
-
-                    return String(learner.provinceID) ===
-                        String(province.provinceID);
+                if (learner.schoolName) {
+                    card.appendChild(school);
                 }
-            );
 
-            // No learner with points in this province.
-            if (!topLearner) {
+                card.appendChild(points);
+                card.appendChild(quizzes);
+
+                const badge = createAchievementBadge(rank);
+
+                if (badge) {
+                    card.appendChild(badge);
+                }
+
+                podium.appendChild(card);
+            });
+
+            podium.style.display = "flex";
+            podium.style.flexWrap = "wrap";
+            podium.style.gap = "16px";
+            podium.style.justifyContent = "center";
+        }
+
+        // ==========================================
+        // RANKINGS LIST
+        // ==========================================
+
+        function renderLeaderboardList(learners) {
+            leaderboardList.innerHTML = "";
+
+            learners.forEach(function (learner, index) {
+                const rank = getRank(learner, index);
+                const name = getName(learner);
+
+                const row = createElement(
+                    "div",
+                    "leaderboard-ranking-row"
+                );
+
+                row.style.display = "flex";
+                row.style.alignItems = "center";
+                row.style.justifyContent = "space-between";
+                row.style.flexWrap = "wrap";
+                row.style.gap = "12px";
+                row.style.padding = "15px";
+                row.style.marginBottom = "10px";
+                row.style.borderRadius = "10px";
+                row.style.border = "1px solid #e2e8f0";
+                row.style.background = isCurrentLearner(learner)
+                    ? "#effcf9"
+                    : "#ffffff";
+
+                const left = createElement(
+                    "div",
+                    "leaderboard-ranking-info"
+                );
+
+                left.style.display = "flex";
+                left.style.alignItems = "center";
+                left.style.gap = "14px";
+
+                const rankNumber = createElement(
+                    "strong",
+                    "leaderboard-rank-number",
+                    "#" + rank
+                );
+
+                rankNumber.style.minWidth = "35px";
+                rankNumber.style.color = "#123b61";
+
+                const details = createElement(
+                    "div",
+                    "leaderboard-ranking-details"
+                );
+
+                const nameElement = createElement(
+                    "strong",
+                    "leaderboard-ranking-name",
+                    name + (
+                        isCurrentLearner(learner)
+                            ? " (You)"
+                            : ""
+                    )
+                );
+
+                const extra = createElement(
+                    "p",
+                    "leaderboard-ranking-extra",
+                    getQuizzesTaken(learner) +
+                    " quizzes completed"
+                );
+
+                extra.style.margin = "4px 0 0";
+                extra.style.fontSize = "13px";
+                extra.style.color = "#64748b";
+
+                details.appendChild(nameElement);
+                details.appendChild(extra);
+
+                left.appendChild(rankNumber);
+                left.appendChild(details);
+
+                const right = createElement(
+                    "div",
+                    "leaderboard-ranking-score"
+                );
+
+                right.style.textAlign = "right";
+
+                const points = createElement(
+                    "strong",
+                    "leaderboard-ranking-points",
+                    getPoints(learner) + " pts"
+                );
+
+                right.appendChild(points);
+
+                const average = getAverage(learner);
+
+                if (average !== null) {
+                    const averageElement = createElement(
+                        "p",
+                        "leaderboard-ranking-average",
+                        "Average: " + average
+                    );
+
+                    averageElement.style.margin = "4px 0 0";
+                    averageElement.style.fontSize = "12px";
+                    averageElement.style.color = "#64748b";
+
+                    right.appendChild(averageElement);
+                }
+
+                const badge = createAchievementBadge(rank);
+
+                if (badge) {
+                    details.appendChild(badge);
+                }
+
+                row.appendChild(left);
+                row.appendChild(right);
+
+                leaderboardList.appendChild(row);
+            });
+        }
+
+        // ==========================================
+        // RENDER ALL RANKINGS
+        // ==========================================
+
+        function renderRankings(data) {
+            const learners = data
+                .filter(function (learner) {
+                    return getPoints(learner) > 0;
+                })
+                .sort(function (a, b) {
+                    return getPoints(b) - getPoints(a);
+                });
+
+            if (learners.length === 0) {
+                showEmpty();
                 return;
             }
 
-            any = true;
+            showRankings();
+            renderPodium(learners);
+            renderLeaderboardList(learners);
+        }
 
-            const card = el(
-                "div",
-                "regional-card"
-            );
+        // ==========================================
+        // LOAD RANKINGS FROM BACKEND
+        // ==========================================
 
-            // Province name.
-            const regionName = el(
-                "p",
-                "region-name",
-                province.provinceName
-            );
+        async function loadLeaderboard(period) {
+            const thisRequest = ++requestNumber;
 
-            card.appendChild(regionName);
+            currentPeriod = period;
 
-            const learner = el(
-                "div",
-                "regional-learner"
-            );
+            clearRankings();
 
-            // Avatar.
-            const avatar = el(
-                "div",
-                "learner-initials",
-                initials(topLearner.displayName)
-            );
+            emptyLeaderboard.style.display = "none";
+            podium.style.display = "none";
+            rankingsSection.style.display = "none";
 
-            learner.appendChild(avatar);
+            showStatus("Loading leaderboard...");
 
-            // Learner details.
-            const info = el(
-                "div",
-                "regional-learner-info"
-            );
+            try {
+                const endpoint =
+                    "/leaderboards/rankings?period=" +
+                    encodeURIComponent(period);
 
-            const name = el(
-                "h3",
-                "regional-learner-name",
-                topLearner.displayName
-            );
+                const response = await EduQuestAPI.get(endpoint);
 
-            const school = el(
-                "p",
-                "regional-school",
-                topLearner.schoolName ||
-                "School unavailable"
-            );
+                if (thisRequest !== requestNumber) {
+                    return;
+                }
 
-            info.appendChild(name);
-            info.appendChild(school);
+                if (!Array.isArray(response)) {
+                    throw new Error(
+                        "Invalid leaderboard response from server."
+                    );
+                }
 
-            learner.appendChild(info);
+                renderRankings(response);
+                showStatus("");
 
-            card.appendChild(learner);
+            } catch (error) {
+                if (thisRequest !== requestNumber) {
+                    return;
+                }
 
-            // Total points.
-            const score = el(
-                "p",
-                "regional-score",
-                topLearner.points + " pts"
-            );
+                console.error(
+                    "Leaderboard loading error:",
+                    error
+                );
 
-            card.appendChild(score);
+                clearRankings();
 
-            regionalLeadersContainer.appendChild(card);
+                emptyLeaderboard.style.display = "none";
+                podium.style.display = "none";
+                rankingsSection.style.display = "none";
+
+                showStatus(
+                    "Unable to load leaderboard: " +
+                    (error.message || "Unknown error")
+                );
+            }
+        }
+
+        // ==========================================
+        // PERIOD BUTTONS
+        // ==========================================
+
+        periodButtons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                const period = button.dataset.period;
+
+                if (!["week", "month", "all"].includes(period)) {
+                    return;
+                }
+
+                periodButtons.forEach(function (item) {
+                    item.classList.remove("active");
+                    item.setAttribute(
+                        "aria-pressed",
+                        "false"
+                    );
+                });
+
+                button.classList.add("active");
+                button.setAttribute(
+                    "aria-pressed",
+                    "true"
+                );
+
+                loadLeaderboard(period);
+            });
         });
 
         // ==========================================
-        // NEW: NO REGIONAL RANKINGS
+        // INITIAL LOAD
         // ==========================================
 
-        if (!any) {
-
-            emptyNote(
-                regionalLeadersContainer,
-                "No learners have earned points " +
-                "in any province yet."
-            );
-        }
-    }
-
-    // ==============================================
-    // UPDATE PAGE HEADING
-    // ==============================================
-
-    function updateHeading() {
-
-        const selected =
-            regionFilter.options[
-                regionFilter.selectedIndex
-            ];
-
-        if (!regionFilter.value) {
-
-            rankingTitle.textContent = "nationally";
-
-            rankingDescription.textContent =
-                currentSubjectName +
-                " ranking, all provinces";
-        }
-        else {
-
-            rankingTitle.textContent =
-                "in " + selected.textContent;
-
-            rankingDescription.textContent =
-                currentSubjectName +
-                " ranking in " +
-                selected.textContent;
-        }
-    }
-
-    // ==============================================
-    // RENDER LEADERBOARD
-    // ==============================================
-
-    function render() {
-
-        displayTopLearners();
-
-        displayRegionalLeaders();
-
-        updateHeading();
-    }
-
-    // ==============================================
-    // LOAD REAL BACKEND RANKINGS
-    // ==============================================
-
-    async function loadRankings() {
-
-        // Track the latest request.
-        const thisRequest = ++requestNumber;
-
-        // NEW:
-        // Clear previous rankings before fetching.
-        entries = [];
-
-        topLearnersContainer.innerHTML = "";
-
-        regionalLeadersContainer.innerHTML = "";
-
-        showStatus("Loading leaderboard...");
-
-        // Backend query.
-        let path =
-            "/leaderboards/rankings?period=all";
-
-        // Optional subject filter.
-        if (currentSubjectId !== null) {
-
-            path +=
-                "&subjectId=" +
-                encodeURIComponent(currentSubjectId);
-        }
-
-        try {
-
-            // GET actual quiz-based rankings.
-            const data = await EduQuestAPI.get(path);
-
-            // Ignore outdated responses.
-            if (thisRequest !== requestNumber) {
-                return;
-            }
-
-            if (!Array.isArray(data)) {
-
-                throw new Error(
-                    "Invalid leaderboard response."
-                );
-            }
-
-            // ======================================
-            // NEW: NO DUMMY DATA
-            // ======================================
-
-            // Only backend results are used.
-            entries = data;
-
-            render();
-
-            showStatus("");
-
-        } catch (error) {
-
-            if (thisRequest !== requestNumber) {
-                return;
-            }
-
-            entries = [];
-
-            topLearnersContainer.innerHTML = "";
-
-            regionalLeadersContainer.innerHTML = "";
-
-            // API failure is different from
-            // an empty leaderboard.
-            showStatus(
-                "Unable to load leaderboard: " +
-                error.message
-            );
-        }
-    }
-
-    // ==============================================
-    // BUILD SUBJECT TABS
-    // ==============================================
-
-    function buildSubjectTabs(subjects) {
-
-        subjectTabsContainer.innerHTML = "";
-
-        function addTab(label, subjectId, active) {
-
-            const button = el(
-                "button",
-                "subject-tab" +
-                (active ? " active" : ""),
-                label
+        const selectedButton =
+            document.querySelector(
+                '[data-period].active'
             );
 
-            button.type = "button";
+        const initialPeriod = selectedButton &&
+            ["week", "month", "all"].includes(
+                selectedButton.dataset.period
+            )
+                ? selectedButton.dataset.period
+                : "all";
 
-            button.addEventListener(
-                "click",
-                function () {
+        loadLeaderboard(initialPeriod);
 
-                    // Remove active state.
-                    subjectTabsContainer
-                        .querySelectorAll(".subject-tab")
-                        .forEach(function (tab) {
-
-                            tab.classList.remove("active");
-                        });
-
-                    // Highlight selected subject.
-                    button.classList.add("active");
-
-                    currentSubjectId = subjectId;
-
-                    currentSubjectName = label;
-
-                    // Reload actual rankings.
-                    loadRankings();
-                }
-            );
-
-            subjectTabsContainer.appendChild(button);
-        }
-
-        // Overall leaderboard.
-        addTab("Overall", null, true);
-
-        // Actual subjects from the database.
-        subjects.forEach(function (subject) {
-
-            addTab(
-                subject.subjectName,
-                subject.subjectID,
-                false
-            );
-        });
-    }
-
-    // ==============================================
-    // BUILD PROVINCE FILTER
-    // ==============================================
-
-    function buildRegionFilter() {
-
-        regionFilter.innerHTML = "";
-
-        // Default option.
-        const all = el(
-            "option",
-            "",
-            "All provinces"
-        );
-
-        all.value = "";
-
-        regionFilter.appendChild(all);
-
-        // Actual provinces from the database.
-        provinces.forEach(function (province) {
-
-            const option = el(
-                "option",
-                "",
-                province.provinceName
-            );
-
-            option.value = province.provinceID;
-
-            regionFilter.appendChild(option);
-        });
-    }
-
-    // ==============================================
-    // REGION FILTER EVENT
-    // ==============================================
-
-    regionFilter.addEventListener(
-        "change",
-        function () {
-
-            // Filter existing backend rankings.
-            render();
-        }
-    );
-
-    // ==============================================
-    // INITIAL LOAD
-    // ==============================================
-
-    async function initializeLeaderboard() {
-
-        showStatus("Loading leaderboard...");
-
-        try {
-
-            // Load subjects and provinces.
-            const results = await Promise.all([
-                EduQuestAPI.get("/subjects"),
-                EduQuestAPI.get("/provinces")
-            ]);
-
-            if (
-                !Array.isArray(results[0]) ||
-                !Array.isArray(results[1])
-            ) {
-                throw new Error(
-                    "Invalid subjects or provinces response."
-                );
-            }
-
-            // Subject tabs.
-            buildSubjectTabs(results[0]);
-
-            // Province options.
-            provinces = results[1];
-
-            buildRegionFilter();
-
-            // Load actual rankings.
-            await loadRankings();
-
-        } catch (error) {
-
-            showStatus(
-                "Unable to initialize leaderboard: " +
-                error.message
-            );
-        }
-    }
-
-    initializeLeaderboard();
-
+    });
 })();
