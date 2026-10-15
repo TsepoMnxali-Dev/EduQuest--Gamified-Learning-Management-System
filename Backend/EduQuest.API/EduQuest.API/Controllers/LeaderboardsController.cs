@@ -1,5 +1,4 @@
-﻿
-using EduQuest.API.Data;
+﻿using EduQuest.API.Data;
 using EduQuest.API.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -301,8 +300,34 @@ namespace EduQuest.API.Controllers
                 entries[i].Rank = i + 1;
             }
 
-            // If everyone scored zero,
-            // entries is empty and returns [].
+            // Attach permanent earned achievements in one query.
+            // Ranking medals are calculated in the frontend from Rank;
+            // they aren't saved permanently as learner achievements.
+            var rankedLearnerIds = entries.Select(e => e.LearnerID).ToList();
+            var earned = await _context.LearnerAchievements
+                .AsNoTracking()
+                .Where(la => rankedLearnerIds.Contains(la.LearnerID))
+                .Select(la => new
+                {
+                    la.LearnerID,
+                    Badge = new AchievementBadgeDto
+                    {
+                        AchievementID = la.AchievementID,
+                        Name = la.Achievement!.Name,
+                        Description = la.Achievement.Description,
+                        BadgeImage = la.Achievement.BadgeImage,
+                        PointsRequired = la.Achievement.PointsRequired
+                    }
+                })
+                .ToListAsync();
+
+            foreach (var entry in entries)
+                entry.Badges = earned
+                    .Where(e => e.LearnerID == entry.LearnerID)
+                    .Select(e => e.Badge)
+                    .OrderBy(b => b.Name)
+                    .ToList();
+
             return Ok(entries);
         }
 

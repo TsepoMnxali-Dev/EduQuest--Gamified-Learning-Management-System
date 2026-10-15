@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -122,6 +121,13 @@
                 <div id="profileSubjects" class="eq-subjects"></div>
             </section>
 
+            <!-- Permanent earned achievement badges -->
+            <section class="eq-profile-panel" id="profileAchievementsPanel">
+                <h2>My Achievements</h2>
+                <p id="profileAchievementsStatus" role="status">Loading achievements...</p>
+                <div id="profileAchievements" class="eq-badge-grid"></div>
+            </section>
+
             <!-- Edit Profile -->
             <section class="eq-profile-panel" id="profileEditPanel" hidden>
                 <h2>Edit my details</h2>
@@ -205,6 +211,7 @@
     <!-- Existing API and Profile Logic -->
     <script src="js/api.js"></script>
     <script src="js/profile.js" defer></script>
+    <script src="js/profile-achievements.js" defer></script>
 </body>
 
 </html>

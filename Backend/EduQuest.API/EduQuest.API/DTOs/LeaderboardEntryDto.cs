@@ -19,5 +19,8 @@
 
         // True for the row that belongs to the signed-in learner.
         public bool IsCurrentUser { get; set; }
+
+        // Permanent achievements earned by the learner.
+        public List<AchievementBadgeDto> Badges { get; set; } = new();
     }
 }

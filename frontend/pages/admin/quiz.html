@@ -238,6 +238,21 @@
                     </div>
                 </div>
 
+                <!-- One-step quiz creation from the verified Question Bank. -->
+                <div id="autoBankSettings" style="margin:12px 0; padding:12px; border:1px solid #dbe4ec; border-radius:10px;">
+                    <label class="qz-check" for="quizAutoBank">
+                        <input id="quizAutoBank" type="checkbox" checked>
+                        <span><strong>Automatically add 10 questions from the Question Bank</strong> (recommended)</span>
+                    </label>
+                    <small id="autoBankAvailability" class="qz-hint" role="status" aria-live="polite">
+                        Select a topic and difficulty to check availability.
+                    </small>
+                    <small class="qz-hint" style="display:block; margin-top:6px;">
+                        Uses only this topic (and its grade) and the selected difficulty. AI is not used.
+                        To create an empty quiz instead, untick this box.
+                    </small>
+                </div>
+
                 <label class="qz-check">
                     <input id="quizPublished" type="checkbox">
                     <span>Published (learners can see and take this quiz)</span>

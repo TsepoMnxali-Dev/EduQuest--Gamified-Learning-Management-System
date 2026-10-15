@@ -12,6 +12,7 @@
     <!-- Existing admin stylesheet -->
     <link rel="stylesheet" href="../../css/style.css">
 <link rel="stylesheet" href="../../css/admin-theme.css">
+    <link rel="stylesheet" href="../../EduQuest-with-js/EduQuest/css/achievement-badges.css">
 </head>
 
 <body>
@@ -163,6 +164,32 @@
 
             </section>
 
+
+                <section class="eq-admin-badges" aria-labelledby="achievementsHeading">
+                    <h2 id="achievementsHeading">Achievement Badges</h2>
+                    <p class="eq-muted">Create special badges and award them manually. Quiz milestone badges are earned automatically.</p>
+                    <h3>Create a special badge</h3>
+                    <form id="createAchievementForm" class="eq-admin-badge-form">
+                        <label>Badge name<input id="achievementName" required maxlength="100" placeholder="Community Helper"></label>
+                        <label>Description<input id="achievementDescription" required maxlength="500" placeholder="Recognised for helping classmates"></label>
+                        <label>Badge icon (emoji)<input id="achievementIcon" required maxlength="20" value="🌟"></label>
+                        <button type="submit">Create badge</button>
+                    </form>
+                    <hr>
+                    <h3>Award a badge to a learner</h3>
+                    <form id="awardAchievementForm" class="eq-admin-badge-form">
+                        <label>Learner<select id="achievementLearner" required></select></label>
+                        <label>Badge<select id="achievementBadge" required></select></label>
+                        <button type="submit">Award Badge</button>
+                    </form>
+                    <div id="learnerAwardedBadges" class="eq-badge-strip" aria-live="polite"></div>
+                    <hr>
+                    <h3>Existing quiz results</h3>
+                    <p class="eq-muted">If learners completed quizzes before the badge system was added, synchronise their earned badges.</p>
+                    <button type="button" id="backfillAchievementBtn">Sync Past Quiz Badges</button>
+                    <p id="achievementAdminStatus" role="status" aria-live="polite"></p>
+                </section>
+
         </main>
 
     </div>
@@ -179,5 +206,6 @@
     <script src="../../js/leaderboard.js"></script>
 
 <script src="../../js/admin-shell.js"></script>
+<script src="../../js/admin-achievements.js" defer></script>
 </body>
 </html>
