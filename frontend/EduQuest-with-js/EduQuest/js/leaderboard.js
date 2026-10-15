@@ -1,3 +1,4 @@
+
 /*
 ========================================================
 EduQuest - Learner Leaderboard
@@ -19,7 +20,6 @@ The backend calculates points and rankings.
 */
 
 (function () {
-
     "use strict";
 
     // ==============================================
