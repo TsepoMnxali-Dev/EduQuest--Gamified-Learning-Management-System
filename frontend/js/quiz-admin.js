@@ -366,7 +366,9 @@
         byId("quizDifficulty").value = quiz && quiz.difficulty ? quiz.difficulty : "Medium";
         byId("quizMinutes").value = quiz && quiz.minutes ? quiz.minutes : 30;
         byId("quizPublished").checked = quiz ? quiz.published : false;
+        byId("quizAutoBank").checked = !quiz;
         updatePublishHint();
+        updateAutomaticBankToggle();
 
         show(byId("quizModal"), true);
         byId("quizTitle").focus();
@@ -375,6 +377,51 @@
     function closeQuizModal() {
         show(byId("quizModal"), false);
         editingQuiz = null;
+        bankAvailabilityRequest++;
+    }
+
+    // Only applies to NEW quizzes. Editing never silently replaces questions.
+    var bankAvailabilityRequest = 0;
+
+    function updateAutomaticBankToggle() {
+        var container = byId("autoBankSettings");
+        if (container) { container.hidden = !!editingQuiz; }
+        refreshBankAvailability();
+    }
+
+    async function refreshBankAvailability() {
+        var info = byId("autoBankAvailability");
+        if (!info) { return; }
+        var request = ++bankAvailabilityRequest;
+        var useBank = !editingQuiz && byId("quizAutoBank").checked;
+        if (!useBank) {
+            info.textContent = editingQuiz
+                ? ""
+                : "Manual mode creates an unpublished draft. Add and review its questions before publishing.";
+            return;
+        }
+        var topicId = Number(byId("quizTopic").value);
+        var difficulty = byId("quizDifficulty").value;
+        if (!topicId) {
+            info.textContent = "Select a topic to check for 10 matching questions.";
+            return;
+        }
+        info.textContent = "Checking Question Bank availability...";
+        try {
+            var result = lc(await EduQuestAPI.get(
+                "/quizzes/bank-availability?topicId=" + encodeURIComponent(topicId) +
+                "&difficulty=" + encodeURIComponent(difficulty)
+            ));
+            if (request !== bankAvailabilityRequest) { return; }
+            var count = Number(result.available);
+            info.textContent = result.cancreate
+                ? count + " matching questions available. EduQuest will select 10 automatically."
+                : "Only " + count + " matching valid questions. At least 10 are needed. " +
+                  "Try another difficulty or turn off automatic selection to create a draft.";
+        } catch (error) {
+            if (request !== bankAvailabilityRequest) { return; }
+            info.textContent = "Could not check Question Bank: " + error.message;
+        }
     }
 
     async function saveQuiz(event) {
@@ -404,14 +451,25 @@
         button.textContent = "Saving...";
 
         try {
-            if (editingQuiz) {
+            var wasEditing = !!editingQuiz;
+            var useBank = !wasEditing && byId("quizAutoBank").checked;
+            var created = null;
+            if (wasEditing) {
                 await EduQuestAPI.put("/quizzes/" + editingQuiz.id, payload);
+            } else if (useBank) {
+                created = await EduQuestAPI.post("/quizzes/create-from-bank", payload);
             } else {
+                // A quiz without questions must not become visible to learners.
+                payload.isPublished = false;
                 await EduQuestAPI.post("/quizzes", payload);
             }
-            var wasEditing = !!editingQuiz;
             closeQuizModal();
-            pageNotice(wasEditing ? "Quiz updated." : "Quiz created. Add questions with the Questions button.", "");
+            pageNotice(wasEditing
+                ? "Quiz updated. Existing questions were preserved."
+                : (useBank
+                    ? "Quiz created with " + Number(lc(created).questionsadded || 10) +
+                      " matching approved Question Bank questions."
+                    : "Manual quiz created. Open Questions to add them before publishing."), "");
             await loadAll();
         } catch (err) {
             if (authLost()) { return; }
@@ -874,6 +932,9 @@
         byId("cancelQuiz").addEventListener("click", closeQuizModal);
         byId("quizForm").addEventListener("submit", saveQuiz);
         byId("quizPublished").addEventListener("change", updatePublishHint);
+        byId("quizTopic").addEventListener("change", refreshBankAvailability);
+        byId("quizDifficulty").addEventListener("change", refreshBankAvailability);
+        byId("quizAutoBank").addEventListener("change", refreshBankAvailability);
 
         byId("quizTableBody").addEventListener("click", function (event) {
             var button = event.target.closest("button[data-action]");

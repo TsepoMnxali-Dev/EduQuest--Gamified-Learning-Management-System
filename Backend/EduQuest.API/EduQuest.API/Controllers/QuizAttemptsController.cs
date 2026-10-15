@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using EduQuest.API.Services;
 
 namespace EduQuest.API.Controllers
 {
@@ -539,6 +540,11 @@ namespace EduQuest.API.Controllers
             // 8. Save the answers and updated score
             // ---------------------------------------------------------------
             await _context.SaveChangesAsync();
+
+            // Persist any newly earned achievement badges for this learner.
+            // Also safe to call again later to backfill prior submissions.
+            await AchievementAwardService.SyncForLearnerAsync(
+                _context, learner.LearnerID);
 
             // ---------------------------------------------------------------
             // 9. Return the completed attempt
