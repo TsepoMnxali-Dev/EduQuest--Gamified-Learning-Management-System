@@ -14,7 +14,37 @@
 window.EduQuestAPI = (function () {
     "use strict";
 
-    const BASE_URL = "https://localhost:7021/api";
+    const BASE_URL = (() => {
+    // Optional override for servers where frontend and API
+    // are hosted at different addresses.
+    const configuredUrl = window.EDUQUEST_API_BASE_URL;
+
+    if (
+        typeof configuredUrl === "string" &&
+        configuredUrl.trim()
+    ) {
+        const url = new URL(configuredUrl.trim(), window.location.href);
+
+        if (!["http:", "https:"].includes(url.protocol)) {
+            throw new Error("Invalid EduQuest API URL.");
+        }
+
+        return url.href.replace(/\/+$/, "");
+    }
+
+    // Preserve your existing local Visual Studio setup.
+    const isLocal =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
+
+    if (isLocal) {
+        return "https://localhost:7021/api";
+    }
+
+    // Default production setup:
+    // frontend and backend hosted under the same domain.
+    return window.location.origin + "/api";
+})();
     const TOKEN_KEY = "eduquest_token";
 
     // NEW: Resolve paths relative to this script,

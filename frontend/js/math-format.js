@@ -1,3 +1,4 @@
+
 /* =============================================================
    EduQuest - math-format.js
    Shows maths in questions the way a maths paper does: stacked
@@ -324,6 +325,20 @@ window.EduQuestMath = (function () {
         return j;
     }
 
+    /*
+       FIX (2026-10-18): Physical units use / as part of a unit, not as a
+       request to stack a fraction. Previous code recognised plain km/h but
+       misread m/s^2 and 9.8m/s as mathematical fractions.
+       Match recognised unit SYMBOLS only, so x/y and 1/2 stay fractions.
+       Explicit $\\frac{...}{...}$ is not processed here at all.
+    */
+    var UNIT_NUMERATOR = /^(?:\d+(?:\.\d+)?)?(?:kWh|kPa|kW|kJ|kg|km|cm|mm|dm|mg|mol|mL|Hz|Pa|N|J|W|C|V|A|g|m|L|Ω)(?:\^(?:\([+-]?\d+\)|[+-]?\d+))?$/;
+    var UNIT_DENOMINATOR = /^(?:kPa|kg|km|cm|mm|dm|mg|mol|mL|min|ms|hr|Pa|kJ|kW|N|J|W|C|V|A|K|s|m|g|h|L)(?:\^(?:\([+-]?\d+\)|[+-]?\d+))?$/;
+
+    function isPhysicalUnitRatio(top, bottom) {
+        return UNIT_NUMERATOR.test(top) && UNIT_DENOMINATOR.test(bottom);
+    }
+
     /* Turns  a / b  into a stacked fraction. */
     function buildFractions(pieces) {
         var k = 0;
@@ -344,7 +359,11 @@ window.EduQuestMath = (function () {
                         (prev.raw.length > 1 || next.raw.length > 1 || afterNumber);
 
                     var replacement;
-                    if (unitLike) {
+                    if (isPhysicalUnitRatio(prev.raw, next.raw)) {
+                        // Keep the slash inline, but keep scripts such as s^2
+                        // properly typeset as powers (not plain ^2 text).
+                        replacement = { t: "chain", latex: "\\mathrm{" + prev.latex + "/" + next.latex + "}", raw: prev.raw + "/" + next.raw, kinds: ["unit"], inner: null };
+                    } else if (unitLike) {
                         replacement = { t: "chain", latex: "\\mathrm{" + prev.raw + "/" + next.raw + "}", raw: prev.raw + "/" + next.raw, kinds: ["unit"], inner: null };
                     } else {
                         var top = prev.raw === "d" && isDerivative ? "\\mathrm{d}" : (prev.inner !== null ? prev.inner : prev.latex);

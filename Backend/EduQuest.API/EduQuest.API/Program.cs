@@ -1,3 +1,4 @@
+
 using EduQuest.API.Data;
 using EduQuest.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -88,27 +89,49 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// Authorization checks roles such as Admin and Learner.
 builder.Services.AddAuthorization();
 
 // ==============================================
 // CORS CONFIGURATION
 // ==============================================
-// Allows the frontend to communicate with the API.
-// Add other trusted frontend origins if necessary.
+// Development: Allow local frontend addresses.
+// Production: Read permitted origins from
+// configuration without changing this file.
+
+var allowedOrigins = new List<string>();
+
+if (builder.Environment.IsDevelopment())
+{
+    allowedOrigins.AddRange(new[]
+    {
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "http://localhost:5501",
+        "http://127.0.0.1:5501",
+        "http://localhost:3000",
+        "http://localhost:5173"
+    });
+}
+
+var configuredOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
+
+allowedOrigins.AddRange(
+    configuredOrigins
+        .Where(origin => !string.IsNullOrWhiteSpace(origin))
+        .Select(origin => origin.Trim().TrimEnd('/'))
+);
+
+var finalOrigins = allowedOrigins
+    .Distinct(StringComparer.OrdinalIgnoreCase)
+    .ToArray();
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("EduQuestFrontend", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5500",
-                "http://127.0.0.1:5500",
-                "http://localhost:5501",
-                "http://127.0.0.1:5501",
-                "http://localhost:3000",
-                "http://localhost:5173"
-              )
+        policy.WithOrigins(finalOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -134,33 +157,21 @@ if (app.Environment.IsDevelopment())
     var configuration = scope.ServiceProvider
         .GetRequiredService<IConfiguration>();
 
-    // Create the default administrator.
     await DbSeeder.SeedAdminAsync(context, configuration);
 
-    // Seed existing academic structure.
     await DbSeeder.SeedGradesAsync(context);
     await DbSeeder.SeedSubjectsAsync(context);
     await DbSeeder.SeedGradeSubjectsAsync(context);
     await DbSeeder.SeedTopicsAsync(context);
 
-    // Existing quiz questions.
     await DbSeeder.SeedQuestionBankAsync(context);
 
-    // ==========================================
-    // CHANGED: DISABLE STUDY MATERIAL SEEDING
-    // ==========================================
-    // Study materials must only be added by an administrator through the frontend.
-
+    // Study materials are only added by administrators.
     // await DbSeeder.SeedStudyMaterialsAsync(context);
-
-    // ==========================================
-    // EXISTING LEARNER SEEDING
-    // ==========================================
 
     await DbSeeder.SeedDemoLearnersAsync(context);
     await DbSeeder.SeedLearnerSubjectsAsync(context);
 
-    // Enable Swagger in Development.
     app.UseSwagger();
     app.UseSwaggerUI();
 }
@@ -169,20 +180,13 @@ if (app.Environment.IsDevelopment())
 // HTTP REQUEST PIPELINE
 // ==============================================
 
-// Redirect HTTP requests to HTTPS.
 app.UseHttpsRedirection();
 
-// Allow approved frontend origins.
 app.UseCors("EduQuestFrontend");
 
-// Authenticate users before checking permissions.
 app.UseAuthentication();
-
-// Apply authorization rules.
 app.UseAuthorization();
 
-// Map controller endpoints.
 app.MapControllers();
 
-// Start the application.
 app.Run();

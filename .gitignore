@@ -20,3 +20,6 @@ packages/
 .DS_Store
 Thumbs.db
 frontend-react-backup/
+
+# Ignore generated backend deployment files
+/publish/

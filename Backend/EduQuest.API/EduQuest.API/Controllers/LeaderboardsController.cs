@@ -140,6 +140,22 @@ namespace EduQuest.API.Controllers
             // ==========================================
             // STEP 4: GET ATTEMPTS FROM DATABASE
             // ==========================================
+            // ==========================================
+            // TEMPORARY LEADERBOARD DIAGNOSTIC
+            // ==========================================
+
+            var totalAttempts = await _context.QuizAttempts.CountAsync();
+
+            var attemptsWithAnswers = await _context.QuizAttempts
+                .CountAsync(a => a.QuizAttemptAnswers.Any());
+
+            var matchingAttempts = await query.CountAsync();
+
+            Console.WriteLine("========== LEADERBOARD DEBUG ==========");
+            Console.WriteLine($"Total quiz attempts: {totalAttempts}");
+            Console.WriteLine($"Attempts with saved answers: {attemptsWithAnswers}");
+            Console.WriteLine($"Matching leaderboard attempts: {matchingAttempts}");
+            Console.WriteLine("=======================================");
 
             var attempts = await query
                 .Select(a => new
