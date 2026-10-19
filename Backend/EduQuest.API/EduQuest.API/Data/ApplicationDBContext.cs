@@ -1,4 +1,5 @@
-﻿using EduQuest.API.Models.Entities;
+﻿
+using EduQuest.API.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace EduQuest.API.Data
