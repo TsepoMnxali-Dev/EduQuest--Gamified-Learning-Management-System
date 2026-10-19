@@ -1,1 +1,21 @@
 .report-main{max-width:none}.report-heading{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:22px}.report-heading h1{font-size:30px;color:var(--navy);margin:0 0 7px}.report-heading p,.section-title span,.section-title p,.filter-note,.report-footer{color:var(--muted);font-size:14px}.report-actions{display:flex;gap:10px;flex-wrap:wrap}.rbtn{padding:11px 17px;border-radius:10px;border:1px solid var(--teal);font-weight:700;cursor:pointer;font-family:inherit}.rbtn.primary{background:var(--teal);color:var(--navy)}.rbtn.secondary{background:white;color:var(--navy)}.rbtn:hover{filter:brightness(.96)}.rbtn:disabled{opacity:.4;cursor:not-allowed}.report-message{background:#e9f7f6;border:1px solid #b9dddd;color:var(--navy);padding:13px 17px;border-radius:12px;margin-bottom:22px}.report-message.error{background:#fff3f0;border-color:#f1b9aa;color:#9a3520}.section-title{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:26px 0 15px}.section-title h2{font-size:21px;color:var(--navy);margin:0}.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:15px}.summary-tile,.report-panel{background:#fff;border-radius:16px;box-shadow:var(--shadow);border:1px solid #e6eef2}.summary-tile{padding:21px}.summary-tile .label{font-size:13px;color:var(--muted)}.summary-tile .number{font-size:29px;font-weight:800;margin-top:10px;color:var(--navy)}.report-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:18px 0}.report-panel{padding:22px;min-width:0}.report-panel h2,.report-panel h3{font-size:18px;margin:0 0 18px;color:var(--navy)}.bar-chart{display:flex;flex-direction:column;gap:13px;max-height:370px;overflow-y:auto}.bar-line{display:grid;grid-template-columns:minmax(100px,1fr) minmax(70px,2fr) 64px;gap:10px;align-items:center;font-size:13px}.bar-name{overflow-wrap:anywhere}.bar-track{height:13px;background:#e9f7f6;border-radius:10px;overflow:hidden}.bar-fill{height:100%;background:var(--teal);border-radius:10px}.bar-value{text-align:right;font-weight:700}.metric-row{display:flex;justify-content:space-between;gap:15px;border-bottom:1px solid #e8eef1;padding:13px 0}.metric-row:last-child{border-bottom:0}.metric-row strong{color:var(--navy)}.empty{color:var(--muted);font-size:14px;line-height:1.6}.activity-panel{margin-top:26px}.activity-panel .section-title{margin:0 0 15px}.activity-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:12px;align-items:end}.activity-filters label{display:flex;flex-direction:column;gap:7px;color:var(--navy);font-size:13px;font-weight:700}.activity-filters input,.activity-filters select{width:100%;min-width:0;padding:11px;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--navy);font:inherit}.filter-note{margin:15px 0}.activity-summary{font-weight:700;color:var(--navy);margin-bottom:12px}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;text-align:left}thead{background:#e9f7f6}th,td{padding:13px 14px;border-bottom:1px solid #e6edf0;font-size:13px}th{color:var(--navy)}td{color:#394b5c}td .pill{display:inline-block;padding:5px 9px;border-radius:12px;background:#e9f7f6;color:var(--navy);overflow-wrap:anywhere}.pager{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:18px;font-size:13px}.pager>div{display:flex;align-items:center;gap:10px}.report-footer{margin:25px 0}@media(max-width:1050px){.activity-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-filters button{grid-column:span 2}}@media(max-width:720px){.report-grid{grid-template-columns:1fr}.report-heading h1{font-size:25px}.report-panel{padding:16px}.bar-line{grid-template-columns:minmax(75px,1fr) minmax(60px,1fr) 48px}.activity-filters{grid-template-columns:1fr}.activity-filters button{grid-column:auto}}
+
+
+/* Reports sidebar logo: match the working Admin Dashboard. */
+.sidebar .brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 22px 12px;
+    margin-bottom: 0;
+}
+
+.sidebar .brand-logo {
+    display: block;
+    width: 88px;
+    height: 88px;
+    max-width: 100%;
+    object-fit: contain;
+    margin: 0;
+}
