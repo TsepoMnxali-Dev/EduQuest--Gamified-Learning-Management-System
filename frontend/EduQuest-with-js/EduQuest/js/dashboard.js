@@ -1,277 +1,680 @@
-/* =============================================================
-   EduQuest - dashboard.js (used by dashboard.html)
 
-   Loads everything on the learner dashboard in one request
-   (GET /api/learner/dashboard): name, recent activity, enrolled
-   classes, points, ranking and the weekly learning goal.
-   Server text is written with textContent, never innerHTML.
-============================================================= */
+/* =============================================================
+   EduQuest - Learner Dashboard
+
+   Uses existing backend endpoints:
+   GET /api/learner/me
+   GET /api/learner/quizzes
+   GET /api/learner-quiz-progress
+
+   No fictional statistics or missing dashboard endpoint.
+   ============================================================= */
 
 (function () {
     "use strict";
 
-    // ==========================================
-    // AUTHENTICATION & HELPERS
-    // ==========================================
+    const API = window.EduQuestAPI;
 
-    if (!window.EduQuestAPI) {
+    if (!API) {
         console.error("EduQuestAPI is missing.");
         return;
     }
 
-    // Only authenticated learners can access this page.
-    if (!EduQuestAPI.requireLearner()) {
+    if (typeof API.requireLearner === "function" &&
+        !API.requireLearner()) {
         return;
     }
+
+    // =========================================================
+    // HELPERS
+    // =========================================================
 
     function byId(id) {
         return document.getElementById(id);
     }
 
     function el(tag, className, text) {
-        var node = document.createElement(tag);
-        if (className) node.className = className;
-        if (text !== undefined && text !== null) node.textContent = text;
+        const node = document.createElement(tag);
+
+        if (className) {
+            node.className = className;
+        }
+
+        if (text !== undefined && text !== null) {
+            node.textContent = String(text);
+        }
+
         return node;
     }
 
     function clear(node) {
-        while (node.firstChild) node.removeChild(node.firstChild);
+        if (!node) return;
+        node.replaceChildren();
     }
 
-    function timeAgo(iso) {
-        var days = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
-        if (days < 1) { return "Today"; }
-        if (days === 1) { return "Yesterday"; }
-        if (days < 7) { return days + " days ago"; }
-        var weeks = Math.floor(days / 7);
-        return weeks + (weeks === 1 ? " week ago" : " weeks ago");
-    }
+    function showStatus(container, message, isError = false) {
+        if (!container) return;
 
-    function showStatus(container, message, isError) {
         clear(container);
-        container.appendChild(el("p", "dash-status" + (isError ? " error" : ""), message));
+
+        container.appendChild(
+            el(
+                "p",
+                "dashboard-empty" + (isError ? " error" : ""),
+                message
+            )
+        );
     }
 
-    /* ---------------------------------------------------------
-       Top corner: first name and grade, e.g. "Ben · Grade 12",
-       from GET /api/learner/me.
-    --------------------------------------------------------- */
-
-    function cornerLabel() {
-        return byId("profileLabel") ||
-               byId("profileGrade") ||
-               byId("profileName") ||
-               document.querySelector(".profile-mini span");
+    function number(value) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : 0;
     }
 
-    function cornerAvatar() {
-        return byId("profileAvatar") ||
-               document.querySelector(".profile-mini .profile-avatar");
-    }
+    function formatDate(value) {
+        if (!value) return "Date unavailable";
 
-    function loadCornerIdentity() {
-        EduQuestAPI.get("/learner/me")
-            .then(function (me) {
-                var firstName = String(me.firstName || "").trim() || "Learner";
-                var gradeName = me.gradeName ? " \u00b7 " + me.gradeName : "";
+        const date = new Date(value);
 
-                var avatar = cornerAvatar();
-                var label = cornerLabel();
-
-                if (avatar) {
-                    avatar.textContent = firstName.charAt(0).toUpperCase();
-                }
-                if (label) {
-                    label.textContent = firstName + gradeName;
-                }
-            })
-            .catch(function (err) {
-                // The page still works without it.
-                console.error("Learner name failed to load:", err);
-            });
-    }
-
-    /* ---------------------------------------------------------
-       Sections
-    --------------------------------------------------------- */
-
-    function renderWelcome(data) {
-        byId("welcomeHeading").textContent = "Welcome back, " + fullName(data) + "!";
-    }
-
-    function fullName(data) {
-        var first = String(data.firstName || "").trim();
-        var last = String(data.lastName || "").trim();
-        return [first, last].filter(Boolean).join(" ") || "Learner";
-    }
-
-    function renderActivity(items) {
-        var list = byId("activityList");
-        if (!list) return;
-        clear(list);
-
-        if (!items || items.length === 0) {
-            showStatus(list, "Nothing here yet. Complete a quiz to get started.", false);
-            return;
+        if (Number.isNaN(date.getTime())) {
+            return "Date unavailable";
         }
 
-        items.forEach(function (item) {
-            var row = el("div", "activity-item");
-            row.appendChild(el("div", "activity-dot"));
-            row.appendChild(el("div", "activity-text", item.text));
-            row.appendChild(el("div", "activity-time", timeAgo(item.date)));
-            list.appendChild(row);
+        return date.toLocaleDateString("en-ZA", {
+            day: "numeric",
+            month: "short",
+            year: "numeric"
         });
     }
 
-    function renderSubjects(subjects) {
-        var grid = byId("subjectGrid") || byId("learnerClasses");
-        if (!grid) return;
-        clear(grid);
+    function timeAgo(value) {
+        if (!value) return "Date unavailable";
 
-        if (!subjects || subjects.length === 0) {
-            showStatus(grid, "You are not enrolled in any subjects yet.", false);
+        const timestamp = new Date(value).getTime();
+
+        if (!Number.isFinite(timestamp)) {
+            return "Date unavailable";
+        }
+
+        const days = Math.max(
+            0,
+            Math.floor((Date.now() - timestamp) / 86400000)
+        );
+
+        if (days === 0) return "Today";
+        if (days === 1) return "Yesterday";
+        if (days < 7) return days + " days ago";
+
+        return formatDate(value);
+    }
+
+    function createLink(label, href) {
+        const link = el(
+            "a",
+            "btn btn-primary dashboard-link",
+            label
+        );
+
+        link.href = href;
+        return link;
+    }
+
+    // =========================================================
+    // LEARNER PROFILE
+    // =========================================================
+
+    async function loadLearnerIdentity() {
+        try {
+            const me = await API.get("/learner/me");
+
+            const firstName =
+                String(me.firstName || "").trim();
+
+            const lastName =
+                String(me.lastName || "").trim();
+
+            const fullName =
+                [firstName, lastName].filter(Boolean).join(" ") ||
+                "Learner";
+
+            const gradeName =
+                me.gradeName ||
+                (me.grade && me.grade.gradeName) ||
+                "";
+
+            const welcome = byId("welcomeHeading");
+            const avatar = byId("profileAvatar");
+            const label = byId("profileLabel");
+
+            if (welcome) {
+                welcome.textContent =
+                    "Welcome back, " + fullName + "!";
+            }
+
+            if (avatar) {
+                avatar.textContent =
+                    (firstName || "L").charAt(0).toUpperCase();
+            }
+
+            if (label) {
+                label.textContent =
+                    (firstName || "Learner") +
+                    (gradeName ? " · " + gradeName : "");
+            }
+
+        } catch (error) {
+            console.error(
+                "Failed to load learner identity:",
+                error
+            );
+        }
+    }
+
+    // =========================================================
+    // QUIZ TITLE LOOKUP
+    // =========================================================
+
+    function buildQuizLookup(subjects) {
+        const lookup = new Map();
+
+        if (!Array.isArray(subjects)) {
+            return lookup;
+        }
+
+        subjects.forEach(function (subject) {
+            const quizzes = Array.isArray(subject.quizzes)
+                ? subject.quizzes
+                : [];
+
+            quizzes.forEach(function (quiz) {
+                lookup.set(String(quiz.quizID), {
+                    title: quiz.title || "Quiz #" + quiz.quizID,
+                    subjectName: subject.subjectName || "Subject",
+                    subjectID: subject.subjectID
+                });
+            });
+        });
+
+        return lookup;
+    }
+
+    // =========================================================
+    // RECENT ACTIVITY
+    // =========================================================
+
+    function renderActivity(progress, quizLookup) {
+        const container = byId("recentActivity");
+
+        if (!container) return;
+
+        clear(container);
+
+        if (!Array.isArray(progress) || progress.length === 0) {
+            showStatus(
+                container,
+                "No completed quiz attempts yet. Complete a quiz to see your activity."
+            );
+            return;
+        }
+
+        const attempts = [];
+
+        progress.forEach(function (quiz) {
+            const quizInfo =
+                quizLookup.get(String(quiz.quizID));
+
+            const history = Array.isArray(quiz.attempts)
+                ? quiz.attempts
+                : [];
+
+            history.forEach(function (attempt) {
+                attempts.push({
+                    quizID: quiz.quizID,
+                    title: quizInfo
+                        ? quizInfo.title
+                        : "Quiz #" + quiz.quizID,
+                    subjectName: quizInfo
+                        ? quizInfo.subjectName
+                        : "",
+                    score: number(attempt.score),
+                    totalQuestions: number(attempt.totalQuestions),
+                    percentage: number(attempt.percentage),
+                    dateTaken: attempt.dateTaken,
+                    attemptID: attempt.attemptID
+                });
+            });
+        });
+
+        attempts.sort(function (a, b) {
+            const dateDifference =
+                new Date(b.dateTaken || 0).getTime() -
+                new Date(a.dateTaken || 0).getTime();
+
+            return dateDifference ||
+                number(b.attemptID) - number(a.attemptID);
+        });
+
+        if (attempts.length === 0) {
+            showStatus(
+                container,
+                "No submitted quiz activity found."
+            );
+            return;
+        }
+
+        attempts.slice(0, 5).forEach(function (attempt) {
+            const row = el("div", "activity-item");
+
+            row.style.padding = "12px 0";
+            row.style.borderBottom = "1px solid #e2e8f0";
+
+            const dot = el("div", "activity-dot");
+
+            const text = el("div", "activity-text");
+
+            const title = el(
+                "div",
+                null,
+                attempt.title
+            );
+
+            title.style.fontWeight = "600";
+
+            let result;
+
+            if (attempt.totalQuestions > 0) {
+                result =
+                    attempt.score +
+                    "/" +
+                    attempt.totalQuestions +
+                    " (" +
+                    attempt.percentage.toFixed(1) +
+                    "%)";
+            } else {
+                result = "Score: " + attempt.score;
+            }
+
+            const detail = el(
+                "div",
+                null,
+                [
+                    attempt.subjectName,
+                    result
+                ].filter(Boolean).join(" · ")
+            );
+
+            detail.style.fontSize = "13px";
+            detail.style.color = "#64748b";
+
+            text.appendChild(title);
+            text.appendChild(detail);
+
+            const date = el(
+                "div",
+                "activity-time",
+                timeAgo(attempt.dateTaken)
+            );
+
+            row.appendChild(dot);
+            row.appendChild(text);
+            row.appendChild(date);
+
+            container.appendChild(row);
+        });
+    }
+
+    // =========================================================
+    // MY CLASSES
+    // =========================================================
+
+    function renderSubjects(subjects) {
+        const container = byId("learnerClasses");
+
+        if (!container) return;
+
+        clear(container);
+
+        if (!Array.isArray(subjects) || subjects.length === 0) {
+            showStatus(
+                container,
+                "No eligible quizzes are available for your enrolled subjects yet."
+            );
+
+            container.appendChild(
+                createLink("View Classes", "classes.html")
+            );
+
             return;
         }
 
         subjects.forEach(function (subject) {
-            var card = el("article", "subject-card");
-            card.appendChild(el("div", "subject-icon", subject.subjectName.charAt(0).toUpperCase()));
-            card.appendChild(el("h3", null, subject.subjectName));
+            const quizzes = Array.isArray(subject.quizzes)
+                ? subject.quizzes
+                : [];
 
-            var progress = subject.quizzesTotal > 0
-                ? subject.quizzesCompleted + " of " + subject.quizzesTotal +
-                  (subject.quizzesTotal === 1 ? " quiz" : " quizzes") + " completed"
-                : "No quizzes available yet.";
-            card.appendChild(el("p", null, progress));
-            card.appendChild(document.createElement("br"));
+            const completed = quizzes.filter(
+                quiz => quiz.completed === true
+            ).length;
 
-            var open = el("a", "btn btn-primary", "Open Class");
-            open.href = "class.html?subject=" + subject.subjectID;
-            card.appendChild(open);
+            const total = quizzes.length;
 
-            grid.appendChild(card);
+            const card = el("article", "subject-card");
+
+            const subjectName =
+                subject.subjectName || "Subject";
+
+            card.appendChild(
+                el(
+                    "div",
+                    "subject-icon",
+                    subjectName.charAt(0).toUpperCase()
+                )
+            );
+
+            card.appendChild(
+                el("h3", null, subjectName)
+            );
+
+            const progressText = total > 0
+                ? completed + " of " + total +
+                  " quizzes completed"
+                : "No available quizzes yet.";
+
+            card.appendChild(
+                el("p", null, progressText)
+            );
+
+            const link = createLink(
+                "Open Class",
+                subject.subjectID != null
+                    ? "class.html?subject=" +
+                      encodeURIComponent(subject.subjectID)
+                    : "classes.html"
+            );
+
+            card.appendChild(link);
+            container.appendChild(card);
         });
     }
 
-    function renderScore(data) {
-        var scoreNum = byId("scoreNumber") || byId("learnerTotalScore");
-        var scoreMsg = byId("scoreMessage");
-        
-        if (scoreNum) scoreNum.textContent = data.totalPoints ?? 0;
-        if (scoreMsg) {
-            scoreMsg.textContent = (data.totalPoints ?? 0) > 0
-                ? "Keep going! You're doing great."
-                : "Complete a quiz to start earning points.";
-        }
-    }
+    // =========================================================
+    // TOTAL SCORE
+    // =========================================================
 
-    function buildRankRow(entry) {
-        var row = el("div", "dashboard-list-item" + (entry.isYou ? " you" : ""));
-        row.appendChild(el("span", "rank", "#" + entry.rank));
-        row.appendChild(el("span", "list-name", entry.name));
-        row.appendChild(el("span", "list-score", entry.points + " pts"));
-        return row;
-    }
+    function renderScore(progress) {
+        const scoreNumber = byId("learnerTotalScore");
+        const scoreMessage = byId("scoreMessage");
 
-    function renderRanking(data) {
-        var list = byId("rankingList");
-        var note = byId("rankingNote");
-        if (!list) return;
-        
-        clear(list);
-        if (note) note.textContent = "";
+        if (!scoreNumber) return;
 
-        var top = data.topLearners || [];
-        var inTop = top.some(function (entry) { return entry.isYou; });
+        if (!Array.isArray(progress)) {
+            scoreNumber.textContent = "—";
 
-        if (top.length === 0) {
-            showStatus(list, "No one has completed a quiz yet. Be the first!", false);
+            if (scoreMessage) {
+                scoreMessage.textContent =
+                    "Unable to retrieve your quiz scores.";
+            }
+
             return;
         }
 
-        top.forEach(function (entry) {
-            list.appendChild(buildRankRow(entry));
-        });
+        // The progress API provides the best submitted
+        // attempt for each distinct quiz.
+        // Do not count both attempts of the same quiz.
 
-        if (!inTop) {
-            if (data.rank !== null && data.rank !== undefined) {
-                list.appendChild(el("div", "dashboard-list-item gap", "\u2026"));
-                list.appendChild(buildRankRow({
-                    rank: data.rank,
-                    name: "You",
-                    points: data.totalPoints,
-                    isYou: true
-                }));
-            } else if (note) {
-                note.textContent = "Complete a quiz to join the ranking.";
-            }
-        }
+        const total = progress.reduce(function (sum, quiz) {
+            return sum + number(quiz.score);
+        }, 0);
 
-        if (data.totalLearners && note) {
-            var existing = note.textContent;
-            var total = "Out of " + data.totalLearners + (data.totalLearners === 1 ? " learner" : " learners");
-            note.textContent = existing ? existing + " " + total : total;
+        scoreNumber.textContent = total.toLocaleString();
+
+        if (scoreMessage) {
+            scoreMessage.textContent =
+                progress.length > 0
+                    ? "Combined marks from your best attempt per quiz. These are quiz marks, not leaderboard points."
+                    : "Complete a quiz to start recording scores.";
         }
     }
 
-    function renderGoal(goal) {
-        if (!goal) return;
-        
-        var target = goal.target || 5;
-        var completed = goal.completed || 0;
-        var percent = target > 0
-            ? Math.min(100, Math.round(completed * 100 / target))
+    // =========================================================
+    // RANKING
+    // =========================================================
+
+    function renderRanking() {
+        const container = byId("learnerRanking");
+
+        if (!container) return;
+
+        clear(container);
+
+        showStatus(
+            container,
+            "Your actual ranking is available on the leaderboard."
+        );
+
+        container.appendChild(
+            createLink(
+                "View Leaderboard",
+                "leaderboard.html"
+            )
+        );
+    }
+
+    // =========================================================
+    // LEARNING PROGRESS
+    // =========================================================
+
+    function renderLearningProgress(data, progress) {
+        const container = byId("learningProgress");
+
+        if (!container) return;
+
+        if (!data || !Array.isArray(data.subjects)) {
+            container.textContent =
+                "Unable to load learning progress.";
+            return;
+        }
+
+        const allQuizzes = data.subjects.flatMap(
+            function (subject) {
+                return Array.isArray(subject.quizzes)
+                    ? subject.quizzes
+                    : [];
+            }
+        );
+
+        const completed = allQuizzes.filter(
+            quiz => quiz.completed === true
+        ).length;
+
+        const total = allQuizzes.length;
+
+        const remaining = Math.max(0, total - completed);
+
+        const completionPercent = total > 0
+            ? Math.round((completed / total) * 100)
             : 0;
 
-        var goalText = byId("goalText");
-        var goalFill = byId("goalFill");
-        var goalCount = byId("goalCount");
-        var goalPercent = byId("goalPercent");
+        const average = data.summary
+            ? data.summary.averagePercent
+            : null;
 
-        if (goalText) goalText.textContent = "Complete " + target + " quizzes this week.";
-        if (goalFill) goalFill.style.width = percent + "%";
-        if (goalCount) goalCount.textContent = completed + " of " + target + " quizzes";
-        if (goalPercent) goalPercent.textContent = percent + "%";
-    }
+        clear(container);
 
-    /* ---------------------------------------------------------
-       Start & Event Listeners
-    --------------------------------------------------------- */
+        const lines = [
+            "Completed quizzes: " + completed + " of " + total,
+            "Quizzes remaining: " + remaining,
+            "Overall completion: " + completionPercent + "%"
+        ];
 
-    var logoutLink = byId("logoutLink");
-    if (logoutLink) {
-        logoutLink.addEventListener("click", function (event) {
-            event.preventDefault();
-            EduQuestAPI.logout();
+        if (
+            average !== null &&
+            average !== undefined &&
+            Number.isFinite(Number(average))
+        ) {
+            lines.push(
+                "Average latest score: " +
+                Number(average).toFixed(1) + "%"
+            );
+        }
+
+        if (
+            Array.isArray(progress) &&
+            progress.length > completed
+        ) {
+            lines.push(
+                "Submitted quiz history: " +
+                progress.length +
+                " distinct quizzes (including quizzes no longer listed as available)."
+            );
+        }
+
+        lines.forEach(function (line) {
+            const item = el("span", null, line);
+
+            item.style.display = "block";
+            item.style.marginBottom = "8px";
+
+            container.appendChild(item);
         });
     }
 
-    loadCornerIdentity();
+    // =========================================================
+    // DASHBOARD DATA LOADING
+    // =========================================================
 
-    EduQuestAPI.get("/learner/dashboard")
-        .then(function (data) {
-            renderWelcome(data);
-            renderActivity(data.recentActivity);
-            renderSubjects(data.subjects);
-            renderScore(data);
-            renderRanking(data);
-            if (data.goal) {
-                renderGoal(data.goal);
+    async function loadDashboard() {
+        const activityContainer = byId("recentActivity");
+        const classesContainer = byId("learnerClasses");
+        const progressContainer = byId("learningProgress");
+
+        showStatus(
+            activityContainer,
+            "Loading recent activity..."
+        );
+
+        showStatus(
+            classesContainer,
+            "Loading your classes..."
+        );
+
+        if (progressContainer) {
+            progressContainer.textContent =
+                "Loading learning progress...";
+        }
+
+        renderRanking();
+
+        // Keep requests independent:
+        // one failed request should not prevent
+        // the other dashboard sections from loading.
+
+        const results = await Promise.allSettled([
+            API.get("/learner/quizzes"),
+            API.get("/learner-quiz-progress")
+        ]);
+
+        const quizResult = results[0];
+        const progressResult = results[1];
+
+        const quizData =
+            quizResult.status === "fulfilled"
+                ? quizResult.value
+                : null;
+
+        const progress =
+            progressResult.status === "fulfilled"
+                ? progressResult.value
+                : null;
+
+        if (quizResult.status === "rejected") {
+            console.error(
+                "Failed to load learner quizzes:",
+                quizResult.reason
+            );
+        }
+
+        if (progressResult.status === "rejected") {
+            console.error(
+                "Failed to load quiz progress:",
+                progressResult.reason
+            );
+        }
+
+        if (quizData && Array.isArray(quizData.subjects)) {
+            renderSubjects(quizData.subjects);
+        } else {
+            showStatus(
+                classesContainer,
+                "Could not load classes.",
+                true
+            );
+        }
+
+        if (Array.isArray(progress)) {
+            const lookup = buildQuizLookup(
+                quizData && Array.isArray(quizData.subjects)
+                    ? quizData.subjects
+                    : []
+            );
+
+            renderActivity(progress, lookup);
+            renderScore(progress);
+        } else {
+            showStatus(
+                activityContainer,
+                "Could not load recent quiz activity.",
+                true
+            );
+
+            renderScore(null);
+        }
+
+        renderLearningProgress(quizData, progress);
+
+        console.log("Learner dashboard data:", {
+            quizData: quizData,
+            quizProgress: progress
+        });
+    }
+
+    // =========================================================
+    // LOGOUT
+    // =========================================================
+
+    function setupLogout() {
+        const logoutLink = byId("logoutLink");
+
+        if (!logoutLink) return;
+
+        logoutLink.addEventListener(
+            "click",
+            function (event) {
+                event.preventDefault();
+                API.logout();
             }
-        })
-        .catch(function (err) {
-            console.error("Dashboard failed to load:", err);
-            var message = err.message || "Could not load your dashboard.";
-            showStatus(byId("activityList"), message, true);
-            showStatus(byId("subjectGrid") || byId("learnerClasses"), message, true);
-            showStatus(byId("rankingList"), message, true);
-            
-            var scoreNum = byId("scoreNumber") || byId("learnerTotalScore");
-            if (scoreNum) scoreNum.textContent = "\u2013";
-            
-            var goalCount = byId("goalCount");
-            if (goalCount) goalCount.textContent = "\u2013";
-        });
+        );
+    }
+
+    // =========================================================
+    // INITIALIZATION
+    // =========================================================
+
+    function initialize() {
+        setupLogout();
+
+        loadLearnerIdentity();
+        loadDashboard();
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener(
+            "DOMContentLoaded",
+            initialize,
+            { once: true }
+        );
+    } else {
+        initialize();
+    }
+
 })();
