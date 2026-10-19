@@ -290,6 +290,26 @@ namespace EduQuest.API.Controllers
 
             var token = _tokenService.CreateToken(user);
 
+            // Record a successful login without preventing authentication if logging fails.
+            try
+            {
+                _context.activityLogs.Add(new ActivityLog
+                {
+                    UserID = user.UserID,
+                    Action = user.Role.RoleName == "Admin"
+                        ? "Admin logged in"
+                        : "Learner logged in",
+                    DateTime = DateTime.UtcNow,
+                    IPAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown"
+                });
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to record login activity for user {UserID}", user.UserID);
+            }
+
             return Ok(new
             {
                 message = "Login successful.",
