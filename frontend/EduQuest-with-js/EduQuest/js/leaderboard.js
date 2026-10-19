@@ -79,6 +79,50 @@ The backend calculates points and rankings.
     }
 
     // ==============================================
+    // ADDED: LEARNER NAME AND GRADE (TOP CORNER)
+    // ==============================================
+
+    // Fills the top corner with the first name and grade,
+    // e.g. "Ben · Grade 12", from GET /api/learner/me.
+    // It changes only the corner (avatar and label). If the
+    // request fails, nothing else on the page is affected.
+    async function loadCornerIdentity() {
+
+        try {
+
+            const me = await EduQuestAPI.get("/learner/me");
+
+            const firstName =
+                String(me.firstName || "").trim() || "Learner";
+
+            const gradeName =
+                me.gradeName ? " \u00b7 " + me.gradeName : "";
+
+            const avatar =
+                document.getElementById("profileAvatar") ||
+                document.querySelector(".profile-mini .profile-avatar");
+
+            const label =
+                document.getElementById("profileLabel") ||
+                document.getElementById("profileGrade") ||
+                document.getElementById("profileName") ||
+                document.querySelector(".profile-mini span");
+
+            if (avatar) {
+                avatar.textContent = firstName.charAt(0).toUpperCase();
+            }
+
+            if (label) {
+                label.textContent = firstName + gradeName;
+            }
+
+        } catch (error) {
+
+            console.error("Learner name failed to load:", error);
+        }
+    }
+
+    // ==============================================
     // STATUS MESSAGES
     // ==============================================
 
@@ -430,6 +474,8 @@ The backend calculates points and rankings.
 
     // Load actual leaderboard rankings
     // when the page opens.
+
+    loadCornerIdentity(); // ADDED
 
     loadLeaderboard();
 

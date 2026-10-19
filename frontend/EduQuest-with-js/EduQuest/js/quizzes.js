@@ -23,12 +23,29 @@
         }
         if (!api.requireLearner()) return;
 
-        const user = api.getCurrentUser() || {};
-        const name = [user.firstName, user.lastName].filter(Boolean).join(" ");
         const nameEl = document.getElementById("learnerName");
         const avatarEl = document.getElementById("learnerAvatar");
-        if (nameEl) nameEl.textContent = name || "Learner";
-        if (avatarEl) avatarEl.textContent = String(user.firstName || user.email || "L").charAt(0).toUpperCase();
+
+        // Shown straight away, then replaced once the server answers.
+        const user = api.getCurrentUser() || {};
+        const fallbackFirstName = String(user.firstName || "").trim() || "Learner";
+        if (nameEl) nameEl.textContent = fallbackFirstName;
+        if (avatarEl) avatarEl.textContent = fallbackFirstName.charAt(0).toUpperCase();
+
+        // Top corner: first name and grade, e.g. "Ben · Grade 12",
+        // from GET /api/learner/me (same source as the Classes page).
+        api.get("/learner/me")
+            .then(function (me) {
+                const firstName = String(me.firstName || "").trim() || "Learner";
+                const gradeName = me.gradeName ? " · " + me.gradeName : "";
+
+                if (avatarEl) avatarEl.textContent = firstName.charAt(0).toUpperCase();
+                if (nameEl) nameEl.textContent = firstName + gradeName;
+            })
+            .catch(function (err) {
+                // The page still works without it.
+                console.error("Learner name failed to load:", err);
+            });
 
         let loadVersion = 0;
         const MAX_ATTEMPTS = 2;
