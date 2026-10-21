@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Manage Leaderboard | EduQuest</title>
+
+    <!-- Existing admin stylesheet -->
+    <link rel="stylesheet" href="../../css/style.css">
+<link rel="stylesheet" href="../../css/admin-theme.css">
+    <link rel="stylesheet" href="../../EduQuest-with-js/EduQuest/css/achievement-badges.css">
+</head>
+
+<body>
+
+    <!-- ==========================================
+         TOP BAR
+         ========================================== -->
+
+    <header class="topbar">
+
+        <div class="topbar-search">
+            <input type="search"
+                   placeholder="Search EduQuest...">
+        </div>
+
+        <div class="topbar-actions">
+            <button class="notification-btn"
+                    type="button">🔔</button>
+
+            <button class="profile-btn"
+                    type="button">👤 Admin</button>
+        </div>
+
+    </header>
+
+    <!-- ==========================================
+         DASHBOARD LAYOUT
+         ========================================== -->
+
+    <div class="app">
+
+        <!-- SIDEBAR -->
+
+<aside class="sidebar"><div><div class="brand"><img src="../../EduQuest-with-js/EduQuest/images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo"></div><nav class="sidebar-nav" aria-label="Admin navigation"><a href="dashboard.html" class="nav-link">Home</a>
+<a href="users.html" class="nav-link">Users</a>
+<a href="quiz.html" class="nav-link">Quizzes</a>
+<a href="resources.html" class="nav-link">Resources</a>
+<a href="competition.html" class="nav-link">Competitions</a>
+<a href="leaderboard.html" class="nav-link active">Leaderboard</a>
+<a href="profile.html" class="nav-link">Profile</a>
+<a href="reports.html" class="nav-link">Reports</a><button type="button" class="nav-link" id="adminLogout">Log Out</button></nav></div><div class="sidebar-social"><a href="#">Instagram</a><a href="#">Facebook</a></div></aside>
+
+        <!-- ==========================================
+             MAIN CONTENT
+             ========================================== -->
+
+        <main class="main">
+
+            <section class="home-content">
+
+                <div class="page-header">
+
+                    <h1>Learner Leaderboard</h1>
+
+                    <p>
+                        National and Provincial Rankings
+                    </p>
+
+                </div>
+
+                <section class="leaderboard-page">
+
+                    <!-- ==================================
+                         FILTERS
+
+                         CHANGED:
+                         Subject tabs and province options
+                         come from the backend.
+                         ================================== -->
+
+                    <div class="leaderboard-filters">
+
+                        <div class="subject-tabs"
+                             id="subjectTabs">
+                        </div>
+
+                        <select id="regionFilter"
+                                class="region-filter">
+
+                            <option value="">
+                                All provinces
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <!-- ==================================
+                         NEW: LOADING / ERROR STATUS
+                         ================================== -->
+
+                    <p id="leaderboardStatus"
+                       role="status"
+                       aria-live="polite">
+                        Loading leaderboard...
+                    </p>
+
+                    <!-- ==================================
+                         NATIONAL / PROVINCIAL TOP THREE
+                         ================================== -->
+
+                    <div class="section-heading">
+
+                        <h2>
+                            Top learners
+                            <span id="rankingTitle">
+                                nationally
+                            </span>
+                        </h2>
+
+                        <p id="rankingDescription">
+                            Overall ranking, all provinces
+                        </p>
+
+                    </div>
+
+                    <!-- CHANGED:
+                         No dummy learners.
+                         JavaScript adds real rankings. -->
+
+                    <div class="top-learners"
+                         id="topLearners">
+                    </div>
+
+                    <!-- ==================================
+                         REGIONAL LEADERS
+                         ================================== -->
+
+                    <div class="section-heading regional-heading">
+
+                        <h2>
+                            Top learner by province
+                        </h2>
+
+                        <p>
+                            Highest scorer in each province
+                        </p>
+
+                    </div>
+
+                    <!-- CHANGED:
+                         No hardcoded regional leaders. -->
+
+                    <div class="regional-leaders"
+                         id="regionalLeaders">
+                    </div>
+
+                </section>
+
+            </section>
+
+
+                <section class="eq-admin-badges" aria-labelledby="achievementsHeading">
+                    <h2 id="achievementsHeading">Achievement Badges</h2>
+                    <p class="eq-muted">Create special badges and award them manually. Quiz milestone badges are earned automatically.</p>
+                    <h3>Create a special badge</h3>
+                    <form id="createAchievementForm" class="eq-admin-badge-form">
+                        <label>Badge name<input id="achievementName" required maxlength="100" placeholder="Community Helper"></label>
+                        <label>Description<input id="achievementDescription" required maxlength="500" placeholder="Recognised for helping classmates"></label>
+                        <label>Badge icon (emoji)<input id="achievementIcon" required maxlength="20" value="🌟"></label>
+                        <button type="submit">Create badge</button>
+                    </form>
+                    <hr>
+                    <h3>Award a badge to a learner</h3>
+                    <form id="awardAchievementForm" class="eq-admin-badge-form">
+                        <label>Learner<select id="achievementLearner" required></select></label>
+                        <label>Badge<select id="achievementBadge" required></select></label>
+                        <button type="submit">Award Badge</button>
+                    </form>
+                    <div id="learnerAwardedBadges" class="eq-badge-strip" aria-live="polite"></div>
+                    <hr>
+                    <h3>Existing quiz results</h3>
+                    <p class="eq-muted">If learners completed quizzes before the badge system was added, synchronise their earned badges.</p>
+                    <button type="button" id="backfillAchievementBtn">Sync Past Quiz Badges</button>
+                    <p id="achievementAdminStatus" role="status" aria-live="polite"></p>
+                </section>
+
+        </main>
+
+    </div>
+
+    <!-- ==========================================
+         JAVASCRIPT
+
+         IMPORTANT:
+         These paths match your existing admin HTML.
+         ========================================== -->
+
+    <script src="../../js/api.js"></script>
+
+    <script src="../../js/leaderboard.js"></script>
+
+<script src="../../js/admin-shell.js"></script>
+<script src="../../js/admin-achievements.js" defer></script>
+</body>
+</html>

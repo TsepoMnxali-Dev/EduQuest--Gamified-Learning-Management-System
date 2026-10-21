@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EduQuest | My Classes</title>
+  <link rel="stylesheet" href="css/classes.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/theme-unified.css">
+  <style>
+    a.btn-white{text-decoration:none;display:inline-block}
+    a.open-btn{display:block;text-align:center;text-decoration:none}
+    .classes-status{grid-column:1/-1;padding:18px;border:1px dashed #b9dddd;border-radius:12px;color:#666f78;background:#fff}
+    .classes-status.error{color:#b42318;border-color:#f0b8b3;background:#fff1f0}
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <aside class="sidebar">
+      <div>
+        <div class="brand">
+          <img src="images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo">
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="dashboard.html" class="nav-link">Home</a>
+          <a href="classes.html" class="nav-link active">Classes</a>
+          <a href="Quizzes.html" class="nav-link">Quizzes</a>
+          <a href="resources.html" class="nav-link">Resources</a>
+          <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+          <a href="profile.html" class="nav-link">Profile</a>
+          <a href="help.html" class="nav-link">Help &amp; Support</a>
+          <a href="index.html" class="nav-link" id="logoutLink">Log Out</a>
+        </nav>
+      </div>
+
+      <div class="sidebar-social">
+        <a href="#">Instagram</a>
+        <a href="#">Facebook</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="content">
+
+        <div class="page-heading">
+          <div class="page-head">
+            <h1>My Classes</h1>
+            <p>Your subjects, progress and learning activities all in one place.</p>
+          </div>
+          <div class="profile-mini">
+            <div class="profile-avatar" id="profileAvatar"></div>
+            <span id="profileName"></span>
+          </div>
+        </div>
+
+        <!-- Up next: filled in by classes.js -->
+        <section class="continue-card">
+          <div>
+            <div class="continue-label" id="upNextLabel">Up Next</div>
+            <h2 id="upNextTitle">Loading&hellip;</h2>
+            <p id="upNextText"></p>
+
+            <div class="continue-progress">
+              <div class="progress-row">
+                <span>Overall progress</span>
+                <span id="overallPercent">&ndash;</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" id="overallFill" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <a class="btn-white" id="upNextBtn" href="Quizzes.html">View Quizzes &rarr;</a>
+        </section>
+
+        <div class="section-header">
+          <h2>My Enrolled Subjects</h2>
+        </div>
+
+        <!-- Subject cards are built by classes.js -->
+        <section class="classes-grid" id="subjectsGrid">
+          <p class="classes-status">Loading your subjects&hellip;</p>
+        </section>
+
+        <section class="bottom-grid">
+          <div class="panel">
+            <h2>Your Performance</h2>
+            <!-- Rows are built by classes.js -->
+            <div id="performanceRows"></div>
+          </div>
+        </section>
+
+      </section>
+    </main>
+  </div>
+
+  <nav class="mobile-nav">
+    <a href="dashboard.html"><span>🏠</span>Home</a>
+    <a href="classes.html" class="active"><span>📚</span>Classes</a>
+    <a href="Quizzes.html"><span>📝</span>Quizzes</a>
+    <a href="resources.html"><span>📂</span>Resources</a>
+    <a href="leaderboard.html"><span>🏅</span>Leaderboard</a>
+    <a href="profile.html"><span>👤</span>Profile</a>
+  </nav>
+
+  <script src="js/api.js" defer></script>
+  <script src="js/classes.js" defer></script>
+</body>
+</html>

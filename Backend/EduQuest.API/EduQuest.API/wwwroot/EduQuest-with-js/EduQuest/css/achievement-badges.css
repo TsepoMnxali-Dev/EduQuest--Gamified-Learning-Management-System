@@ -1,0 +1,19 @@
+/* EduQuest learner achievements: additive styles, no existing CSS overridden. */
+.eq-badge-strip {display:flex;flex-wrap:wrap;gap:6px;margin:7px 0;align-items:center;}
+.eq-achievement-pill {display:inline-flex;gap:5px;align-items:center;border:1px solid #bbd8dd;border-radius:999px;padding:4px 9px;font-size:12px;line-height:1.4;background:#eef9f9;color:#174d58;font-weight:600;}
+.eq-achievement-icon {font-size:15px;}
+.eq-rank-medal {display:inline-flex;padding:3px 8px;border-radius:999px;background:#fff5d8;border:1px solid #eadc9a;color:#73541b;font-weight:700;font-size:12px;margin:4px 0;}
+.eq-badge-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px;margin-top:12px;}
+.eq-badge-card {border:1px solid #dbe6eb;background:#fff;border-radius:12px;padding:15px;display:flex;align-items:flex-start;gap:12px;}
+.eq-badge-card .eq-badge-big {font-size:32px;line-height:1.2;}
+.eq-badge-card strong {display:block;margin-bottom:5px;color:#153e5b;}
+.eq-badge-card p {margin:0;color:#5a6878;font-size:13px;}
+.eq-admin-badges {border:1px solid #dbe6eb;background:#fff;border-radius:14px;padding:20px;margin-top:26px;}
+.eq-admin-badges h2 {margin:0 0 8px;}
+.eq-admin-badges .eq-admin-badge-form {display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:13px 0;align-items:end;}
+.eq-admin-badges label {display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;}
+.eq-admin-badges input,.eq-admin-badges select {width:100%;box-sizing:border-box;padding:9px;border:1px solid #bccbd5;border-radius:7px;}
+.eq-admin-badges button {padding:10px 14px;border:0;border-radius:7px;background:#123b61;color:#fff;cursor:pointer;}
+.eq-admin-badges button:disabled {opacity:.5;cursor:wait;}
+.eq-admin-badges .eq-muted {color:#5b6977;font-size:13px;}
+.eq-admin-badges hr {border:0;border-top:1px solid #e5ebee;margin:19px 0;}

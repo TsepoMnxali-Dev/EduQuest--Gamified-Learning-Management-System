@@ -5,6 +5,7 @@ using EduQuest.API.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace EduQuest.API.Controllers
 {
@@ -15,10 +16,8 @@ namespace EduQuest.API.Controllers
     {
         private readonly ApplicationDBContext _context;
 
-        // NEW: Maximum file size is 10 MB.
         private const long MaxFileSize = 10 * 1024 * 1024;
 
-        // NEW: Only these document extensions are accepted.
         private static readonly string[] AllowedExtensions =
         {
             ".pdf", ".doc", ".docx",
@@ -32,20 +31,30 @@ namespace EduQuest.API.Controllers
 
         // ==============================================
         // GET ALL STUDY MATERIALS
-        // Admins and authenticated learners can access.
+        // ADMIN: All grades
+        // LEARNER: Registered grade only
         // ==============================================
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<StudyMaterialDto>>>
             GetStudyMaterials()
         {
-            var materials = await _context.StudyMaterials
+            var query = _context.StudyMaterials
                 .AsNoTracking()
-                .Include(sm => sm.GradeSubject)
-                    .ThenInclude(gs => gs.Subject)
-                .Include(sm => sm.GradeSubject)
-                    .ThenInclude(gs => gs.Grade)
-                .Include(sm => sm.Topic)
+                .AsQueryable();
+
+            if (!User.IsInRole("Admin"))
+            {
+                int? gradeId = await GetCurrentLearnerGradeIdAsync();
+
+                if (!gradeId.HasValue)
+                    return Forbid();
+
+                query = query.Where(sm =>
+                    sm.GradeSubject.GradeID == gradeId.Value);
+            }
+
+            var materials = await query
                 .Select(sm => new StudyMaterialDto
                 {
                     StudyMaterialID = sm.StudyMaterialID,
@@ -68,22 +77,39 @@ namespace EduQuest.API.Controllers
                 })
                 .ToListAsync();
 
-            // NEW: An empty database returns [].
-            // The frontend can display "No resources yet".
             return Ok(materials);
         }
 
         // ==============================================
         // GET ONE STUDY MATERIAL
+        // SECURITY: Restrict access by grade
         // ==============================================
 
         [HttpGet("{id}")]
         public async Task<ActionResult<StudyMaterialDto>>
             GetStudyMaterial(int id)
         {
-            var material = await _context.StudyMaterials
+            int? gradeId = null;
+
+            if (!User.IsInRole("Admin"))
+            {
+                gradeId = await GetCurrentLearnerGradeIdAsync();
+
+                if (!gradeId.HasValue)
+                    return Forbid();
+            }
+
+            var query = _context.StudyMaterials
                 .AsNoTracking()
-                .Where(sm => sm.StudyMaterialID == id)
+                .Where(sm => sm.StudyMaterialID == id);
+
+            if (gradeId.HasValue)
+            {
+                query = query.Where(sm =>
+                    sm.GradeSubject.GradeID == gradeId.Value);
+            }
+
+            var material = await query
                 .Select(sm => new StudyMaterialDto
                 {
                     StudyMaterialID = sm.StudyMaterialID,
@@ -114,7 +140,7 @@ namespace EduQuest.API.Controllers
 
         // ==============================================
         // CREATE STUDY MATERIAL
-        // SECURITY: ONLY ADMIN CAN UPLOAD OR ADD LINKS
+        // SECURITY: ADMIN ONLY
         // ==============================================
 
         [Authorize(Roles = "Admin")]
@@ -123,7 +149,6 @@ namespace EduQuest.API.Controllers
         public async Task<ActionResult<StudyMaterialDto>>
             CreateStudyMaterial([FromForm] CreateStudyMaterialDto dto)
         {
-            // Validate grade and subject combination.
             var gradeSubject = await _context.GradeSubjects
                 .Include(gs => gs.Grade)
                 .Include(gs => gs.Subject)
@@ -131,7 +156,8 @@ namespace EduQuest.API.Controllers
                     gs.GradeSubjectID == dto.GradeSubjectID);
 
             if (gradeSubject == null)
-                return NotFound("Grade and subject combination not found.");
+                return NotFound(
+                    "Grade and subject combination not found.");
 
             Topic? topic = null;
 
@@ -144,8 +170,6 @@ namespace EduQuest.API.Controllers
                 if (topic == null)
                     return NotFound("Topic not found.");
 
-                // SECURITY: Prevent assigning material
-                // to an unrelated grade or subject.
                 if (topic.SubjectID != gradeSubject.SubjectID ||
                     topic.GradeLevel != gradeSubject.Grade.GradeName)
                 {
@@ -157,8 +181,6 @@ namespace EduQuest.API.Controllers
             bool hasFile = dto.File != null;
             bool hasUrl = !string.IsNullOrWhiteSpace(dto.FileURL);
 
-            // NEW: A resource must contain exactly one
-            // source: either a document or a link.
             if (hasFile == hasUrl)
             {
                 return BadRequest(
@@ -172,7 +194,6 @@ namespace EduQuest.API.Controllers
                     "Title and resource type are required.");
             }
 
-            // NEW: Check that resource links use HTTP/HTTPS.
             if (hasUrl && !IsValidResourceUrl(dto.FileURL))
             {
                 return BadRequest(
@@ -196,7 +217,6 @@ namespace EduQuest.API.Controllers
 
             if (hasFile)
             {
-                // NEW: Validate file size and extension.
                 var error = ValidateFile(dto.File!);
 
                 if (error != null)
@@ -205,14 +225,13 @@ namespace EduQuest.API.Controllers
                 using var stream = new MemoryStream();
                 await dto.File!.CopyToAsync(stream);
 
-                // Preserve existing database storage design.
                 material.FileData = stream.ToArray();
 
-                // SECURITY: Remove any path from the filename.
-                material.FileName = Path.GetFileName(dto.File.FileName);
+                material.FileName =
+                    Path.GetFileName(dto.File.FileName);
+
                 material.FileContentType = GetContentType(
-                    Path.GetExtension(material.FileName)
-                );
+                    Path.GetExtension(material.FileName));
             }
 
             _context.StudyMaterials.Add(material);
@@ -240,13 +259,12 @@ namespace EduQuest.API.Controllers
             return CreatedAtAction(
                 nameof(GetStudyMaterial),
                 new { id = material.StudyMaterialID },
-                result
-            );
+                result);
         }
 
         // ==============================================
         // UPDATE STUDY MATERIAL
-        // SECURITY: ONLY ADMIN
+        // SECURITY: ADMIN ONLY
         // ==============================================
 
         [Authorize(Roles = "Admin")]
@@ -270,7 +288,8 @@ namespace EduQuest.API.Controllers
                     gs.GradeSubjectID == dto.GradeSubjectID);
 
             if (gradeSubject == null)
-                return NotFound("Grade and subject combination not found.");
+                return NotFound(
+                    "Grade and subject combination not found.");
 
             Topic? topic = null;
 
@@ -313,7 +332,6 @@ namespace EduQuest.API.Controllers
                     "Resource URL must be a valid HTTP or HTTPS link.");
             }
 
-            // NEW: Validate before changing the stored resource.
             if (hasNewFile)
             {
                 var error = ValidateFile(dto.File!);
@@ -337,25 +355,23 @@ namespace EduQuest.API.Controllers
                 using var stream = new MemoryStream();
                 await dto.File!.CopyToAsync(stream);
 
-                // CHANGED: Replace previous file or link.
                 material.FileData = stream.ToArray();
-                material.FileName = Path.GetFileName(dto.File.FileName);
+                material.FileName =
+                    Path.GetFileName(dto.File.FileName);
+
                 material.FileContentType = GetContentType(
-                    Path.GetExtension(material.FileName)
-                );
+                    Path.GetExtension(material.FileName));
+
                 material.FileURL = null;
             }
             else if (hasNewUrl)
             {
-                // CHANGED: Replace previous file with a link.
                 material.FileData = null;
                 material.FileName = null;
                 material.FileContentType = null;
                 material.FileURL = dto.FileURL!.Trim();
             }
 
-            // When no new file or URL is supplied,
-            // preserve the existing resource source.
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -363,7 +379,7 @@ namespace EduQuest.API.Controllers
 
         // ==============================================
         // DELETE STUDY MATERIAL
-        // SECURITY: ONLY ADMIN
+        // SECURITY: ADMIN ONLY
         // ==============================================
 
         [Authorize(Roles = "Admin")]
@@ -384,16 +400,34 @@ namespace EduQuest.API.Controllers
 
         // ==============================================
         // DOWNLOAD STUDY MATERIAL
-        // Admins and authenticated learners can download.
+        // ADMIN: Any grade
+        // LEARNER: Registered grade only
         // ==============================================
 
         [HttpGet("{id}/file")]
         public async Task<IActionResult> DownloadFile(int id)
         {
-            var material = await _context.StudyMaterials
+            int? gradeId = null;
+
+            if (!User.IsInRole("Admin"))
+            {
+                gradeId = await GetCurrentLearnerGradeIdAsync();
+
+                if (!gradeId.HasValue)
+                    return Forbid();
+            }
+
+            var query = _context.StudyMaterials
                 .AsNoTracking()
-                .FirstOrDefaultAsync(sm =>
-                    sm.StudyMaterialID == id);
+                .Where(sm => sm.StudyMaterialID == id);
+
+            if (gradeId.HasValue)
+            {
+                query = query.Where(sm =>
+                    sm.GradeSubject.GradeID == gradeId.Value);
+            }
+
+            var material = await query.FirstOrDefaultAsync();
 
             if (material == null)
                 return NotFound("Study material not found.");
@@ -406,13 +440,32 @@ namespace EduQuest.API.Controllers
 
             return File(
                 material.FileData,
-                material.FileContentType ?? "application/octet-stream",
-                material.FileName ?? "download"
-            );
+                material.FileContentType
+                    ?? "application/octet-stream",
+                material.FileName ?? "download");
         }
 
         // ==============================================
-        // NEW: HELPER METHODS
+        // HELPER: GET AUTHENTICATED LEARNER'S GRADE
+        // ==============================================
+
+        private async Task<int?> GetCurrentLearnerGradeIdAsync()
+        {
+            var userIdValue = User.FindFirstValue(
+                ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(userIdValue, out int userId))
+                return null;
+
+            return await _context.Learners
+                .AsNoTracking()
+                .Where(l => l.UserID == userId)
+                .Select(l => (int?)l.GradeID)
+                .FirstOrDefaultAsync();
+        }
+
+        // ==============================================
+        // VALIDATE UPLOADED FILE
         // ==============================================
 
         private static string? ValidateFile(IFormFile file)
@@ -432,6 +485,10 @@ namespace EduQuest.API.Controllers
             return null;
         }
 
+        // ==============================================
+        // VALIDATE RESOURCE URL
+        // ==============================================
+
         private static bool IsValidResourceUrl(string? url)
         {
             return Uri.TryCreate(
@@ -442,6 +499,10 @@ namespace EduQuest.API.Controllers
             (result.Scheme == Uri.UriSchemeHttp ||
              result.Scheme == Uri.UriSchemeHttps);
         }
+
+        // ==============================================
+        // GET FILE CONTENT TYPE
+        // ==============================================
 
         private static string GetContentType(string extension)
         {
@@ -458,4 +519,3 @@ namespace EduQuest.API.Controllers
         }
     }
 }
-

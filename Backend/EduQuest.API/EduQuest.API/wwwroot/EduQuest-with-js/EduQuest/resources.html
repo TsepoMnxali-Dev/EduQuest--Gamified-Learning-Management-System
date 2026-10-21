@@ -1,0 +1,357 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>EduQuest | Resources</title>
+
+    <!-- Main stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/theme-unified.css">
+    <link rel="stylesheet" href="css/learner-resources.css">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- ======================================
+             LEARNER SIDEBAR
+        ======================================= -->
+
+        <aside class="sidebar">
+
+            <div>
+
+                <!-- EduQuest Logo -->
+                <div class="brand">
+                    <img
+                        src="images/eduquest-logo.png"
+                        alt="EduQuest logo"
+                        class="brand-logo"
+                    >
+                </div>
+
+                <!-- Learner Navigation -->
+                <nav
+                    class="sidebar-nav"
+                    aria-label="Learner navigation"
+                >
+
+                    <a href="dashboard.html" class="nav-link">
+                        Home
+                    </a>
+
+                    <a href="classes.html" class="nav-link">
+                        Classes
+                    </a>
+
+                    <a href="Quizzes.html" class="nav-link">
+                        Quizzes
+                    </a>
+
+                    <a
+                        href="resources.html"
+                        class="nav-link active"
+                        aria-current="page"
+                    >
+                        Resources
+                    </a>
+
+                    <a href="leaderboard.html" class="nav-link">
+                        Leaderboard
+                    </a>
+
+                    <a href="profile.html" class="nav-link">
+                        Profile
+                    </a>
+
+                    <a href="help.html" class="nav-link">
+                        Help &amp; Support
+                    </a>
+
+                    <a
+                        href="index.html"
+                        class="nav-link"
+                        id="logoutLink"
+                    >
+                        Log Out
+                    </a>
+
+                </nav>
+
+            </div>
+
+            <!-- Social Links -->
+            <div class="sidebar-social">
+
+                <a href="#">
+                    Instagram
+                </a>
+
+                <a href="#">
+                    Facebook
+                </a>
+
+            </div>
+
+        </aside>
+
+        <!-- ======================================
+             MAIN RESOURCES PAGE
+        ======================================= -->
+
+        <main class="main learner-resources-page">
+
+            <!-- ==================================
+                 PAGE HEADER
+            =================================== -->
+
+            <header class="learner-resource-header">
+
+                <div>
+
+                    <h1>Resources</h1>
+
+                    <p>
+                        Explore textbooks, notes, past papers
+                        and educational links organised by
+                        grade, subject and topic.
+                    </p>
+
+                </div>
+
+                <!-- Learner Profile -->
+                <div class="profile-mini">
+
+                    <div class="profile-avatar">
+                        L
+                    </div>
+
+                    <span>
+                        Learner
+                    </span>
+
+                </div>
+
+            </header>
+
+            <!-- ==================================
+                 RESOURCE STATISTICS
+            =================================== -->
+
+            <section
+                class="learner-resource-overview"
+                aria-label="Resources overview"
+            >
+
+                <!-- Total Resources -->
+                <div>
+
+                    <strong id="resourceTotal">
+                        0
+                    </strong>
+
+                    <span>
+                        Resources
+                    </span>
+
+                </div>
+
+                <!-- Total Subjects -->
+                <div>
+
+                    <strong id="resourceSubjects">
+                        0
+                    </strong>
+
+                    <span>
+                        Subjects
+                    </span>
+
+                </div>
+
+                <!-- Total Documents -->
+                <div>
+
+                    <strong id="resourceDocuments">
+                        0
+                    </strong>
+
+                    <span>
+                        Documents
+                    </span>
+
+                </div>
+
+            </section>
+
+            <!-- ==================================
+                 STUDY LIBRARY
+            =================================== -->
+
+            <section
+                class="learner-resource-panel"
+                aria-labelledby="resourceListTitle"
+            >
+
+                <!-- Section Heading -->
+                <div class="learner-panel-heading">
+
+                    <h2 id="resourceListTitle">
+                        Study Library
+                    </h2>
+
+                    <p>
+                        Choose a grade and expand a subject
+                        to browse topics.
+                    </p>
+
+                </div>
+
+                <!-- ==================================
+                     SEARCH AND FILTER TOOLBAR
+                =================================== -->
+
+                <div class="learner-resource-toolbar">
+
+                    <!-- Search Resources -->
+                    <label
+                        class="lr-sr-only"
+                        for="resourceSearch"
+                    >
+                        Search resources
+                    </label>
+
+                    <input
+                        type="search"
+                        id="resourceSearch"
+                        placeholder="Search titles, subjects or topics"
+                    >
+
+                    <!-- Filter by Grade -->
+                    <label
+                        class="lr-sr-only"
+                        for="resourceGradeFilter"
+                    >
+                        Grade
+                    </label>
+
+                    <select id="resourceGradeFilter">
+
+                        <option value="all">
+                            All grades
+                        </option>
+
+                    </select>
+
+                    <!-- Filter by Resource Type -->
+                    <label
+                        class="lr-sr-only"
+                        for="resourceTypeFilter"
+                    >
+                        Resource type
+                    </label>
+
+                    <select id="resourceTypeFilter">
+
+                        <option value="all">
+                            All types
+                        </option>
+
+                        <option value="Textbook">
+                            Textbook
+                        </option>
+
+                        <option value="Past Paper">
+                            Past Paper
+                        </option>
+
+                        <option value="Question Paper">
+                            Question Paper
+                        </option>
+
+                        <option value="Notes">
+                            Notes
+                        </option>
+
+                        <option value="Video">
+                            Video
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <!-- ==================================
+                     SUBJECT FILTER BUTTONS
+                =================================== -->
+
+                <div
+                    id="resourceFilters"
+                    class="learner-subject-filters"
+                    aria-label="Filter by subject"
+                ></div>
+
+                <!-- ==================================
+                     LOADING AND STATUS MESSAGES
+                =================================== -->
+
+                <p
+                    id="resourcesStatus"
+                    class="learner-resource-status"
+                    role="status"
+                    aria-live="polite"
+                >
+                    Loading study materials...
+                </p>
+
+                <!-- ==================================
+                     EMPTY RESOURCES MESSAGE
+                =================================== -->
+
+                <div
+                    id="emptyResources"
+                    class="learner-resource-empty"
+                    style="display: none;"
+                >
+
+                    <h3>
+                        No study materials available yet
+                    </h3>
+
+                    <p>
+                        Once the administrator adds resources,
+                        they will appear here.
+                    </p>
+
+                </div>
+
+                <!-- ==================================
+                     DYNAMIC RESOURCE CARDS
+                =================================== -->
+
+                <div
+                    id="resourcesGrid"
+                    class="learner-resources-grouped"
+                ></div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <!-- ======================================
+         JAVASCRIPT CONNECTIONS
+    ======================================= -->
+
+    <script src="js/api.js"></script>
+    <script src="js/resources.js" defer></script>
+
+</body>
+
+</html>

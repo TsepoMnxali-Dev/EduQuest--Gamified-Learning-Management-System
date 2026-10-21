@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduQuest | Quizzes</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/theme-unified.css">
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div>
+                <div class="brand">
+                    <img src="images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo">
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="dashboard.html" class="nav-link">Home</a>
+                    <a href="classes.html" class="nav-link">Classes</a>
+                    <a href="Quizzes.html" class="nav-link active" aria-current="page">Quizzes</a>
+                    <a href="resources.html" class="nav-link">Resources</a>
+                    <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+                    <a href="profile.html" class="nav-link">Profile</a>
+                    <a href="help.html" class="nav-link">Help &amp; Support</a>
+                    <a href="index.html" class="nav-link" id="logoutLink">Log Out</a>
+                    
+              
+                </nav>
+                
+            </div>
+        </aside>
+        <main class="main">
+            <div class="quizzes-topbar">
+                <div class="dashboard-welcome">
+                    <h1>Quizzes</h1>
+                    <p>Work through each subject's quizzes at your own pace.</p>
+                </div>
+                <div class="profile-mini">
+                    <div class="profile-avatar" id="learnerAvatar">L</div>
+                    <span id="learnerName">Learner</span>
+                </div>
+            </div>
+            <div class="quiz-summary" aria-live="polite">
+                <div class="profile-stat">
+                    <div class="stat-number" id="completedCount">–</div>
+                    <div class="stat-text">Completed</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="stat-number" id="pendingCount">–</div>
+                    <div class="stat-text">Still To Do</div>
+                </div>
+                <div class="profile-stat">
+                    <div class="stat-number" id="averageScore">–</div>
+                    <div class="stat-text">Average Score</div>
+                </div>
+            </div>
+            <div class="quizzes-grid" id="quizzesGrid" aria-live="polite">
+                <p>Loading quizzes and your results…</p>
+            </div>
+        </main>
+    </div>
+    <script src="js/api.js"></script>
+    <script src="js/quizzes.js" defer></script>
+</body>
+</html>

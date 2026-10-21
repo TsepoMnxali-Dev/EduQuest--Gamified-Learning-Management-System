@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>EduQuest | Home</title>
+
+    <!-- Original EduQuest styling -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/theme-unified.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div>
+
+            <div class="brand">
+                <img
+                    src="images/eduquest-logo.png"
+                    alt="EduQuest logo"
+                    class="brand-logo">
+            </div>
+
+            <nav class="sidebar-nav"
+                 aria-label="Main navigation">
+
+                <a href="index.html"
+                   class="nav-link active"
+                   aria-current="page">
+                    Home
+                </a>
+
+                <a href="#" class="nav-link">
+                    Classes
+                </a>
+
+                <a href="#" class="nav-link">
+                    Quizzes
+                </a>
+
+                <a href="#" class="nav-link">
+                    Resources
+                </a>
+
+                <a href="#" class="nav-link">
+                    Leaderboard
+                </a>
+
+                <a href="#" class="nav-link">
+                    Profile
+                </a>
+
+                <a href="help.html" class="nav-link">
+                    Help &amp; Support
+                </a>
+
+            </nav>
+
+        </div>
+
+        <div class="sidebar-social">
+            <a href="#">Instagram</a>
+            <a href="#">Facebook</a>
+        </div>
+
+    </aside>
+
+    <!-- PUBLIC HOMEPAGE -->
+    <main class="main landing-main">
+
+        <div class="landing-inner">
+
+            <section class="hero">
+
+                <img
+                    src="images/eduquest-logo.png"
+                    alt="EduQuest logo"
+                    class="hero-logo">
+
+                <p class="tagline">
+                    Enhancing Education Through Tech
+                </p>
+
+                <h1>Welcome!</h1>
+
+                <div class="hero-actions">
+
+                    <!-- Unified login for both roles -->
+                    <a href="login.html"
+                       class="btn btn-primary">
+                        Sign In
+                    </a>
+
+                    <!-- Learner registration -->
+                    <a href="signup.html"
+                       class="btn btn-primary">
+                        Sign Up
+                    </a>
+
+                </div>
+
+            </section>
+
+            <!-- Numbers are loaded from the backend by index.js -->
+            <section class="stats-panel">
+                <div class="stats-grid">
+
+                    <div class="stat" id="cardStudents">
+                        <div class="stat-number" id="statStudents">&hellip;</div>
+                        <div class="stat-text">students enrolled</div>
+                    </div>
+
+                    <div class="stat" id="cardSchools">
+                        <div class="stat-number" id="statSchools">&hellip;</div>
+                        <div class="stat-text">Schools</div>
+                    </div>
+
+                    <div class="stat" id="cardQuizzes">
+                        <div class="stat-number" id="statQuizzes">&hellip;</div>
+                        <div class="stat-text">Quizzes Completed</div>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+    <script src="js/api.js" defer></script>
+    <script src="js/index.js" defer></script>
+
+</body>
+</html>

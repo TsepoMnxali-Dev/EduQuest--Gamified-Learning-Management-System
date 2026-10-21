@@ -182,11 +182,23 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Serve EduQuest HTML, CSS, JavaScript and images.
+app.UseStaticFiles();
+
 app.UseCors("EduQuestFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Existing API endpoints.
 app.MapControllers();
+
+// Open the learner homepage at the application root.
+// PathBase also supports an IIS application subdirectory.
+app.MapGet("/", (HttpContext context) =>
+    Results.Redirect(
+        $"{context.Request.PathBase}/EduQuest-with-js/EduQuest/index.html"
+    )
+);
 
 app.Run();
