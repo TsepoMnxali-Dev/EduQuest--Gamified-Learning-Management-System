@@ -12,6 +12,15 @@ A full-stack learning platform for South African learners in Grades 10–12, bui
 
 EduQuest lets learners enrol in subjects, take timed quizzes, review their results, earn points and achievements, and climb leaderboards across the country. Administrators manage users, quizzes, questions and study resources, and can generate quiz questions with Google Gemini.
 
+![image alt](https://github.com/TsepoMnxali-Dev/EduQuest--Gamified-Learning-Management-System/blob/a8f5525257cb114f187da69891f9c842864a2c30/Eduquest%20Gamified%20learning%20management%20landing%20page.png)
+
+## 🎥 Demo
+
+<p align="center">
+  <a href="https://www.dropbox.com/scl/fi/upf7cpb86rn0dontlo8bq/CoolRides-Vehicle-Manufacturing-System-Demo.mov?rlkey=vl66r4flgdgetgbosdjczuyzl&st=lq0jha0l&dl=0">
+    ▶️ <strong>Watch the EduQuest Demo</strong>
+  </a>
+</p>
 
 
 ---
