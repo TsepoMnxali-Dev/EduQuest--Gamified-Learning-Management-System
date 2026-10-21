@@ -37,13 +37,16 @@ window.EduQuestAPI = (function () {
         window.location.hostname === "localhost" ||
         window.location.hostname === "127.0.0.1";
 
-    if (isLocal) {
-        return "https://localhost:7021/api";
-    }
+    
+if (isLocal && window.location.port !== "5085") {
+    // Use the Visual Studio API during normal development.
+    return "https://localhost:7021/api";
+}
 
-    // Default production setup:
-    // frontend and backend hosted under the same domain.
-    return window.location.origin + "/api";
+// Use the API hosted alongside the published frontend.
+return new URL("../api", document.currentScript.src)
+    .href.replace(/\/+$/, "");
+
 })();
     const TOKEN_KEY = "eduquest_token";
 

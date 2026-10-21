@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>EduQuest | Sign In</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/theme-unified.css">
+
+    <style>
+        .login-message {
+            display: none;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .login-message.error {
+            display: block;
+            background: #fff1f2;
+            color: #b42318;
+            border: 1px solid #fda4af;
+        }
+
+        .login-message.success {
+            display: block;
+            background: #ecfdf3;
+            color: #027a48;
+            border: 1px solid #86efac;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            width: 100%;
+            padding-right: 75px;
+            box-sizing: border-box;
+        }
+
+        .show-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            color: #193f68;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .auth-submit {
+            width: 100%;
+        }
+
+        .auth-submit:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .forgot-password-row {
+            margin: 9px 0 20px;
+            text-align: right;
+        }
+
+        .forgot-password-row a {
+            color: #193f68;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .forgot-password-row a:focus-visible {
+            outline: 2px solid #2aa9a4;
+            outline-offset: 3px;
+        }
+
+        .auth-switch {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .auth-switch a {
+            color: #2aa9a4;
+            font-weight: 700;
+        }
+
+        .brand-logo,
+        .auth-logo {
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div>
+            <div class="brand">
+                <img
+                    src="images/eduquest-logo.png"
+                    alt="EduQuest logo"
+                    class="brand-logo">
+            </div>
+
+            <nav class="sidebar-nav"
+                 aria-label="Authentication navigation">
+
+                <a href="index.html"
+                   class="nav-link">
+                    Home
+                </a>
+
+                <a href="login.html"
+                   class="nav-link active"
+                   aria-current="page">
+                    Sign In
+                </a>
+
+                <a href="signup.html"
+                   class="nav-link">
+                    Sign Up
+                </a>
+
+            </nav>
+        </div>
+
+        <div class="sidebar-social">
+            <span>EduQuest</span>
+        </div>
+
+    </aside>
+
+    <!-- UNIFIED LOGIN -->
+    <main class="main auth-main">
+
+        <div class="auth-wrapper">
+
+            <section class="auth-card">
+
+                <img
+                    src="images/eduquest-logo.png"
+                    alt="EduQuest logo"
+                    class="auth-logo">
+
+                <h1>Welcome Back!</h1>
+
+                <p class="auth-subtitle">
+                    Sign in to your EduQuest account.
+                </p>
+
+                <!-- LOGIN NOTIFICATIONS -->
+                <div
+                    id="loginMessage"
+                    class="login-message"
+                    role="status"
+                    aria-live="polite">
+                </div>
+
+                <form id="loginForm" novalidate>
+
+                    <div class="form-group">
+
+                        <label for="email">
+                            Email address
+                        </label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Enter your email"
+                            autocomplete="username"
+                            required>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label for="password">
+                            Password
+                        </label>
+
+                        <div class="password-wrapper">
+
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Enter your password"
+                                autocomplete="current-password"
+                                required>
+
+                            <button
+                                type="button"
+                                id="togglePassword"
+                                class="show-password">
+                                Show
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                    <!-- PASSWORD RECOVERY -->
+                    <p class="forgot-password-row">
+                        <a href="reset-password.html">
+                            Forgot password?
+                        </a>
+                    </p>
+
+                    <button
+                        type="submit"
+                        id="loginButton"
+                        class="btn btn-primary auth-submit">
+                        Sign In
+                    </button>
+
+                </form>
+
+                <p class="auth-switch">
+                    Don't have an account?
+                    <a href="signup.html">
+                        Sign Up
+                    </a>
+                </p>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+<script src="js/api.js" defer></script>
+<script src="js/profile-gate.js" defer></script>
+<script src="js/login.js" defer></script>
+
+</body>
+</html>

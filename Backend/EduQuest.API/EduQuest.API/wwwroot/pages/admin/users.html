@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduQuest | Manage Users</title>
+
+    <!-- CHANGED: Shared Learner Dashboard theme -->
+    <link rel="stylesheet"
+          href="../../EduQuest-with-js/EduQuest/css/style.css">
+
+    <style>
+        /* NEW: Admin Users page styling */
+        .users-page-description {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .users-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .users-toolbar h2 {
+            color: var(--navy);
+            font-size: 20px;
+        }
+
+        .users-count {
+            background: var(--teal-light);
+            color: var(--navy);
+            border-radius: 999px;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .users-filters {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .users-filters input,
+        .users-filters select,
+        .user-form-grid input,
+        .user-form-grid select {
+            width: 100%;
+            min-width: 0;
+            padding: 12px 14px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--navy);
+            font: inherit;
+            font-size: 13px;
+        }
+
+        .users-filters input:focus,
+        .users-filters select:focus,
+        .user-form-grid input:focus,
+        .user-form-grid select:focus {
+            outline: none;
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(44,169,165,.12);
+        }
+
+        .users-table-card {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+            border: 1px solid #edf1f4;
+        }
+
+        .users-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .users-table thead {
+            background: var(--teal-light);
+        }
+
+        .users-table th {
+            padding: 15px 14px;
+            color: var(--navy);
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .users-table td {
+            padding: 16px 14px;
+            border-bottom: 1px solid #edf0f2;
+            color: var(--navy);
+            vertical-align: middle;
+        }
+
+        .users-table tbody tr:hover {
+            background: #f8fbfc;
+        }
+
+        .user-list-name {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+        }
+
+        .user-list-avatar {
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: var(--teal-light);
+            color: var(--navy);
+            font-weight: 800;
+        }
+
+        .user-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .user-status-active {
+            background: var(--teal-light);
+            color: #167a76;
+        }
+
+        .user-status-inactive {
+            background: #fcebea;
+            color: #a73535;
+        }
+
+        .user-row-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .user-row-actions .btn {
+            padding: 8px 12px;
+            font-size: 12px;
+            min-width: auto;
+        }
+
+        .btn-danger {
+            background: white;
+            color: #b42318;
+            border: 1px solid #efc9c5;
+        }
+
+        /* NEW: Modal styling using Learner theme */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            background: rgba(18,53,83,.55);
+            padding: 20px;
+        }
+
+        .modal-content {
+            width: min(650px, 100%);
+            max-height: 90vh;
+            overflow-y: auto;
+            background: var(--white);
+            border-radius: 18px;
+            padding: 28px;
+            box-shadow: 0 18px 50px rgba(18,53,83,.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 22px;
+        }
+
+        .modal-header h2 {
+            color: var(--navy);
+            font-size: 22px;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--navy);
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .user-details-profile {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: var(--teal-light);
+            border-radius: 14px;
+            margin-bottom: 24px;
+        }
+
+        .user-details-avatar {
+            width: 60px;
+            height: 60px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: var(--teal);
+            color: white;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .user-details-profile h3 {
+            color: var(--navy);
+            margin-bottom: 6px;
+        }
+
+        .user-details-profile p {
+            color: var(--muted);
+            font-size: 13px;
+            overflow-wrap: anywhere;
+            margin-bottom: 10px;
+        }
+
+        .user-details-badge {
+            display: inline-block;
+            background: white;
+            color: var(--navy);
+            border-radius: 999px;
+            padding: 5px 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .user-details-heading {
+            color: var(--navy);
+            font-size: 17px;
+            margin-bottom: 14px;
+        }
+
+        .user-details-grid,
+        .user-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .user-details-field {
+            background: var(--page-bg);
+            border: 1px solid #edf1f4;
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .user-details-field span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .user-details-field strong {
+            color: var(--navy);
+            font-size: 14px;
+        }
+
+        .user-form-field label {
+            display: block;
+            color: var(--navy);
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .user-form-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .user-form-note {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 18px;
+        }
+
+        .user-form-error {
+            color: #a73535;
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .sidebar-nav button.nav-link {
+            width: 100%;
+            background: white;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        @media (max-width: 850px) {
+            .users-filters {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .users-filters input {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .users-filters,
+            .user-details-grid,
+            .user-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .users-filters input {
+                grid-column: auto;
+            }
+
+            .user-form-field.full-width {
+                grid-column: auto;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+        }
+    </style>
+<link rel="stylesheet" href="../../css/admin-theme.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR: Same EduQuest Learner theme -->
+    <aside class="sidebar"><div><div class="brand"><img src="../../EduQuest-with-js/EduQuest/images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo"></div><nav class="sidebar-nav" aria-label="Admin navigation"><a href="dashboard.html" class="nav-link">Home</a>
+<a href="users.html" class="nav-link active">Users</a>
+<a href="quiz.html" class="nav-link">Quizzes</a>
+<a href="resources.html" class="nav-link">Resources</a>
+<a href="competition.html" class="nav-link">Competitions</a>
+<a href="leaderboard.html" class="nav-link">Leaderboard</a>
+<a href="profile.html" class="nav-link">Profile</a>
+<a href="reports.html" class="nav-link">Reports</a><button type="button" class="nav-link" id="adminLogout" style="font-weight: bold;">Log Out</button></nav></div><div class="sidebar-social"><a href="#">Instagram</a><a href="#">Facebook</a></div></aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <div class="dashboard-topbar">
+            <div class="dashboard-welcome">
+                <h1>Manage Users</h1>
+                <p class="users-page-description">
+                    View and manage registered EduQuest users.
+                </p>
+            </div>
+
+            <div class="profile-mini">
+                <div class="profile-avatar" id="adminAvatar">A</div>
+                <span id="adminProfileName">Administrator</span>
+            </div>
+        </div>
+
+        <section class="dashboard-section">
+
+            <div class="users-toolbar">
+                <h2 class="dashboard-section-title">
+                    Registered Users
+                </h2>
+
+                <span class="users-count" id="usersCount">
+                    Loading...
+                </span>
+
+                <!-- CHANGED: Add User now has a modal -->
+                <button type="button"
+                        class="btn btn-primary"
+                        id="openAddUser">
+                    + Add User
+                </button>
+            </div>
+
+            <div class="users-filters">
+                <input type="search"
+                       id="userSearch"
+                       placeholder="Search by name or email..."
+                       aria-label="Search users">
+
+                <select id="roleFilter"
+                        aria-label="Filter by role">
+                    <option value="">All Roles</option>
+                    <option value="Learner">Learner</option>
+                    <option value="Admin">Admin</option>
+                </select>
+
+                <select id="statusFilter"
+                        aria-label="Filter by status">
+                    <option value="">All Statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+            </div>
+
+            <div class="users-table-card">
+                <div class="users-table-wrapper">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+
+                        <!-- NEW: Real users populated by JS -->
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="5">
+                                    Loading registered users...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+    </main>
+</div>
+
+<!-- ======================================
+     VIEW USER DETAILS MODAL
+======================================= -->
+<div class="modal"
+     id="viewUserModal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="viewUserTitle">
+
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="viewUserTitle">User Details</h2>
+
+            <button type="button"
+                    class="modal-close"
+                    id="closeViewUser"
+                    aria-label="Close user details">
+                &times;
+            </button>
+        </div>
+
+        <div class="user-details-profile">
+            <div class="user-details-avatar"
+                 id="viewUserAvatar">U</div>
+
+            <div>
+                <h3 id="viewUserName">—</h3>
+                <p id="viewUserEmail">—</p>
+                <span class="user-details-badge"
+                      id="viewUserStatus">—</span>
+            </div>
+        </div>
+
+        <h3 class="user-details-heading">
+            Account Information
+        </h3>
+
+        <div class="user-details-grid">
+            <div class="user-details-field">
+                <span>User ID</span>
+                <strong id="viewUserId">—</strong>
+            </div>
+
+            <div class="user-details-field">
+                <span>Role</span>
+                <strong id="viewUserRole">—</strong>
+            </div>
+
+            <div class="user-details-field">
+                <span>Role ID</span>
+                <strong id="viewUserRoleId">—</strong>
+            </div>
+
+            <div class="user-details-field">
+                <span>Account Status</span>
+                <strong id="viewUserAccountStatus">—</strong>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button"
+                    class="btn btn-primary"
+                    id="doneViewUser">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ======================================
+     ADD USER MODAL
+======================================= -->
+<div class="modal"
+     id="addUserModal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="addUserTitle">
+
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="addUserTitle">Add New User</h2>
+
+            <button type="button"
+                    class="modal-close"
+                    id="closeAddUser"
+                    aria-label="Close Add User">
+                &times;
+            </button>
+        </div>
+
+        <form id="addUserForm">
+
+            <div class="user-form-grid">
+
+                <div class="user-form-field">
+                    <label for="addFirstName">First Name</label>
+                    <input type="text"
+                           id="addFirstName"
+                           required
+                           maxlength="50">
+                </div>
+
+                <div class="user-form-field">
+                    <label for="addLastName">Last Name</label>
+                    <input type="text"
+                           id="addLastName"
+                           required
+                           maxlength="50">
+                </div>
+
+                <div class="user-form-field full-width">
+                    <label for="addEmail">Email Address</label>
+                    <input type="email"
+                           id="addEmail"
+                           required
+                           maxlength="100">
+                </div>
+
+                <div class="user-form-field">
+                    <label for="addRole">Role</label>
+
+                    <!-- CHANGED: JS must populate real role IDs -->
+                    <select id="addRole" required>
+                        <option value="">
+                            Select a role
+                        </option>
+                    </select>
+                </div>
+
+                <div class="user-form-field">
+                    <label for="addPassword">Password</label>
+                    <input type="password"
+                           id="addPassword"
+                           required
+                           minlength="8"
+                           autocomplete="new-password">
+                </div>
+
+            </div>
+
+            <p class="user-form-note">
+                The account will be created as Active.
+                Password must contain at least 8 characters.
+            </p>
+
+            <p class="user-form-error"
+               id="addUserError"
+               role="alert"
+               hidden></p>
+
+            <div class="modal-actions">
+                <button type="button"
+                        class="btn btn-outline"
+                        id="cancelAddUser">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="btn btn-primary"
+                        id="saveAddUser">
+                    Create User
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ======================================
+     EDIT USER MODAL
+======================================= -->
+<div class="modal"
+     id="editUserModal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="editUserTitle">
+
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="editUserTitle">Edit User</h2>
+
+            <button type="button"
+                    class="modal-close"
+                    id="closeEditUser"
+                    aria-label="Close Edit User">
+                &times;
+            </button>
+        </div>
+
+        <form id="editUserForm">
+
+            <!-- NEW: Selected backend user ID -->
+            <input type="hidden" id="editUserId">
+
+            <div class="user-form-grid">
+
+                <div class="user-form-field">
+                    <label for="editFirstName">First Name</label>
+                    <input type="text"
+                           id="editFirstName"
+                           required
+                           maxlength="50">
+                </div>
+
+                <div class="user-form-field">
+                    <label for="editLastName">Last Name</label>
+                    <input type="text"
+                           id="editLastName"
+                           required
+                           maxlength="50">
+                </div>
+
+                <div class="user-form-field full-width">
+                    <label for="editEmail">Email Address</label>
+                    <input type="email"
+                           id="editEmail"
+                           required
+                           maxlength="100">
+                </div>
+
+                <div class="user-form-field full-width">
+                    <label for="editRole">Role</label>
+
+                    <!-- CHANGED: Populated using real role IDs -->
+                    <select id="editRole" required>
+                        <option value="">
+                            Select a role
+                        </option>
+                    </select>
+                </div>
+
+            </div>
+
+            <p class="user-form-note">
+                Changes will be saved to the EduQuest database.
+                Password changes are not supported by this endpoint.
+            </p>
+
+            <p class="user-form-error"
+               id="editUserError"
+               role="alert"
+               hidden></p>
+
+            <div class="modal-actions">
+                <button type="button"
+                        class="btn btn-outline"
+                        id="cancelEditUser">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="btn btn-primary"
+                        id="saveEditUser">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- CHANGED: Authentication helper -->
+<script src="../../EduQuest-with-js/EduQuest/js/api.js"></script>
+
+<!-- CHANGED: Backend user management -->
+<script src="../../js/main.js"></script>
+
+</body>
+</html>

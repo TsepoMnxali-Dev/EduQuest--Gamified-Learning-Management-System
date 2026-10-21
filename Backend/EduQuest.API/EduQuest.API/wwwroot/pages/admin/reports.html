@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Reports &amp; Analytics | EduQuest</title>
+
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/admin-theme.css">
+    <link rel="stylesheet" href="../../css/admin-reports.css">
+</head>
+
+<body>
+
+    <div class="app">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div>
+                <div class="brand">
+                    <img src="../../EduQuest-with-js/EduQuest/images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo">
+                </div>
+
+                <nav class="sidebar-nav" aria-label="Admin navigation">
+                    <a class="nav-link" href="dashboard.html">Home</a>
+                    <a class="nav-link" href="users.html">Users</a>
+                    <a class="nav-link" href="quiz.html">Quizzes</a>
+                    <a class="nav-link" href="resources.html">Resources</a>
+                    <a class="nav-link" href="competition.html">Competitions</a>
+                    <a class="nav-link" href="leaderboard.html">Leaderboard</a>
+                    <a class="nav-link" href="profile.html">Profile</a>
+                    <a class="nav-link active" href="reports.html" aria-current="page">Reports</a>
+                    <button class="nav-link" type="button" id="adminLogout" style="width:100%; text-align:center;">Log Out</button>
+                </nav>
+            </div>
+
+            <div class="sidebar-social">
+                <a href="#">Instagram</a>
+                <a href="#">Facebook</a>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main report-main">
+
+            <header class="report-heading">
+                <div>
+                    <h1>Reports &amp; Analytics</h1>
+                    <p>Live EduQuest statistics, learner performance and system activity.</p>
+                </div>
+                <div class="report-actions">
+                    <button class="rbtn secondary" id="refreshBtn" type="button">Refresh data</button>
+                    <button class="rbtn primary" id="exportBtn" type="button">Export CSV</button>
+                </div>
+            </header>
+
+            <div id="reportMessage" class="report-message" role="status" aria-live="polite">Loading reports&hellip;</div>
+
+            <section aria-label="Platform overview">
+                <div class="section-title">
+                    <h2>Platform overview</h2>
+                    <span>All-time database totals</span>
+                </div>
+                <div id="summaryCards" class="summary-grid">
+                    <p>Loading&hellip;</p>
+                </div>
+            </section>
+
+            <section class="report-grid" aria-label="Learner distribution">
+                <article class="report-panel">
+                    <h2>Learners by province</h2>
+                    <div id="provinceChart" class="bar-chart">Loading&hellip;</div>
+                </article>
+                <article class="report-panel">
+                    <h2>Learners by grade</h2>
+                    <div id="gradeChart" class="bar-chart">Loading&hellip;</div>
+                </article>
+                <article class="report-panel">
+                    <h2>Learners by school</h2>
+                    <div id="schoolChart" class="bar-chart">Loading&hellip;</div>
+                </article>
+                <article class="report-panel">
+                    <h2>Quiz pass / fail</h2>
+                    <div id="passFail">Loading&hellip;</div>
+                </article>
+            </section>
+
+            <section aria-label="Academic performance">
+                <div class="section-title">
+                    <h2>Academic performance</h2>
+                    <span>Average quiz attempt scores</span>
+                </div>
+                <div class="report-grid">
+                    <article class="report-panel">
+                        <h3>By subject</h3>
+                        <div id="subjectPerformance" class="bar-chart">Loading&hellip;</div>
+                    </article>
+                    <article class="report-panel">
+                        <h3>By grade</h3>
+                        <div id="gradePerformance" class="bar-chart">Loading&hellip;</div>
+                    </article>
+                    <article class="report-panel">
+                        <h3>By province</h3>
+                        <div id="provincePerformance" class="bar-chart">Loading&hellip;</div>
+                    </article>
+                    <article class="report-panel">
+                        <h3>By topic</h3>
+                        <div id="topicPerformance" class="bar-chart">Loading&hellip;</div>
+                    </article>
+                    <article class="report-panel">
+                        <h3>By school</h3>
+                        <div id="schoolPerformance" class="bar-chart">Loading&hellip;</div>
+                    </article>
+                    <article class="report-panel">
+                        <h3>Quiz engagement</h3>
+                        <div id="quizEngagement">Loading&hellip;</div>
+                    </article>
+                </div>
+            </section>
+
+            <section aria-label="Gamification">
+                <div class="section-title">
+                    <h2>Engagement &amp; gamification</h2>
+                </div>
+                <div class="report-grid">
+                    <article class="report-panel">
+                        <h3>Competitions</h3>
+                        <div id="competitionEngagement">Loading&hellip;</div>
+                    </article>
+                    <article class="report-panel">
+                        <h3>Achievements</h3>
+                        <div id="achievementEngagement">Loading&hellip;</div>
+                    </article>
+                </div>
+            </section>
+
+            <section aria-label="System activity" class="report-panel activity-panel">
+                <div class="section-title">
+                    <div>
+                        <h2>System activity logs</h2>
+                        <p>Audit records from the Activity Logs API</p>
+                    </div>
+                </div>
+                <div class="activity-filters">
+                    <label>From <input type="date" id="fromDate"></label>
+                    <label>To <input type="date" id="toDate"></label>
+                    <label>Action <select id="actionFilter"><option value="">All actions</option></select></label>
+                    <label>Search <input id="activitySearch" type="search" placeholder="User, action or IP"></label>
+                    <button class="rbtn secondary" type="button" id="resetFilters">Reset filters</button>
+                </div>
+                <p class="filter-note">Date and search filters apply to activity logs. Academic statistics are all-time totals from the current backend endpoints.</p>
+                <div id="activitySummary" class="activity-summary"></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date / time</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>IP address</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activityBody">
+                            <tr>
+                                <td colspan="4">Loading&hellip;</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pager">
+                    <span id="activityCount"></span>
+                    <div>
+                        <button type="button" class="rbtn secondary" id="prevPage">Previous</button>
+                        <span id="pageInfo"></span>
+                        <button type="button" class="rbtn secondary" id="nextPage">Next</button>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="report-footer">
+                Figures reflect recorded database information. Missing features are never replaced with sample data.
+            </footer>
+
+        </main>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../js/api.js"></script>
+    <script src="../../js/admin-shell.js"></script>
+    <script src="../../js/reports.js"></script>
+
+</body>
+</html>
