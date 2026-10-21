@@ -17,7 +17,7 @@ EduQuest lets learners enrol in subjects, take timed quizzes, review their resul
 ## 🎥 Demo
 
 <p align="center">
-  <a href="https://www.dropbox.com/scl/fi/upf7cpb86rn0dontlo8bq/CoolRides-Vehicle-Manufacturing-System-Demo.mov?rlkey=vl66r4flgdgetgbosdjczuyzl&st=lq0jha0l&dl=0">
+  <a href="https://www.dropbox.com/scl/fi/s1uosdj1ky0ognmo8tx8f/EduQuest-Presentation-Video.mp4?rlkey=siwwdq8vcmhjnmbev64fwc60b&st=25wodrrk&dl=0">
     ▶️ <strong>Watch the EduQuest Demo</strong>
   </a>
 </p>
