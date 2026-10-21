@@ -414,17 +414,12 @@ Backend/
 
 
 
-- The [.NET SDK](https\://dotnet.microsoft.com/download) matching the project's `TargetFramework`
+- The .NET SDK matching the project's `TargetFramework`
 
 - SQL Server Express (or any SQL Server instance)
 
 - The EF Core command-line tools:
-
-  ```bash
-
-  dotnet tool install --global dotnet-ef
-
-  ```
+   **dotnet tool install --global dotnet-ef**
 
 - Visual Studio or VS Code with the **Live Server** extension
 
@@ -450,7 +445,7 @@ In `Backend/EduQuest.API/EduQuest.API/appsettings.json`, point `DefaultConnectio
 
 "ConnectionStrings": {
 
-  "DefaultConnection": "Server=YOUR-PC\\\SQLEXPRESS;Database=EduQuest;Trusted_Connection=True;TrustServerCertificate=True;"
+  "DefaultConnection": "Server=YOUR-ServerName;Database=EduQuest;Trusted_Connection=True;TrustServerCertificate=True;"
 
 }
 
@@ -571,25 +566,11 @@ Settings kept in `appsettings.json`:
 
 
 | Setting | Purpose |
-
 |---|---|
-
 | `ConnectionStrings:DefaultConnection` | SQL Server connection |
-
 | `Jwt:Issuer`, `Jwt:Audience`, `Jwt:ExpiryMinutes` | Token settings |
-
 | `Frontend:BaseUrl` | Address used in password-reset links (`http\://127.0.0.1:5500` by default) |
-
 | `Email:Host`, `Port`, `User`, `From`, `EnableSsl` | SMTP settings for outgoing email |
-
-
-
-**Password-reset emails.** With `Email:Host` empty, the API prints the reset link in its console instead of sending an email, which is convenient for local development. To send real emails, enter your SMTP provider's details and set `Email:Password`.
-
-
-
-> Never commit real keys, passwords or connection secrets.
-
 
 
 ---
@@ -608,21 +589,6 @@ Settings kept in `appsettings.json`:
 | **Rankings** | Only learners with points are ranked, and equal points share a rank. Other learners appear as a first name and a surname initial. |
 | **Weekly goal** | Complete 5 quizzes in the current week (the week starts on Monday). |
 | **Achievements** | Earned automatically from quiz activity: a first quiz, ten quizzes, a perfect score, a seven-day streak, a top-10 place, and a star badge for each subject. |
-
----|---|
-
-| **Quiz attempts** | Each attempt gives the learner **10 random approved questions**. A quiz needs at least 10 approved questions before learners can start it. |
-
-| **What a learner sees** | A quiz is visible only if it is published, its topic belongs to the learner's grade, and the learner is enrolled in that subject. |
-
-| **Points** | **10 points per correct answer**, counting only the learner's **best attempt on each quiz**, so retaking a quiz improves a score without collecting extra points. |
-
-| **Rankings** | Only learners with points are ranked, and equal points share a rank. Other learners appear as a first name and a surname initial. |
-
-| **Weekly goal** | Complete 5 quizzes in the current week (the week starts on Monday). |
-
-| **Achievements** | Earned automatically from quiz activity: a first quiz, ten quizzes, a perfect score, a seven-day streak, a top-10 place, and a star badge for each subject. |
-
 
 
 ---
@@ -648,28 +614,8 @@ All routes are under `/api`. Learner routes require a valid token, and administr
 | **Support** | `POST /support`<br>`GET /support/mine` (learners)<br>`GET /support` (administrators)<br>`PUT /support/{id}` (administrators) |
 | **Administration** | Users, quizzes, questions, answer options, question bank, study materials and leaderboard |
 
----|---|
-
-| **Authentication** | `POST /auth/register-learner`, `/auth/login`, `/auth/forgot-password`, `/auth/reset-password` |
-
-| **Reference data** (public) | `GET /provinces`, `/grades`, `/subjects`, `/schools?provinceId=` |
-
-| **Home page** (public) | `GET /landing-stats` |
-
-| **Learner** | `GET /learner/me`, `/learner/dashboard`, `/learner/classes`, `/learner/classes/{subjectId}`, `/learner/quizzes`, `/learner/leaderboard` |
-
-| **Learner profile** | `GET/PUT /learner/profile`, `POST /learner/profile/password`, `GET/PUT /learner/profile/subjects` |
-
-| **Quizzes** | `POST /quizzes/{id}/start`, `POST /quizattempts/{id}/submit`, `GET /quizattempts/{id}/result` |
-
-| **Support** | `POST /support`, `GET /support/mine` (learners); `GET /support`, `PUT /support/{id}` (administrators) |
-
-| **Administration** | users, quizzes, questions, answer options, question bank, study materials, leaderboard |
-
-
 
 Swagger lists every endpoint, with its request and response shapes, while the API runs in Development.
-
 
 
 ---
