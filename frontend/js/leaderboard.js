@@ -20,7 +20,7 @@ GET /api/leaderboards/rankings
 
 ========================================================
 */
-
+   
 (function () {
 
     "use strict";

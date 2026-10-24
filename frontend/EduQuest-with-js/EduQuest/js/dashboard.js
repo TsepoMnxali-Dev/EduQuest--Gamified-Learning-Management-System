@@ -6,8 +6,6 @@
    GET /api/learner/me
    GET /api/learner/quizzes
    GET /api/learner-quiz-progress
-
-   No fictional statistics or missing dashboard endpoint.
    ============================================================= */
 
 (function () {

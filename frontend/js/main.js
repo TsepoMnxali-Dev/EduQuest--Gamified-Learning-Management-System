@@ -12,8 +12,6 @@
    - Reactivate users (ADDED)
    - Populate role dropdowns from backend user data
    - Display API validation errors
-
-   No hardcoded users or role IDs.
 ============================================================ */
 
 "use strict";

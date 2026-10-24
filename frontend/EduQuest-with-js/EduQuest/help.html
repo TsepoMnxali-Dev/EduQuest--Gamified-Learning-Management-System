@@ -1,195 +1,478 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>EduQuest | Help &amp; Support</title>
+
     <link rel="stylesheet" href="css/style.css">
+
     <style>
-        .hp-wrap{max-width:820px}
-        .hp-search{width:100%;padding:12px 14px;border:1px solid #b9dddd;border-radius:12px;font-size:14px;margin-bottom:16px;background:#fff}
-        .hp-search:focus{outline:2px solid #2ca9a5;outline-offset:1px}
-        .hp-faq details{background:#fff;border:1px solid #b9dddd;border-radius:12px;margin-bottom:10px;padding:0 16px}
-        .hp-faq summary{cursor:pointer;padding:14px 0;font-weight:700;color:#173f67;list-style:none}
-        .hp-faq summary::-webkit-details-marker{display:none}
-        .hp-faq summary::after{content:"+";float:right;color:#2ca9a5;font-size:18px}
-        .hp-faq details[open] summary::after{content:"\2212"}
-        .hp-faq details p{margin:0 0 14px;color:#444;font-size:14px;line-height:1.6}
-        .hp-empty{color:#666f78;font-size:13px;display:none;margin:6px 0 0}
-        .hp-form label{display:block;font-size:13px;font-weight:700;color:#173f67;margin-bottom:6px}
-        .hp-form select,.hp-form input,.hp-form textarea{width:100%;padding:11px 12px;border:1px solid #b9dddd;border-radius:10px;font:inherit;font-size:14px;background:#fff}
-        .hp-form textarea{min-height:130px;resize:vertical}
-        .hp-form select:focus,.hp-form input:focus,.hp-form textarea:focus{outline:2px solid #2ca9a5;outline-offset:1px}
-        .hp-field{margin-bottom:16px}
-        .hp-count{font-size:12px;color:#666f78;text-align:right;margin-top:4px}
-        .hp-msg{display:none;border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:14px}
-        .hp-msg.error{background:#fff1f0;color:#b42318}
-        .hp-msg.success{background:#ecfdf3;color:#067647}
-        .hp-prompt{padding:16px;border:1px dashed #b9dddd;border-radius:12px;color:#444;background:#fff}
-        .hp-prompt a{color:#173f67;font-weight:700}
-        .hp-request{border:1px solid #b9dddd;border-radius:12px;background:#fff;padding:14px 16px;margin-bottom:12px}
-        .hp-request-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:6px}
-        .hp-request-title{margin:0;font-weight:700;color:#173f67}
-        .hp-request-meta{margin:0 0 8px;font-size:12px;color:#666f78}
-        .hp-request-body{margin:0;font-size:14px;color:#444;line-height:1.55;white-space:pre-wrap}
-        .hp-reply{margin-top:10px;padding:10px 12px;background:#e9f7f6;border-left:4px solid #2ca9a5;border-radius:8px;font-size:14px;color:#173f67;white-space:pre-wrap}
-        .hp-reply strong{display:block;font-size:12px;margin-bottom:4px}
-        .hp-pill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
-        .hp-pill.open{background:#fff7e6;color:#8a5a00}
-        .hp-pill.progress{background:#eef2ff;color:#4338ca}
-        .hp-pill.resolved{background:#ecfdf3;color:#067647}
-        .hp-status{color:#666f78;font-size:13px;margin:0}
+        .hp-wrap {
+            max-width: 820px;
+        }
+
+        .hp-search {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #b9dddd;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            background: #fff;
+        }
+
+        .hp-search:focus {
+            outline: 2px solid #2ca9a5;
+            outline-offset: 1px;
+        }
+
+        .hp-faq details {
+            background: #fff;
+            border: 1px solid #b9dddd;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            padding: 0 16px;
+        }
+
+        .hp-faq summary {
+            cursor: pointer;
+            padding: 14px 0;
+            font-weight: 700;
+            color: #173f67;
+            list-style: none;
+        }
+
+        .hp-faq summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .hp-faq summary::after {
+            content: "+";
+            float: right;
+            color: #2ca9a5;
+            font-size: 18px;
+        }
+
+        .hp-faq details[open] summary::after {
+            content: "\2212";
+        }
+
+        .hp-faq details p {
+            margin: 0 0 14px;
+            color: #444;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .hp-empty {
+            color: #666f78;
+            font-size: 13px;
+            display: none;
+            margin: 6px 0 0;
+        }
+
+        .hp-form label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #173f67;
+            margin-bottom: 6px;
+        }
+
+        .hp-form select,
+        .hp-form input,
+        .hp-form textarea {
+            width: 100%;
+            padding: 11px 12px;
+            border: 1px solid #b9dddd;
+            border-radius: 10px;
+            font: inherit;
+            font-size: 14px;
+            background: #fff;
+        }
+
+        .hp-form textarea {
+            min-height: 130px;
+            resize: vertical;
+        }
+
+        .hp-form select:focus,
+        .hp-form input:focus,
+        .hp-form textarea:focus {
+            outline: 2px solid #2ca9a5;
+            outline-offset: 1px;
+        }
+
+        .hp-field {
+            margin-bottom: 16px;
+        }
+
+        .hp-count {
+            font-size: 12px;
+            color: #666f78;
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        .hp-msg {
+            display: none;
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+
+        .hp-msg.error {
+            background: #fff1f0;
+            color: #b42318;
+        }
+
+        .hp-msg.success {
+            background: #ecfdf3;
+            color: #067647;
+        }
+
+        .hp-prompt {
+            padding: 16px;
+            border: 1px dashed #b9dddd;
+            border-radius: 12px;
+            color: #444;
+            background: #fff;
+        }
+
+        .hp-prompt a {
+            color: #173f67;
+            font-weight: 700;
+        }
+
+        .hp-request {
+            border: 1px solid #b9dddd;
+            border-radius: 12px;
+            background: #fff;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+        }
+
+        .hp-request-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+
+        .hp-request-title {
+            margin: 0;
+            font-weight: 700;
+            color: #173f67;
+        }
+
+        .hp-request-meta {
+            margin: 0 0 8px;
+            font-size: 12px;
+            color: #666f78;
+        }
+
+        .hp-request-body {
+            margin: 0;
+            font-size: 14px;
+            color: #444;
+            line-height: 1.55;
+            white-space: pre-wrap;
+        }
+
+        .hp-reply {
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: #e9f7f6;
+            border-left: 4px solid #2ca9a5;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #173f67;
+            white-space: pre-wrap;
+        }
+
+        .hp-reply strong {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .hp-pill {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .hp-pill.open {
+            background: #fff7e6;
+            color: #8a5a00;
+        }
+
+        .hp-pill.progress {
+            background: #eef2ff;
+            color: #4338ca;
+        }
+
+        .hp-pill.resolved {
+            background: #ecfdf3;
+            color: #067647;
+        }
+
+        .hp-status {
+            color: #666f78;
+            font-size: 13px;
+            margin: 0;
+        }
     </style>
 </head>
+
 <body>
-<div class="app">
+    <div class="app">
 
-    <aside class="sidebar">
-        <div>
-            <div class="brand">
-                <img src="images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo">
-            </div>
-
-            <nav class="sidebar-nav">
-                <a href="dashboard.html" class="nav-link">Home</a>
-                <a href="classes.html" class="nav-link">Classes</a>
-                <a href="Quizzes.html" class="nav-link">Quizzes</a>
-                <a href="resources.html" class="nav-link">Resources</a>
-                <a href="leaderboard.html" class="nav-link">Leaderboard</a>
-                <a href="profile.html" class="nav-link">Profile</a>
-                <a href="help.html" class="nav-link active">Help &amp; Support</a>
-                <a href="#" class="nav-link" id="logoutLink" hidden>Log Out</a>
-            </nav>
-        </div>
-
-        <div class="sidebar-social">
-            <a href="#">Instagram</a>
-            <a href="#">Facebook</a>
-        </div>
-    </aside>
-
-    <main class="main">
-
-        <div class="dashboard-topbar">
-            <div class="dashboard-welcome">
-                <h1>Help &amp; Support</h1>
-                <p>Find quick answers, or send us a message and we'll get back to you.</p>
-            </div>
-
-            <div class="profile-mini" id="profileMini" hidden>
-                <div class="profile-avatar" id="profileAvatar"></div>
-                <span id="profileName"></span>
-            </div>
-        </div>
-
-        <div class="hp-wrap">
-
-            <section class="dashboard-section">
-                <h2 class="dashboard-section-title">Frequently Asked Questions</h2>
-
-                <input type="search" id="helpSearch" class="hp-search"
-                       placeholder="Search for an answer&hellip;" autocomplete="off"
-                       aria-label="Search the frequently asked questions">
-
-                <div class="hp-faq" id="faqList">
-                    <details>
-                        <summary>How do quizzes work?</summary>
-                        <p>Each attempt gives you 10 random questions from the quiz, and the time limit is shown at the top. You must answer every question before you can submit. When you submit, you see your score and a review of each question with the correct answer and an explanation.</p>
-                    </details>
-
-                    <details>
-                        <summary>Can I retake a quiz?</summary>
-                        <p>Yes. Open the subject on the Classes page and choose Retake Quiz. Your Quizzes page always shows your most recent result, and you can review it at any time.</p>
-                    </details>
-
-                    <details>
-                        <summary>Why does a quiz say it is not available?</summary>
-                        <p>A quiz appears as not available until it has at least 10 approved questions. It also has to be published for your grade and one of your subjects. Check back soon, or send us a message below if it stays that way.</p>
-                    </details>
-
-                    <details>
-                        <summary>How are points and rankings worked out?</summary>
-                        <p>You earn 10 points for each correct answer. Only your best attempt on each quiz counts, so retaking a quiz can improve your score but cannot be used to collect extra points. The leaderboard has This Week, This Month and All Time views, and other learners appear as a first name and surname initial.</p>
-                    </details>
-
-                    <details>
-                        <summary>I forgot my password. What do I do?</summary>
-                        <p>On the Sign In page, choose Forgot password and enter your email address. We will send you a link to choose a new password. The link works once and expires after 1 hour.</p>
-                    </details>
-
-                    <details>
-                        <summary>Why can I only see some subjects?</summary>
-                        <p>Your Classes and Quizzes show only the subjects you chose when you signed up, for your grade.</p>
-                    </details>
-
-                    <details>
-                        <summary>How do I change my subjects, grade or school?</summary>
-                        <p>This cannot be changed on your own yet. Send us a message below with the change you need, and we will update it for you.</p>
-                    </details>
-
-                    <details>
-                        <summary>I found a mistake in a question. What should I do?</summary>
-                        <p>Thank you for telling us! Send a message below, choose the Quizzes category, and include the quiz name and the question number so we can fix it.</p>
-                    </details>
+        <aside class="sidebar">
+            <div>
+                <div class="brand">
+                    <img
+                        src="images/eduquest-logo.png"
+                        alt="EduQuest logo"
+                        class="brand-logo"
+                    >
                 </div>
 
-                <p class="hp-empty" id="faqEmpty">No answers match your search. Try different words, or send us a message below.</p>
-            </section>
+                <nav class="sidebar-nav">
+                    <a href="dashboard.html" class="nav-link">Home</a>
+                    <a href="classes.html" class="nav-link">Classes</a>
+                    <a href="Quizzes.html" class="nav-link">Quizzes</a>
+                    <a href="resources.html" class="nav-link">Resources</a>
+                    <a href="leaderboard.html" class="nav-link">Leaderboard</a>
+                    <a href="profile.html" class="nav-link">Profile</a>
+                    <a href="help.html" class="nav-link active">Help &amp; Support</a>
+                    <a href="#" class="nav-link" id="logoutLink" hidden>Log Out</a>
+                </nav>
+            </div>
 
-            <section class="dashboard-section" id="contactSection">
-                <h2 class="dashboard-section-title">Contact Support</h2>
+            <div class="sidebar-social">
+                <a href="#">Instagram</a>
+                <a href="#">Facebook</a>
+            </div>
+        </aside>
 
-                <!-- Shown when the visitor is not signed in -->
-                <div class="hp-prompt" id="signinPrompt" hidden>
-                    Please <a href="login.html">sign in</a> to send us a message and to see your replies.
+        <main class="main">
+
+            <div class="dashboard-topbar">
+                <div class="dashboard-welcome">
+                    <h1>Help &amp; Support</h1>
+                    <p>
+                        Find quick answers, or send us a message and we'll get back to you.
+                    </p>
                 </div>
 
-                <!-- Shown when signed in -->
-                <form class="hp-form card" id="supportForm" novalidate hidden>
-                    <div class="hp-msg" id="formError" role="alert"></div>
-                    <div class="hp-msg" id="formSuccess" role="status"></div>
-
-                    <div class="hp-field">
-                        <label for="category">What do you need help with?</label>
-                        <select id="category" name="category" required>
-                            <option value="" disabled selected>Choose a category</option>
-                            <option>Account</option>
-                            <option>Quizzes</option>
-                            <option>Classes &amp; Subjects</option>
-                            <option>Technical Problem</option>
-                            <option>Other</option>
-                        </select>
-                    </div>
-
-                    <div class="hp-field">
-                        <label for="subject">Subject</label>
-                        <input type="text" id="subject" name="subject" maxlength="150"
-                               placeholder="A short summary of your question" required>
-                    </div>
-
-                    <div class="hp-field">
-                        <label for="message">Message</label>
-                        <textarea id="message" name="message" maxlength="2000"
-                                  placeholder="Tell us what happened and what you need help with" required></textarea>
-                        <div class="hp-count" id="messageCount">0 / 2000</div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" id="submitBtn">Send Message</button>
-                </form>
-            </section>
-
-            <section class="dashboard-section" id="myRequests" hidden>
-                <h2 class="dashboard-section-title">My Requests</h2>
-                <div id="myRequestsList">
-                    <p class="hp-status">Loading&hellip;</p>
+                <div class="profile-mini" id="profileMini" hidden>
+                    <div class="profile-avatar" id="profileAvatar"></div>
+                    <span id="profileName"></span>
                 </div>
-            </section>
+            </div>
 
-        </div>
+            <div class="hp-wrap">
 
-    </main>
-</div>
+                <section class="dashboard-section">
+                    <h2 class="dashboard-section-title">
+                        Frequently Asked Questions
+                    </h2>
+
+                    <input
+                        type="search"
+                        id="helpSearch"
+                        class="hp-search"
+                        placeholder="Search for an answer&hellip;"
+                        autocomplete="off"
+                        aria-label="Search the frequently asked questions"
+                    >
+
+                    <div class="hp-faq" id="faqList">
+
+                        <details>
+                            <summary>How do quizzes work?</summary>
+                            <p>
+                                Each attempt gives you 10 random questions from the quiz,
+                                and the time limit is shown at the top. You must answer
+                                every question before you can submit. When you submit,
+                                you see your score and a review of each question with
+                                the correct answer and an explanation.
+                            </p>
+                        </details>
+
+                        <details>
+                            <summary>Can I retake a quiz?</summary>
+                            <p>
+                                Yes. Open the subject on the Classes page and choose
+                                Retake Quiz. Your Quizzes page always shows your most
+                                recent result, and you can review it at any time.
+                            </p>
+                        </details>
+
+                        <details>
+                            <summary>Why does a quiz say it is not available?</summary>
+                            <p>
+                                A quiz appears as not available until it has at least
+                                10 approved questions. It also has to be published
+                                for your grade and one of your subjects. Check back
+                                soon, or send us a message below if it stays that way.
+                            </p>
+                        </details>
+
+                        <details>
+                            <summary>How are points and rankings worked out?</summary>
+                            <p>
+                                You earn 10 points for each correct answer. Only your
+                                best attempt on each quiz counts, so retaking a quiz
+                                can improve your score but cannot be used to collect
+                                extra points. The leaderboard has This Week, This
+                                Month and All Time views, and other learners appear
+                                as a first name and surname initial.
+                            </p>
+                        </details>
+
+                        <details>
+                            <summary>I forgot my password. What do I do?</summary>
+                            <p>
+                                On the Sign In page, choose Forgot password and enter
+                                your email address. We will send you a link to choose
+                                a new password. The link works once and expires after
+                                1 hour.
+                            </p>
+                        </details>
+
+                        <details>
+                            <summary>Why can I only see some subjects?</summary>
+                            <p>
+                                Your Classes and Quizzes show only the subjects you
+                                chose when you signed up, for your grade.
+                            </p>
+                        </details>
+
+                        <details>
+                            <summary>How do I change my subjects, grade or school?</summary>
+                            <p>
+                                This cannot be changed on your own yet. Send us a
+                                message below with the change you need, and we will
+                                update it for you.
+                            </p>
+                        </details>
+
+                        <details>
+                            <summary>I found a mistake in a question. What should I do?</summary>
+                            <p>
+                                Thank you for telling us! Send a message below,
+                                choose the Quizzes category, and include the quiz
+                                name and the question number so we can fix it.
+                            </p>
+                        </details>
+
+                    </div>
+
+                    <p class="hp-empty" id="faqEmpty">
+                        No answers match your search. Try different words,
+                        or send us a message below.
+                    </p>
+                </section>
+
+                <section class="dashboard-section" id="contactSection">
+                    <h2 class="dashboard-section-title">Contact Support</h2>
+
+                    <!-- Shown when the visitor is not signed in -->
+                    <div class="hp-prompt" id="signinPrompt" hidden>
+                        Please <a href="login.html">sign in</a> to send us
+                        a message and to see your replies.
+                    </div>
+
+                    <!-- Shown when signed in -->
+                    <form class="hp-form card" id="supportForm" novalidate hidden>
+
+                        <div class="hp-msg" id="formError" role="alert"></div>
+                        <div class="hp-msg" id="formSuccess" role="status"></div>
+
+                        <div class="hp-field">
+                            <label for="category">
+                                What do you need help with?
+                            </label>
+
+                            <select id="category" name="category" required>
+                                <option value="" disabled selected>
+                                    Choose a category
+                                </option>
+                                <option>Account</option>
+                                <option>Quizzes</option>
+                                <option>Classes &amp; Subjects</option>
+                                <option>Technical Problem</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+
+                        <div class="hp-field">
+                            <label for="subject">Subject</label>
+
+                            <input
+                                type="text"
+                                id="subject"
+                                name="subject"
+                                maxlength="150"
+                                placeholder="A short summary of your question"
+                                required
+                            >
+                        </div>
+
+                        <div class="hp-field">
+                            <label for="message">Message</label>
+
+                            <textarea
+                                id="message"
+                                name="message"
+                                maxlength="2000"
+                                placeholder="Tell us what happened and what you need help with"
+                                required
+                            ></textarea>
+
+                            <div class="hp-count" id="messageCount">
+                                0 / 2000
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                            id="submitBtn"
+                        >
+                            Send Message
+                        </button>
+
+                    </form>
+                </section>
+
+                <section class="dashboard-section" id="myRequests" hidden>
+                    <h2 class="dashboard-section-title">My Requests</h2>
+
+                    <div id="myRequestsList">
+                        <p class="hp-status">Loading&hellip;</p>
+                    </div>
+                </section>
+
+            </div>
+
+        </main>
+
+    </div>
+
     <script src="js/api.js" defer></script>
     <script src="js/help.js" defer></script>
+
 </body>
+
 </html>

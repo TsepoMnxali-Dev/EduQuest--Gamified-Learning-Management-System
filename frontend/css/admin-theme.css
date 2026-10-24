@@ -1,14 +1,174 @@
+
 /* EduQuest admin visual alignment with the Learner Dashboard */
-:root{--navy:#173f67;--navy-dark:#123553;--teal:#2ca9a5;--teal-light:#e9f7f6;--page-bg:#f5f7fc;--white:#fff;--text:#173f67;--muted:#666f78;--border:#b9dddd;--shadow:0 8px 25px rgba(23,63,103,.08)}
-body{font-family:Arial,Helvetica,sans-serif;background:var(--page-bg);color:var(--navy)}
-.app{min-height:100vh;display:flex}.sidebar{position:fixed;left:0;top:0;width:220px;height:100vh;min-height:100vh;background:#fff;padding:18px 18px 22px;display:flex;flex-direction:column;justify-content:space-between;border-right:1px solid #e6eaee;z-index:20}
-.sidebar .brand{margin-bottom:30px}.sidebar .brand-logo{width:94px!important;height:94px!important;display:block;border-radius:50%!important;object-fit:contain;margin:0 auto 8px!important}
-.sidebar .brand-name{display:none}.sidebar-nav{display:flex;flex-direction:column;gap:10px}.sidebar-nav .nav-link{width:100%;min-height:38px;border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;padding:8px 12px;color:var(--navy);font-weight:700;background:#fff;text-align:center;text-decoration:none;cursor:pointer;font-family:inherit;font-size:inherit}
-.sidebar-nav .nav-link:hover,.sidebar-nav .nav-link.active{background:var(--teal);border-color:var(--teal);color:var(--navy);transform:translateY(-1px)}
-.sidebar-social{text-align:center;font-size:13px;color:var(--teal);display:flex;justify-content:center;gap:12px}
-.main{margin-left:220px;padding:38px 42px;min-width:0;flex:1}.topbar{display:none!important}
-.dashboard-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:25px}
-.page-header h1,.dashboard-welcome h1{color:var(--navy)}.page-header p{color:var(--muted)}
-.parent-card,.child-card,.users-table-card,.card,.report-card,.competition-card{border-radius:16px;box-shadow:var(--shadow)}
-@media(max-width:850px){.sidebar{position:static;width:100%;height:auto;min-height:0}.app{display:block}.main{margin-left:0;padding:24px 20px}.sidebar-nav{display:flex;flex-direction:row;flex-wrap:wrap}.sidebar-nav .nav-link{width:auto;flex:1 1 125px}}
-@media(max-width:650px){.main{padding:18px 14px}}
+
+:root {
+    --navy: #173f67;
+    --navy-dark: #123553;
+    --teal: #2ca9a5;
+    --teal-light: #e9f7f6;
+    --page-bg: #f5f7fc;
+    --white: #fff;
+    --text: #173f67;
+    --muted: #666f78;
+    --border: #b9dddd;
+    --shadow: 0 8px 25px rgba(23,63,103,.08);
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--page-bg);
+    color: var(--navy);
+}
+
+.app {
+    min-height: 100vh;
+    display: flex;
+}
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 220px;
+    height: 100vh;
+    min-height: 100vh;
+    background: #fff;
+    padding: 18px 18px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid #e6eaee;
+    z-index: 20;
+}
+
+.sidebar .brand {
+    margin-bottom: 30px;
+}
+
+.sidebar .brand-logo {
+    width: 94px !important;
+    height: 94px !important;
+    display: block;
+    border-radius: 50% !important;
+    object-fit: contain;
+    margin: 0 auto 8px !important;
+}
+
+.sidebar .brand-name {
+    display: none;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sidebar-nav .nav-link {
+    width: 100%;
+    min-height: 38px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    color: var(--navy);
+    font-weight: 700;
+    background: #fff;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.sidebar-nav .nav-link:hover,
+.sidebar-nav .nav-link.active {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: var(--navy);
+    transform: translateY(-1px);
+}
+
+.sidebar-social {
+    text-align: center;
+    font-size: 13px;
+    color: var(--teal);
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.main {
+    margin-left: 220px;
+    padding: 38px 42px;
+    min-width: 0;
+    flex: 1;
+}
+
+.topbar {
+    display: none !important;
+}
+
+.dashboard-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 25px;
+}
+
+.page-header h1,
+.dashboard-welcome h1 {
+    color: var(--navy);
+}
+
+.page-header p {
+    color: var(--muted);
+}
+
+.parent-card,
+.child-card,
+.users-table-card,
+.card,
+.report-card,
+.competition-card {
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+}
+
+@media (max-width: 850px) {
+    .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+    }
+
+    .app {
+        display: block;
+    }
+
+    .main {
+        margin-left: 0;
+        padding: 24px 20px;
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .sidebar-nav .nav-link {
+        width: auto;
+        flex: 1 1 125px;
+    }
+}
+
+@media (max-width: 650px) {
+    .main {
+        padding: 18px 14px;
+    }
+}

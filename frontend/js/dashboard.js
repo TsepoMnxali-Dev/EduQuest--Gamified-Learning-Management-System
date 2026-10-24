@@ -17,8 +17,6 @@
    - api.js
    - admin-guard.js
 
-   No dummy statistics.
-   No database modifications.
 ============================================================= */
 
 (function () {
@@ -350,8 +348,7 @@
         // The following endpoints must exist and return
         // the required records to populate their cards.
         // A missing endpoint leaves the value as "—".
-        //
-        // Do not treat a missing endpoint as zero.
+        
 
         const results = await Promise.all([
             loadOptionalCount(

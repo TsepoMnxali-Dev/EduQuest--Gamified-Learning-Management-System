@@ -1,1 +1,21 @@
-.brand-logo,.auth-logo{border-radius:50%!important;object-fit:contain!important}.sidebar{background:#fff}.nav-link.active,.nav-link:hover{background:#2ca9a5;border-color:#2ca9a5;color:#173f67}.main{background:#f5f7fc}
+
+.brand-logo,
+.auth-logo {
+    border-radius: 50% !important;
+    object-fit: contain !important;
+}
+
+.sidebar {
+    background: #fff;
+}
+
+.nav-link.active,
+.nav-link:hover {
+    background: #2ca9a5;
+    border-color: #2ca9a5;
+    color: #173f67;
+}
+
+.main {
+    background: #f5f7fc;
+}

@@ -12,8 +12,6 @@ This file handles:
    nobody has earned points.
 
 IMPORTANT:
-No dummy data is used.
-
 The backend calculates points and rankings.
 ========================================================
 */

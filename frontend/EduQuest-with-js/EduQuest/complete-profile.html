@@ -1,32 +1,333 @@
+
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Complete Your Profile | EduQuest</title><link rel="stylesheet" href="css/style.css">
-<style>
-.setup-main{max-width:1050px}.setup-card{background:#fff;border-radius:16px;padding:32px;box-shadow:var(--shadow);margin-top:24px}
-.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.setup-field{display:flex;flex-direction:column;gap:8px}.setup-field label{font-weight:700;color:var(--navy)}
-.setup-field select{width:100%;padding:13px;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--navy);font-size:15px}
-.setup-field select:focus{outline:2px solid var(--teal)}.subject-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0 24px}
-.subject-choice{display:flex;gap:10px;align-items:center;border:1px solid var(--border);border-radius:10px;padding:13px;cursor:pointer;color:var(--navy)}
-.subject-choice:has(input:checked){background:var(--teal-light);border-color:var(--teal)}.setup-actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-.setup-submit{background:var(--teal);color:var(--navy);font-weight:700;padding:13px 24px;border:0;border-radius:10px;cursor:pointer}
-.setup-submit:disabled{opacity:.55;cursor:wait}.setup-message{padding:13px;border-radius:10px;margin:12px 0;display:none;white-space:pre-wrap}
-.setup-message.error{display:block;background:#fff0f0;color:#a52727}.setup-message.success{display:block;background:#e9f7f6;color:#17645f}
-.setup-hint{color:var(--muted);line-height:1.6;margin-top:8px}.setup-section{margin-top:28px}.setup-section h2{font-size:19px}
-@media(max-width:850px){.setup-grid{grid-template-columns:1fr}.setup-card{padding:20px}}
-</style></head><body><div class="app">
-<aside class="sidebar"><div><div class="brand"><img src="images/eduquest-logo.png" alt="EduQuest logo" class="brand-logo"></div>
-<nav class="sidebar-nav" aria-label="Learner navigation"><a class="nav-link active" href="complete-profile.html">Complete Profile</a>
-<button class="nav-link" type="button" id="setupLogout">Log Out</button></nav></div>
-<div class="sidebar-social"><a href="#">Instagram</a><a href="#">Facebook</a></div></aside>
-<main class="main setup-main"><div class="dashboard-topbar"><div class="dashboard-welcome"><h1>Complete Your Profile</h1><p>Tell us about your school and subjects to get started with EduQuest.</p></div>
-<div class="profile-mini"><div class="profile-avatar" id="setupAvatar">L</div><span id="setupName">Learner</span></div></div>
-<div class="setup-card"><form id="setupForm"><div class="setup-grid">
-<div class="setup-field"><label for="setupProvince">Province</label><select id="setupProvince" required><option value="">Loading provinces...</option></select></div>
-<div class="setup-field"><label for="setupSchool">School</label><select id="setupSchool" required disabled><option value="">Select a province first</option></select></div>
-<div class="setup-field"><label for="setupGrade">Grade</label><select id="setupGrade" required><option value="">Loading grades...</option></select></div></div>
-<p class="setup-hint" id="profileHint">Your academic details will be saved to your learner profile.</p>
-<section class="setup-section"><h2>Your Subjects</h2><p class="setup-hint">Choose the subjects you study. Only subjects offered for your selected grade appear here.</p>
-<div id="setupSubjects" class="subject-grid" aria-live="polite">Select your grade to see subjects.</div></section>
-<div id="setupMessage" class="setup-message" role="alert"></div><div class="setup-actions"><button class="setup-submit" type="submit" id="setupSubmit">Save and Continue</button><span class="setup-hint" id="setupProgress"></span></div></form></div></main></div>
-<script src="js/api.js"></script><script src="js/profile-gate.js"></script><script src="js/complete-profile.js"></script>
-</body></html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <title>Complete Your Profile | EduQuest</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        .setup-main {
+            max-width: 1050px;
+        }
+
+        .setup-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            margin-top: 24px;
+        }
+
+        .setup-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .setup-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .setup-field label {
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        .setup-field select {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #fff;
+            color: var(--navy);
+            font-size: 15px;
+        }
+
+        .setup-field select:focus {
+            outline: 2px solid var(--teal);
+        }
+
+        .subject-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin: 14px 0 24px;
+        }
+
+        .subject-choice {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 13px;
+            cursor: pointer;
+            color: var(--navy);
+        }
+
+        .subject-choice:has(input:checked) {
+            background: var(--teal-light);
+            border-color: var(--teal);
+        }
+
+        .setup-actions {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .setup-submit {
+            background: var(--teal);
+            color: var(--navy);
+            font-weight: 700;
+            padding: 13px 24px;
+            border: 0;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .setup-submit:disabled {
+            opacity: .55;
+            cursor: wait;
+        }
+
+        .setup-message {
+            padding: 13px;
+            border-radius: 10px;
+            margin: 12px 0;
+            display: none;
+            white-space: pre-wrap;
+        }
+
+        .setup-message.error {
+            display: block;
+            background: #fff0f0;
+            color: #a52727;
+        }
+
+        .setup-message.success {
+            display: block;
+            background: #e9f7f6;
+            color: #17645f;
+        }
+
+        .setup-hint {
+            color: var(--muted);
+            line-height: 1.6;
+            margin-top: 8px;
+        }
+
+        .setup-section {
+            margin-top: 28px;
+        }
+
+        .setup-section h2 {
+            font-size: 19px;
+        }
+
+        @media (max-width: 850px) {
+            .setup-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .setup-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+
+        <aside class="sidebar">
+            <div>
+                <div class="brand">
+                    <img
+                        src="images/eduquest-logo.png"
+                        alt="EduQuest logo"
+                        class="brand-logo"
+                    >
+                </div>
+
+                <nav
+                    class="sidebar-nav"
+                    aria-label="Learner navigation"
+                >
+                    <a
+                        class="nav-link active"
+                        href="complete-profile.html"
+                    >
+                        Complete Profile
+                    </a>
+
+                    <button
+                        class="nav-link"
+                        type="button"
+                        id="setupLogout"
+                    >
+                        Log Out
+                    </button>
+                </nav>
+            </div>
+
+            <div class="sidebar-social">
+                <a href="#">Instagram</a>
+                <a href="#">Facebook</a>
+            </div>
+        </aside>
+
+        <main class="main setup-main">
+
+            <div class="dashboard-topbar">
+
+                <div class="dashboard-welcome">
+                    <h1>Complete Your Profile</h1>
+
+                    <p>
+                        Tell us about your school and subjects
+                        to get started with EduQuest.
+                    </p>
+                </div>
+
+                <div class="profile-mini">
+                    <div
+                        class="profile-avatar"
+                        id="setupAvatar"
+                    >
+                        L
+                    </div>
+
+                    <span id="setupName">Learner</span>
+                </div>
+
+            </div>
+
+            <div class="setup-card">
+
+                <form id="setupForm">
+
+                    <div class="setup-grid">
+
+                        <div class="setup-field">
+                            <label for="setupProvince">
+                                Province
+                            </label>
+
+                            <select
+                                id="setupProvince"
+                                required
+                            >
+                                <option value="">
+                                    Loading provinces...
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="setup-field">
+                            <label for="setupSchool">
+                                School
+                            </label>
+
+                            <select
+                                id="setupSchool"
+                                required
+                                disabled
+                            >
+                                <option value="">
+                                    Select a province first
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="setup-field">
+                            <label for="setupGrade">
+                                Grade
+                            </label>
+
+                            <select
+                                id="setupGrade"
+                                required
+                            >
+                                <option value="">
+                                    Loading grades...
+                                </option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <p
+                        class="setup-hint"
+                        id="profileHint"
+                    >
+                        Your academic details will be saved
+                        to your learner profile.
+                    </p>
+
+                    <section class="setup-section">
+
+                        <h2>Your Subjects</h2>
+
+                        <p class="setup-hint">
+                            Choose the subjects you study.
+                            Only subjects offered for your
+                            selected grade appear here.
+                        </p>
+
+                        <div
+                            id="setupSubjects"
+                            class="subject-grid"
+                            aria-live="polite"
+                        >
+                            Select your grade to see subjects.
+                        </div>
+
+                    </section>
+
+                    <div
+                        id="setupMessage"
+                        class="setup-message"
+                        role="alert"
+                    ></div>
+
+                    <div class="setup-actions">
+
+                        <button
+                            class="setup-submit"
+                            type="submit"
+                            id="setupSubmit"
+                        >
+                            Save and Continue
+                        </button>
+
+                        <span
+                            class="setup-hint"
+                            id="setupProgress"
+                        ></span>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/profile-gate.js"></script>
+    <script src="js/complete-profile.js"></script>
+
+</body>
+
+</html>
